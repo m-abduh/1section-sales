@@ -1,6 +1,7 @@
 import Link from "next/link";
 import type { Niche } from "@/lib/types";
 import { SITE_NAME, SITE_TAGLINE, nicheUrl } from "@/lib/site";
+import { Logo } from "@/components/site/logo";
 
 export function SiteFooter({ niches = [] }: { niches?: Niche[] }) {
   const year = new Date().getFullYear();
@@ -9,7 +10,7 @@ export function SiteFooter({ niches = [] }: { niches?: Niche[] }) {
       <div className="mx-auto grid max-w-6xl gap-10 px-4 py-14 sm:px-6 md:grid-cols-4">
         <div>
           <div className="flex items-center gap-2">
-            <span className="text-lg font-semibold text-fg">{SITE_NAME}</span>
+            <Logo className="h-6 w-[98px] text-fg" />
           </div>
           <p className="mt-3 max-w-xs text-sm text-fg-muted">{SITE_TAGLINE}</p>
           <p className="mt-3 text-xs text-fg-muted">
@@ -82,11 +83,10 @@ export function SiteFooter({ niches = [] }: { niches?: Niche[] }) {
       </div>
 
       <div className="border-t border-border">
-        <div className="mx-auto flex max-w-6xl flex-col gap-2 px-4 py-6 text-xs text-fg-muted sm:flex-row sm:items-center sm:justify-between sm:px-6">
+        <div className="mx-auto flex max-w-6xl flex-col gap-2 px-4 py-6 text-center text-xs text-fg-muted sm:px-6">
           <span>
             © {year} {SITE_NAME}. All rights reserved.
           </span>
-          <span>Payments secured by Paddle · Instant access after purchase</span>
         </div>
       </div>
     </footer>

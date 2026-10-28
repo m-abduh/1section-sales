@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import type { ReactNode } from "react";
 import { useAuth } from "@/hooks/use-auth";
+import { Logo } from "@/components/site/logo";
 import { ThemeToggle } from "@/components/theme-toggle";
 
 const navItems = [
@@ -62,8 +63,8 @@ export function AdminShell({ children }: { children: ReactNode }) {
       <aside className="hidden w-64 shrink-0 flex-col border-r border-border bg-surface md:sticky md:top-0 md:flex md:h-screen md:overflow-y-auto">
         <div className="flex items-center gap-3 px-5 py-5">
           <div className="min-w-0">
-            <p className="text-sm font-bold tracking-tight text-fg">1section</p>
-            <p className="text-[11px] font-medium uppercase tracking-[0.18em] text-fg-muted">
+            <Logo className="h-4 w-[65px] text-fg" />
+            <p className="mt-1 text-[11px] font-medium uppercase tracking-[0.18em] text-fg-muted">
               Admin
             </p>
           </div>
@@ -126,6 +127,7 @@ export function AdminShell({ children }: { children: ReactNode }) {
       <div className="flex flex-1 flex-col">
         <header className="flex h-16 items-center justify-between border-b border-border bg-surface px-4 sm:px-6">
           <div className="flex items-center gap-3 md:hidden">
+            <Logo className="h-4 w-[65px] text-fg" />
             <span className="text-sm font-semibold text-fg">Admin</span>
           </div>
           <nav className="flex gap-1 overflow-x-auto md:hidden">

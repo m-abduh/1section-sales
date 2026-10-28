@@ -1,6 +1,7 @@
 import Link from "next/link";
 import type { Niche } from "@/lib/types";
 import { SITE_NAME, nicheUrl } from "@/lib/site";
+import { Logo } from "@/components/site/logo";
 import { ThemeToggle } from "@/components/theme-toggle";
 
 export function SiteHeader({
@@ -27,10 +28,12 @@ export function SiteHeader({
           />
         ) : null}
         <div className="mx-auto flex h-16 max-w-6xl items-center justify-between gap-4 px-4 sm:px-6">
-          <Link href="/" className="flex items-center gap-2">
-            <span className="text-lg font-semibold tracking-tight text-fg">
-              {SITE_NAME}
-            </span>
+          <Link
+            href="/"
+            aria-label={SITE_NAME}
+            className="flex items-center gap-2"
+          >
+            <Logo className="h-5 w-[82px] text-fg" />
           </Link>
 
           <div className="flex items-center gap-2">
@@ -78,10 +81,12 @@ export function SiteHeader({
       <div className="mx-auto flex h-16 max-w-6xl items-center justify-between gap-6 px-4 sm:px-6">
         {/* Left: brand + current area */}
         <div className="flex min-w-0 items-center gap-3">
-          <Link href="/" className="flex shrink-0 items-center gap-2">
-            <span className="text-lg font-semibold tracking-tight text-fg">
-              {SITE_NAME}
-            </span>
+          <Link
+            href="/"
+            aria-label={SITE_NAME}
+            className="flex shrink-0 items-center gap-2"
+          >
+            <Logo className="h-5 w-[82px] text-fg" />
           </Link>
           {currentNicheName ? (
             <>

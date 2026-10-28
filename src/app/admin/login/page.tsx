@@ -7,6 +7,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useAuth } from "@/hooks/use-auth";
 import { getApiErrorMessage } from "@/lib/api";
+import { Logo } from "@/components/site/logo";
 import { Button } from "@/components/ui/button";
 import { Field, Input } from "@/components/ui/input";
 import { Spinner } from "@/components/ui/spinner";
@@ -49,8 +50,8 @@ export default function AdminLoginPage() {
           <div className="border-b border-border bg-surface-muted/60 px-8 py-6">
             <div className="flex items-center gap-3">
               <div>
-                <p className="text-sm font-bold tracking-tight text-fg">1section</p>
-                <p className="text-[11px] font-medium uppercase tracking-[0.18em] text-fg-muted">
+                <Logo className="h-5 w-[82px] text-fg" />
+                <p className="mt-1 text-[11px] font-medium uppercase tracking-[0.18em] text-fg-muted">
                   Admin console
                 </p>
               </div>
