@@ -62,6 +62,8 @@ function SuccessContent() {
   const [orderNumber, setOrderNumber] = useState<string | null>(null);
   const [accessToken, setAccessToken] = useState<string | null>(null);
   const [manual, setManual] = useState("");
+  const [email, setEmail] = useState("");
+  const [proofEmail, setProofEmail] = useState("");
 
   useEffect(() => {
     const fromQuery = searchParams.get("order");
@@ -94,11 +96,12 @@ function SuccessContent() {
   }, [searchParams]);
 
   const orderQuery = useQuery({
-    queryKey: ["order-status", orderNumber, accessToken],
+    queryKey: ["order-status", orderNumber, accessToken, proofEmail],
     enabled: Boolean(orderNumber),
     queryFn: async () => {
       const params: Record<string, string> = {};
       if (accessToken) params.access = accessToken;
+      if (proofEmail) params.email = proofEmail;
       const response = await api.get<{ data: PublicOrder }>(
         `/orders/${orderNumber}/status`,
         { params },
@@ -224,10 +227,43 @@ function SuccessContent() {
                     Access your purchase
                   </h2>
                   <p className="mt-2 text-sm text-fg-muted">
-                    Your payment is confirmed. Open the access link from your
-                    checkout to view your downloads. If you need help, contact
-                    support with your order number.
+                    Your payment is confirmed.{" "}
+                    {orderQuery.data.hasEmail
+                      ? "Enter the email address used at checkout to retrieve your downloads."
+                      : "We could not verify an email address for this order. Contact support with your order number to restore access."}
                   </p>
+                  {orderQuery.data.hasEmail ? (
+                    <form
+                      className="mx-auto mt-5 flex max-w-lg flex-col gap-3 sm:flex-row"
+                      onSubmit={(event) => {
+                        event.preventDefault();
+                        const submittedEmail = email.trim();
+                        if (submittedEmail) setProofEmail(submittedEmail);
+                      }}
+                    >
+                      <Input
+                        type="email"
+                        autoComplete="email"
+                        required
+                        value={email}
+                        onChange={(event) => setEmail(event.target.value)}
+                        placeholder="Email used at checkout"
+                        className="flex-1 text-left"
+                      />
+                      <Button type="submit" disabled={orderQuery.isFetching}>
+                        {orderQuery.isFetching ? "Checking..." : "Get downloads"}
+                      </Button>
+                    </form>
+                  ) : null}
+                  {proofEmail && !orderQuery.isFetching ? (
+                    <p
+                      role="status"
+                      className="mt-3 text-sm text-fg-muted"
+                    >
+                      This email didn&rsquo;t match the order. Check the email
+                      address used at checkout and try again.
+                    </p>
+                  ) : null}
                 </div>
               ) : null}
 
