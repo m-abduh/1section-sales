@@ -7,7 +7,11 @@ import { useQuery } from "@tanstack/react-query";
 import { api, getApiErrorMessage } from "@/lib/api";
 import { apiUrl } from "@/lib/site";
 import { formatCurrency, formatDate } from "@/lib/format";
-import { LAST_ORDER_KEY } from "@/hooks/use-checkout";
+import {
+  LAST_ACCESS_KEY,
+  LAST_ORDER_KEY,
+  type StoredCheckoutAccess,
+} from "@/hooks/use-checkout";
 import type { PublicOrder } from "@/lib/types";
 import { StatusBadge } from "@/components/ui/badge";
 import { Spinner } from "@/components/ui/spinner";
@@ -24,6 +28,35 @@ function startDownload(url: string) {
   window.setTimeout(() => frame.remove(), 60_000);
 }
 
+function getStoredCheckoutAccess(): StoredCheckoutAccess | null {
+  try {
+    const raw = window.localStorage.getItem(LAST_ACCESS_KEY);
+    if (!raw) return null;
+
+    const stored: unknown = JSON.parse(raw);
+    if (
+      typeof stored === "object" &&
+      stored !== null &&
+      "orderNumber" in stored &&
+      typeof stored.orderNumber === "string" &&
+      "transactionId" in stored &&
+      typeof stored.transactionId === "string" &&
+      "accessToken" in stored &&
+      typeof stored.accessToken === "string"
+    ) {
+      return {
+        orderNumber: stored.orderNumber,
+        transactionId: stored.transactionId,
+        accessToken: stored.accessToken,
+      };
+    }
+  } catch {
+    return null;
+  }
+
+  return null;
+}
+
 function SuccessContent() {
   const searchParams = useSearchParams();
   const [orderNumber, setOrderNumber] = useState<string | null>(null);
@@ -34,14 +67,30 @@ function SuccessContent() {
     const fromQuery = searchParams.get("order");
     const txn = searchParams.get("_ptxn") ?? searchParams.get("txn");
     const access = searchParams.get("access");
-    if (access) setAccessToken(access);
+    const storedAccess = getStoredCheckoutAccess();
     const ref = fromQuery || txn;
     if (ref) {
       setOrderNumber(ref);
+      setAccessToken(
+        access ||
+          (storedAccess &&
+          (storedAccess.orderNumber === ref ||
+            storedAccess.transactionId === ref)
+            ? storedAccess.accessToken
+            : null),
+      );
       return;
     }
     const stored = window.localStorage.getItem(LAST_ORDER_KEY);
-    if (stored) setOrderNumber(stored);
+    if (stored) {
+      setOrderNumber(stored);
+      setAccessToken(
+        access ||
+          (storedAccess?.orderNumber === stored
+            ? storedAccess.accessToken
+            : null),
+      );
+    }
   }, [searchParams]);
 
   const orderQuery = useQuery({
@@ -102,7 +151,18 @@ function SuccessContent() {
                 className="mt-5 flex flex-col gap-3 sm:flex-row"
                 onSubmit={(event) => {
                   event.preventDefault();
-                  if (manual.trim()) setOrderNumber(manual.trim());
+                  const ref = manual.trim();
+                  if (ref) {
+                    const storedAccess = getStoredCheckoutAccess();
+                    setOrderNumber(ref);
+                    setAccessToken(
+                      storedAccess &&
+                        (storedAccess.orderNumber === ref ||
+                          storedAccess.transactionId === ref)
+                        ? storedAccess.accessToken
+                        : null,
+                    );
+                  }
                 }}
               >
                 <Input

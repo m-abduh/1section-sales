@@ -5,6 +5,13 @@ import { api } from "@/lib/api";
 import { getPaddle } from "@/lib/paddle";
 
 export const LAST_ORDER_KEY = "section_last_order";
+export const LAST_ACCESS_KEY = "section_last_access";
+
+export interface StoredCheckoutAccess {
+  orderNumber: string;
+  transactionId: string;
+  accessToken: string;
+}
 
 export interface CheckoutPayload {
   productId: string;
@@ -27,6 +34,14 @@ export function useCheckout() {
     onSuccess: async (data) => {
       try {
         window.localStorage.setItem(LAST_ORDER_KEY, data.orderNumber);
+        window.localStorage.setItem(
+          LAST_ACCESS_KEY,
+          JSON.stringify({
+            orderNumber: data.orderNumber,
+            transactionId: data.transactionId,
+            accessToken: data.accessToken,
+          } satisfies StoredCheckoutAccess),
+        );
       } catch {
         /* storage might be unavailable */
       }
