@@ -86,7 +86,6 @@ Efek "cinematic" (helper class di `globals.css`):
 - `.cinema-grid` — grid 64px dari garis `fg` 7% opacity.
 - `.cinema-spotlight` — radial gradient dari atas-tengah.
 - `.cinema-noise` — SVG `feTurbulence` fractal noise (opacity dipakai di markup).
-- `.text-gradient` — `background-clip: text` gradien fg → fg 45%.
 
 Aksesibilitas gerak: `@media (prefers-reduced-motion: reduce)` mematikan ketiga animasi.
 
@@ -165,7 +164,7 @@ Aksesibilitas gerak: `@media (prefers-reduced-motion: reduce)` mematikan ketiga 
 
 ```
 Latar:        bg-surface, bg-surface-muted, bg-card
-Teks:         text-fg, text-fg-muted, text-accent-fg, text-gradient
+Teks:         text-fg, text-fg-muted, text-accent-fg
 Border/ring:  border-border, ring-border, ring-accent
 Aksen:        bg-accent, text-accent-fg
 Efek:         cinema-grid, cinema-spotlight, cinema-noise, animate-fade-up

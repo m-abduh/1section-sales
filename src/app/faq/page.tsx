@@ -2,7 +2,8 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { SiteHeader } from "@/components/site/site-header";
 import { SiteFooter } from "@/components/site/site-footer";
-import { getNiches } from "@/lib/server-api";
+import { SitePageHero } from "@/components/site/site-page-hero";
+import { getCurrentNiche, getNiches } from "@/lib/server-api";
 
 export const revalidate = 3600;
 
@@ -48,35 +49,43 @@ const faqs = [
 ];
 
 export default async function FaqPage() {
-  const niches = (await getNiches()) ?? [];
+  const [nichesResponse, currentNiche] = await Promise.all([
+    getNiches(),
+    getCurrentNiche(),
+  ]);
+  const niches = nichesResponse ?? [];
 
   return (
     <div className="flex min-h-screen flex-col bg-surface">
-      <SiteHeader niches={niches} />
+      <SiteHeader niches={niches} currentNicheName={currentNiche?.name} />
 
       <main className="flex-1">
-        <section className="border-b border-border">
-          <div className="mx-auto max-w-3xl px-4 py-16 sm:px-6">
-            <h1 className="text-3xl font-extrabold tracking-tight text-gradient sm:text-4xl">
-              Frequently asked questions
-            </h1>
-            <p className="mt-4 text-lg text-fg-muted">
-              Everything about buying, accessing, and using a resource.
-            </p>
-          </div>
-        </section>
+        <SitePageHero
+          eyebrow={currentNiche ? `${currentNiche.name} · Help & guidance` : "Help & guidance"}
+          title="Frequently asked questions"
+          description="Everything about buying, accessing, and using a resource."
+          accentColor={currentNiche?.accentColor}
+        />
 
         <section className="mx-auto max-w-3xl px-4 py-16 sm:px-6">
-          <div className="divide-y divide-border rounded-2xl border border-border bg-card">
+          <div className="divide-y divide-border overflow-hidden rounded-3xl border border-border bg-card shadow-sm">
             {faqs.map((item) => (
-              <details key={item.q} className="group px-6 py-5">
+              <details
+                key={item.q}
+                className="group px-5 py-5 transition-colors open:bg-surface-muted/50 sm:px-6"
+              >
                 <summary className="flex cursor-pointer list-none items-center justify-between gap-4 font-semibold text-fg">
                   {item.q}
-                  <span className="text-fg-muted transition group-open:rotate-45">
+                  <span
+                    aria-hidden
+                    className="grid size-7 shrink-0 place-items-center rounded-full border border-border text-sm text-fg-muted transition group-open:rotate-45"
+                  >
                     +
                   </span>
                 </summary>
-                <p className="mt-3 text-sm text-fg-muted">{item.a}</p>
+                <p className="mt-3 max-w-2xl text-sm leading-7 text-fg-muted">
+                  {item.a}
+                </p>
               </details>
             ))}
           </div>

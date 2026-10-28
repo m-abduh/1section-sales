@@ -17,6 +17,7 @@ import { StatusBadge } from "@/components/ui/badge";
 import { Spinner } from "@/components/ui/spinner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { SitePageHero } from "@/components/site/site-page-hero";
 
 function startDownload(url: string) {
   // Trigger the download from a hidden iframe so the file is saved instead of
@@ -113,34 +114,22 @@ function SuccessContent() {
   });
 
   return (
-    <div className="flex min-h-screen flex-col bg-surface">
-      <div className="relative overflow-hidden border-b border-border">
-        <div className="cinema-grid pointer-events-none absolute inset-0 opacity-40" />
-        <div className="cinema-spotlight pointer-events-none absolute inset-0" />
-        <div className="pointer-events-none absolute inset-x-0 bottom-0 h-32 bg-gradient-to-t from-surface to-transparent" />
-
-        <div className="relative mx-auto max-w-4xl px-4 py-12 sm:px-6 sm:py-16">
+    <div className="flex flex-1 flex-col bg-surface">
+      <SitePageHero
+        maxWidth="max-w-4xl"
+        eyebrow="Purchase"
+        title="Your downloads"
+        description="Enter your Paddle transaction ID or order number below to access your purchase."
+      >
+        <div className="mb-6">
           <Link
             href="/"
             className="inline-flex items-center gap-2 text-sm font-medium text-fg-muted transition hover:text-fg"
           >
             ← Back to home
           </Link>
-
-          <div className="mt-6">
-            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-fg-muted">
-              Purchase
-            </p>
-            <h1 className="mt-2 text-3xl font-extrabold tracking-tight text-gradient sm:text-4xl">
-              Your downloads
-            </h1>
-            <p className="mt-2 max-w-xl text-sm text-fg-muted">
-              Enter your Paddle transaction ID or order number below to access
-              your purchase.
-            </p>
-          </div>
         </div>
-      </div>
+      </SitePageHero>
 
       <main className="flex-1">
         <div className="mx-auto max-w-4xl px-4 py-10 sm:px-6">

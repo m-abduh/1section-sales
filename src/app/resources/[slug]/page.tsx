@@ -9,6 +9,7 @@ import { getNiches, getProduct } from "@/lib/server-api";
 import { nicheUrl } from "@/lib/site";
 import { formatCurrency } from "@/lib/format";
 import { LEARNING_LEVEL_LABEL } from "@/lib/types";
+import { SitePageHero } from "@/components/site/site-page-hero";
 
 export const revalidate = 30;
 
@@ -39,6 +40,7 @@ export default async function ResourcePage({ params }: ResourcePageProps) {
   }
 
   const isFree = product.priceAmount === 0;
+  const accentColor = product.niche?.accentColor;
   const hasDiscount =
     product.compareAtAmount != null &&
     product.compareAtAmount > product.priceAmount;
@@ -51,32 +53,30 @@ export default async function ResourcePage({ params }: ResourcePageProps) {
       />
 
       <main className="flex-1">
-        <section className="border-b border-border">
-          <div className="mx-auto max-w-6xl px-4 py-12 sm:px-6 sm:py-16">
-            <nav className="text-sm text-fg-muted">
-              {product.niche ? (
-                <Link
-                  href={nicheUrl(product.niche.slug)}
-                  className="transition hover:text-fg"
-                >
-                  {product.niche.name}
-                </Link>
-              ) : null}
-              {product.niche ? " / " : null}
-              <span className="text-fg">{product.name}</span>
-            </nav>
+        <SitePageHero
+          maxWidth="max-w-6xl"
+          accentColor={accentColor}
+          eyebrow={`${product.niche?.name ? `${product.niche.name} · ` : ""}${LEARNING_LEVEL_LABEL[product.level]}`}
+          title={product.name}
+          description={product.summary}
+        >
+          <nav className="mb-6 text-sm text-fg-muted">
+            {product.niche ? (
+              <Link
+                href={nicheUrl(product.niche.slug)}
+                className="transition hover:text-fg"
+              >
+                {product.niche.name}
+              </Link>
+            ) : null}
+            {product.niche ? " / " : null}
+            <span className="text-fg">{product.name}</span>
+          </nav>
+        </SitePageHero>
 
-            <div className="mt-8 grid gap-10 lg:grid-cols-[1.4fr_1fr]">
-              <div>
-                <span className="inline-flex items-center rounded-full border border-border bg-card px-3 py-1 text-xs font-semibold text-fg-muted">
-                  {LEARNING_LEVEL_LABEL[product.level]}
-                </span>
-                <h1 className="mt-4 text-3xl font-extrabold tracking-tight text-gradient sm:text-4xl">
-                  {product.name}
-                </h1>
-                {product.summary ? (
-                  <p className="mt-4 text-lg text-fg-muted">{product.summary}</p>
-                ) : null}
+        <section className="relative">
+          <div className="mx-auto grid max-w-6xl gap-10 px-4 py-12 sm:px-6 sm:py-16 lg:grid-cols-[1.4fr_1fr]">
+            <div>
 
                 {product.outcome ? (
                   <div className="mt-8 rounded-2xl border border-border bg-card p-5">
@@ -98,7 +98,15 @@ export default async function ResourcePage({ params }: ResourcePageProps) {
                           key={item}
                           className="flex items-start gap-3 text-sm text-fg-muted"
                         >
-                          <span className="mt-0.5 grid size-5 shrink-0 place-items-center rounded-full bg-accent text-[10px] font-bold text-accent-fg">
+                          <span
+                            className="mt-0.5 grid size-5 shrink-0 place-items-center rounded-full text-[10px] font-bold"
+                            style={{
+                              backgroundColor: accentColor
+                                ? `color-mix(in srgb, ${accentColor} 16%, var(--surface-muted))`
+                                : "var(--surface-muted)",
+                              color: accentColor ?? "var(--fg)",
+                            }}
+                          >
                             ✓
                           </span>
                           {item}
@@ -128,7 +136,15 @@ export default async function ResourcePage({ params }: ResourcePageProps) {
                           key={feature}
                           className="flex items-start gap-3 text-sm text-fg-muted"
                         >
-                          <span className="mt-0.5 grid size-5 shrink-0 place-items-center rounded-full bg-accent text-[10px] font-bold text-accent-fg">
+                          <span
+                            className="mt-0.5 grid size-5 shrink-0 place-items-center rounded-full text-[10px] font-bold"
+                            style={{
+                              backgroundColor: accentColor
+                                ? `color-mix(in srgb, ${accentColor} 16%, var(--surface-muted))`
+                                : "var(--surface-muted)",
+                              color: accentColor ?? "var(--fg)",
+                            }}
+                          >
                             ✓
                           </span>
                           {feature}
@@ -252,7 +268,6 @@ export default async function ResourcePage({ params }: ResourcePageProps) {
                 </div>
               </aside>
             </div>
-          </div>
         </section>
       </main>
 

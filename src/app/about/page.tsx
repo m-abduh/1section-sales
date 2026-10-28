@@ -1,7 +1,8 @@
 import type { Metadata } from "next";
 import { SiteHeader } from "@/components/site/site-header";
 import { SiteFooter } from "@/components/site/site-footer";
-import { getNiches } from "@/lib/server-api";
+import { SitePageHero } from "@/components/site/site-page-hero";
+import { getCurrentNiche, getNiches } from "@/lib/server-api";
 import { SITE_NAME } from "@/lib/site";
 
 export const revalidate = 3600;
@@ -13,23 +14,23 @@ export const metadata: Metadata = {
 };
 
 export default async function AboutPage() {
-  const niches = (await getNiches()) ?? [];
+  const [nichesResponse, currentNiche] = await Promise.all([
+    getNiches(),
+    getCurrentNiche(),
+  ]);
+  const niches = nichesResponse ?? [];
 
   return (
     <div className="flex min-h-screen flex-col bg-surface">
-      <SiteHeader niches={niches} />
+      <SiteHeader niches={niches} currentNicheName={currentNiche?.name} />
 
       <main className="flex-1">
-        <section className="border-b border-border">
-          <div className="mx-auto max-w-3xl px-4 py-16 sm:px-6">
-            <h1 className="text-3xl font-extrabold tracking-tight text-gradient sm:text-4xl">
-              About {SITE_NAME}
-            </h1>
-            <p className="mt-4 text-lg text-fg-muted">
-              Most people do not lack information. They lack a clear next step.
-            </p>
-          </div>
-        </section>
+        <SitePageHero
+          eyebrow={currentNiche ? `${currentNiche.name} · About 1section` : "About 1section"}
+          title={`About ${SITE_NAME}`}
+          description="Most people do not lack information. They lack a clear next step."
+          accentColor={currentNiche?.accentColor}
+        />
 
         <section className="mx-auto max-w-3xl px-4 py-16 sm:px-6">
           <div className="space-y-8 text-base text-fg-muted">
