@@ -2,7 +2,6 @@ import Link from "next/link";
 import type { Niche } from "@/lib/types";
 import { SITE_NAME, nicheUrl } from "@/lib/site";
 import { Logo } from "@/components/site/logo";
-import { ThemeToggle } from "@/components/theme-toggle";
 
 export function SiteHeader({
   niches = [],
@@ -27,24 +26,22 @@ export function SiteHeader({
             }}
           />
         ) : null}
-        <div className="mx-auto flex h-16 max-w-6xl items-center justify-between gap-4 px-4 sm:px-6">
+        <div className="mx-auto flex h-14 max-w-6xl items-center gap-4 px-4 sm:px-6">
+          <span
+            aria-hidden
+            className="h-px flex-1 bg-gradient-to-r from-transparent to-border"
+          />
           <Link
             href="/"
             aria-label={SITE_NAME}
-            className="flex items-center gap-2"
+            className="flex shrink-0 items-center"
           >
             <Logo className="h-5 w-[82px] text-fg" />
           </Link>
-
-          <div className="flex items-center gap-2">
-            <ThemeToggle />
-            <Link
-              href="/#niches"
-              className="rounded-lg bg-accent px-4 py-2 text-sm font-medium text-accent-fg transition hover:opacity-90"
-            >
-              Explore
-            </Link>
-          </div>
+          <span
+            aria-hidden
+            className="h-px flex-1 bg-gradient-to-l from-transparent to-border"
+          />
         </div>
 
         <div className="border-t border-border bg-surface-muted/60">
@@ -78,45 +75,41 @@ export function SiteHeader({
 
   return (
     <header className="sticky top-0 z-40 border-b border-border bg-surface/70 backdrop-blur-xl">
-      <div className="mx-auto flex h-16 max-w-6xl items-center justify-between gap-6 px-4 sm:px-6">
-        {/* Left: brand + current area */}
-        <div className="flex min-w-0 items-center gap-3">
-          <Link
-            href="/"
-            aria-label={SITE_NAME}
-            className="flex shrink-0 items-center gap-2"
-          >
+      <div className="mx-auto flex h-14 max-w-6xl items-center gap-4 px-4 sm:px-6">
+        <span
+          aria-hidden
+          className="h-px flex-1 bg-gradient-to-r from-transparent to-border"
+        />
+
+        <div className="flex min-w-0 shrink-0 items-center gap-2">
+          <Link href="/" aria-label={SITE_NAME} className="flex items-center">
             <Logo className="h-5 w-[82px] text-fg" />
           </Link>
           {currentNicheName ? (
             <>
-              <span className="text-fg-muted/60">/</span>
-              <span className="inline-flex min-w-0 items-center gap-2 text-sm font-medium text-fg">
-                <span
-                  className="size-2 shrink-0 rounded-full"
-                  style={{
-                    backgroundColor:
-                      niches.find((n) => n.name === currentNicheName)?.accentColor ??
-                      "var(--accent)",
-                  }}
-                />
-                <span className="truncate">{currentNicheName}</span>
+              <span aria-hidden className="text-sm text-fg-muted/60">
+                /
+              </span>
+              <span
+                className="max-w-48 truncate text-xs font-bold sm:text-sm"
+                style={{
+                  color:
+                    `color-mix(in srgb, ${
+                      niches.find((n) => n.name === currentNicheName)
+                        ?.accentColor ?? "var(--accent)"
+                    } 72%, var(--fg-muted))`,
+                }}
+              >
+                {currentNicheName}
               </span>
             </>
           ) : null}
         </div>
 
-        <div className="flex shrink-0 items-center gap-2">
-          {currentNicheName ? (
-            <Link
-              href="/checkout/success"
-              className="rounded-lg px-3 py-2 text-sm font-medium text-fg-muted transition hover:bg-surface-muted hover:text-fg"
-            >
-              Retrieve purchase
-            </Link>
-          ) : null}
-          <ThemeToggle />
-        </div>
+        <span
+          aria-hidden
+          className="h-px flex-1 bg-gradient-to-l from-transparent to-border"
+        />
       </div>
     </header>
   );

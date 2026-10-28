@@ -2,6 +2,7 @@ import Link from "next/link";
 import type { Niche } from "@/lib/types";
 import { SITE_NAME, SITE_TAGLINE, nicheUrl } from "@/lib/site";
 import { Logo } from "@/components/site/logo";
+import { ThemeToggle } from "@/components/theme-toggle";
 
 export function SiteFooter({ niches = [] }: { niches?: Niche[] }) {
   const year = new Date().getFullYear();
@@ -83,10 +84,13 @@ export function SiteFooter({ niches = [] }: { niches?: Niche[] }) {
       </div>
 
       <div className="border-t border-border">
-        <div className="mx-auto flex max-w-6xl flex-col gap-2 px-4 py-6 text-center text-xs text-fg-muted sm:px-6">
+        <div className="relative mx-auto flex max-w-6xl flex-col items-center gap-4 px-4 py-6 text-center text-xs text-fg-muted sm:px-6">
           <span>
             © {year} {SITE_NAME}. All rights reserved.
           </span>
+          <div className="sm:absolute sm:right-6 sm:top-1/2 sm:-translate-y-1/2">
+            <ThemeToggle />
+          </div>
         </div>
       </div>
     </footer>
