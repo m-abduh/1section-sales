@@ -119,7 +119,7 @@ src/
 ### 5.2 Halaman Area / Niche — landing subdomain (`app/niche/[slug]/page.tsx`)
 - `generateMetadata` dari niche.
 - Hero dua kolom (aksen warna `accentColor`): eyebrow "1section · <Nama>", ikon huruf, tagline besar, deskripsi, kartu **audience** ("Who this is for"), CTA "Browse the bundles" + chip sosial (`SocialLinks`), dan panel "In this area" (pratinjau bundle: nama, level, harga) yang link ke `/resources/[slug]`.
-- Section **bundles** (`#bundles`): grid `BundleCard[]` (2 kolom) — badge level, judul, outcome, cuplikan learnings, harga (+ compare-at), CTA "View bundle →". Landing subdomain berfokus **menjelaskan daftar bundle**.
+- Section **bundles** (`#bundles`): daftar `BundleCard[]` ditumpuk **vertikal full-width** (satu kartu per baris, bukan grid 2 kolom), dengan isi kartu terbagi **3 bagian horizontal** di desktop: visual/cover mengisi tinggi penuh kartu (kiri), informasi utama + learnings (tengah), dan panel harga + CTA (kanan). Di layar kecil ketiganya menumpuk vertikal.
 - Section "What these bundles help with": daftar **masalah** (`problems`).
 - Section trust (3 kolom): One-time payment, Secured by Paddle, Instant access.
 - `notFound()` bila niche tidak ada.
@@ -238,6 +238,6 @@ Lihat `docs/design-system.md` §3 (ThemeProvider + themeScript + ThemeToggle).
 
 ## 10. Catatan Kualitas
 
-- Kartu bundle (`BundleCard`) tidak memuat gambar; storefront menghindari `next/image` untuk saat ini.
+- Kartu bundle (`BundleCard`) memakai cover `next/image` di kolom visual bila produk punya `coverImage`; di desktop gambar mengisi tinggi penuh kartu dengan `object-cover` (tidak ada ruang kosong di bawah, tanpa distorsi), sedangkan di mobile memakai rasio asli gambar. Jika tidak ada cover, kolom visual menampilkan gradient aksen + nomor guide.
 - Halaman admin tidak memiliki proteksi server-side; hanya `AuthGuard` di client (data tetap dijaga API via JWT).
 - Seluruh copy storefront kini **English native** (brand `1section`); hint admin juga sudah di-Inggriskan.

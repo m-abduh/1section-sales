@@ -40,7 +40,6 @@ export default async function ResourcePage({ params }: ResourcePageProps) {
 
   const isFree = product.priceAmount === 0;
   const hasDiscount =
-    !isFree &&
     product.compareAtAmount != null &&
     product.compareAtAmount > product.priceAmount;
 
@@ -181,7 +180,7 @@ export default async function ResourcePage({ params }: ResourcePageProps) {
                       src={product.coverImage}
                       alt={product.name}
                       fill
-                      priority
+                      preload
                       sizes="(min-width: 1024px) 40vw, 100vw"
                       className="object-cover"
                     />
@@ -190,7 +189,9 @@ export default async function ResourcePage({ params }: ResourcePageProps) {
                 <div className="rounded-3xl border border-border bg-card p-6 shadow-2xl shadow-black/5 dark:shadow-black/40">
                   <div className="flex items-end gap-3">
                     <span className="text-3xl font-bold text-fg">
-                      {formatCurrency(product.priceAmount, product.currency)}
+                      {isFree
+                        ? "Free"
+                        : formatCurrency(product.priceAmount, product.currency)}
                     </span>
                     {hasDiscount ? (
                       <span className="text-base text-fg-muted line-through">
@@ -200,14 +201,11 @@ export default async function ResourcePage({ params }: ResourcePageProps) {
                         )}
                       </span>
                     ) : null}
-                    {isFree ? (
-                      <span className="rounded-full bg-accent px-2.5 py-1 text-xs font-semibold text-accent-fg">
-                        Free
-                      </span>
-                    ) : null}
                   </div>
                   <p className="mt-1 text-xs text-fg-muted">
-                    One-time payment · lifetime access
+                    {isFree
+                      ? "Free access · lifetime access"
+                      : "One-time payment · lifetime access"}
                   </p>
 
                   <div className="mt-5">

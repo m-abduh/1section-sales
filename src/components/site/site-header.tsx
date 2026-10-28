@@ -28,9 +28,6 @@ export function SiteHeader({
         ) : null}
         <div className="mx-auto flex h-16 max-w-6xl items-center justify-between gap-4 px-4 sm:px-6">
           <Link href="/" className="flex items-center gap-2">
-            <span className="grid size-8 place-items-center rounded-lg bg-accent text-sm font-bold text-accent-fg">
-              1s
-            </span>
             <span className="text-lg font-semibold tracking-tight text-fg">
               {SITE_NAME}
             </span>
@@ -82,9 +79,6 @@ export function SiteHeader({
         {/* Left: brand + current area */}
         <div className="flex min-w-0 items-center gap-3">
           <Link href="/" className="flex shrink-0 items-center gap-2">
-            <span className="grid size-8 place-items-center rounded-lg bg-accent text-sm font-bold text-accent-fg">
-              1s
-            </span>
             <span className="text-lg font-semibold tracking-tight text-fg">
               {SITE_NAME}
             </span>

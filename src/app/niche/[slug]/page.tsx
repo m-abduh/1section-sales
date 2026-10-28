@@ -167,7 +167,7 @@ export default async function NichePage({ params }: NichePageProps) {
               <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-fg-muted sm:text-xs">
                 The guide collection
               </p>
-              <h2 className="mt-3 text-3xl font-semibold tracking-tight text-fg sm:text-4xl">
+              <h2 className="mt-3 font-serif text-4xl font-medium tracking-tight text-fg sm:text-5xl">
                 One problem at a time.
               </h2>
             </div>
@@ -182,13 +182,14 @@ export default async function NichePage({ params }: NichePageProps) {
               The first guides for this area are being prepared.
             </p>
           ) : (
-            <div className="mt-10 grid gap-6 md:grid-cols-2">
-              {niche.products.map((product) => (
+            <div className="mt-10 flex flex-col gap-6">
+              {niche.products.map((product, index) => (
                 <ProductCard
                   key={product.id}
                   product={product}
                   nicheSlug={niche.slug}
                   accentColor={niche.accentColor}
+                  index={index}
                 />
               ))}
             </div>

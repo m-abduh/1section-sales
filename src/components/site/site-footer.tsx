@@ -9,9 +9,6 @@ export function SiteFooter({ niches = [] }: { niches?: Niche[] }) {
       <div className="mx-auto grid max-w-6xl gap-10 px-4 py-14 sm:px-6 md:grid-cols-4">
         <div>
           <div className="flex items-center gap-2">
-            <span className="grid size-8 place-items-center rounded-lg bg-accent text-sm font-bold text-accent-fg">
-              1s
-            </span>
             <span className="text-lg font-semibold text-fg">{SITE_NAME}</span>
           </div>
           <p className="mt-3 max-w-xs text-sm text-fg-muted">{SITE_TAGLINE}</p>

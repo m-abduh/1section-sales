@@ -48,9 +48,6 @@ export default function AdminLoginPage() {
         <div className="overflow-hidden rounded-3xl border border-border bg-card shadow-2xl shadow-black/5 dark:shadow-black/40">
           <div className="border-b border-border bg-surface-muted/60 px-8 py-6">
             <div className="flex items-center gap-3">
-              <span className="grid size-10 place-items-center rounded-xl bg-fg text-sm font-bold text-surface shadow-sm">
-                1s
-              </span>
               <div>
                 <p className="text-sm font-bold tracking-tight text-fg">1section</p>
                 <p className="text-[11px] font-medium uppercase tracking-[0.18em] text-fg-muted">

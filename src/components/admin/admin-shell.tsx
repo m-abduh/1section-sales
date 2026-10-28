@@ -61,9 +61,6 @@ export function AdminShell({ children }: { children: ReactNode }) {
       {/* Sidebar */}
       <aside className="hidden w-64 shrink-0 flex-col border-r border-border bg-surface md:sticky md:top-0 md:flex md:h-screen md:overflow-y-auto">
         <div className="flex items-center gap-3 px-5 py-5">
-          <span className="grid size-9 place-items-center rounded-xl bg-fg text-sm font-bold text-surface shadow-sm">
-            1s
-          </span>
           <div className="min-w-0">
             <p className="text-sm font-bold tracking-tight text-fg">1section</p>
             <p className="text-[11px] font-medium uppercase tracking-[0.18em] text-fg-muted">
@@ -129,9 +126,6 @@ export function AdminShell({ children }: { children: ReactNode }) {
       <div className="flex flex-1 flex-col">
         <header className="flex h-16 items-center justify-between border-b border-border bg-surface px-4 sm:px-6">
           <div className="flex items-center gap-3 md:hidden">
-            <span className="grid size-8 place-items-center rounded-lg bg-fg text-sm font-bold text-surface">
-              1s
-            </span>
             <span className="text-sm font-semibold text-fg">Admin</span>
           </div>
           <nav className="flex gap-1 overflow-x-auto md:hidden">
