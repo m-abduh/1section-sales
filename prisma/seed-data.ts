@@ -40,8 +40,8 @@ export const niches = [
     sortOrder: 2,
   },
   {
-    slug: "education",
-    name: "Education",
+    slug: "learning",
+    name: "Learning",
     tagline: "Understand why learning feels stuck.",
     description:
       "Clear explanations for adult learners who feel overwhelmed by a large subject, keep re-reading without retaining much, or are unsure whether they understand what they studied. Guides explore how learning can break down and ways to examine it more deliberately.",
@@ -338,7 +338,7 @@ export const products: SeedProduct[] = [
     sortOrder: 1,
   },
   {
-    nicheSlug: "education",
+    nicheSlug: "learning",
     slug: "learn-a-hard-subject-alone",
     name: "Learn a Hard Subject Alone",
     summary:
