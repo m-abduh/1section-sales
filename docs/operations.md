@@ -67,7 +67,7 @@ Hanya **4 var wajib**: `DATABASE_URL`, `JWT_SECRET`, `PADDLE_API_KEY`, `PADDLE_W
 ```bash
 npm run prisma:generate     # generate Prisma Client
 npm run prisma:migrate      # dev: buat/apply migration
-npm run db:seed             # seed admin + niche + produk contoh
+npm run db:seed             # seed admin + niche + produk contoh + upload PDF dari pdf/ ke Cloudinary
 ```
 
 Produksi:
