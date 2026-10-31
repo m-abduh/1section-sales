@@ -55,31 +55,47 @@ export default async function ResourcePage({ params }: ResourcePageProps) {
       <main className="flex-1">
         <SitePageHero
           maxWidth="max-w-6xl"
+          framed
           accentColor={accentColor}
           eyebrow={`${product.niche?.name ? `${product.niche.name} · ` : ""}${LEARNING_LEVEL_LABEL[product.level]}`}
           title={product.name}
           description={product.summary}
-        >
-          <nav className="mb-6 text-sm text-fg-muted">
-            {product.niche ? (
-              <Link
-                href={nicheUrl(product.niche.slug)}
-                className="transition hover:text-fg"
-              >
-                {product.niche.name}
-              </Link>
-            ) : null}
-            {product.niche ? " / " : null}
-            <span className="text-fg">{product.name}</span>
-          </nav>
-        </SitePageHero>
+          above={
+            <nav className="text-sm text-fg-muted">
+              {product.niche ? (
+                <Link
+                  href={nicheUrl(product.niche.slug)}
+                  className="transition hover:text-fg"
+                >
+                  {product.niche.name}
+                </Link>
+              ) : null}
+              {product.niche ? " / " : null}
+              <span className="text-fg">{product.name}</span>
+            </nav>
+          }
+          media={
+            product.coverImage ? (
+              <div className="relative h-[280px] w-[210px] sm:h-[340px] sm:w-[260px] lg:h-[380px] lg:w-[290px]">
+                <Image
+                  src={product.coverImage}
+                  alt={product.name}
+                  fill
+                  preload
+                  sizes="(min-width: 1024px) 290px, 260px"
+                  className="rounded-2xl object-contain"
+                />
+              </div>
+            ) : null
+          }
+        />
 
         <section className="relative">
           <div className="mx-auto grid max-w-6xl gap-10 px-4 py-12 sm:px-6 sm:py-16 lg:grid-cols-[1.4fr_1fr]">
             <div>
 
                 {product.outcome ? (
-                  <div className="mt-8 rounded-2xl border border-border bg-card p-5">
+                  <div className="rounded-2xl border border-border bg-card p-5">
                     <h2 className="text-sm font-semibold uppercase tracking-wide text-fg-muted">
                       What you walk away with
                     </h2>
@@ -190,18 +206,6 @@ export default async function ResourcePage({ params }: ResourcePageProps) {
               </div>
 
               <aside className="lg:sticky lg:top-24 lg:self-start">
-                {product.coverImage ? (
-                  <div className="relative mb-5 aspect-[16/10] w-full overflow-hidden rounded-3xl border border-border bg-surface-muted">
-                    <Image
-                      src={product.coverImage}
-                      alt={product.name}
-                      fill
-                      preload
-                      sizes="(min-width: 1024px) 40vw, 100vw"
-                      className="object-cover"
-                    />
-                  </div>
-                ) : null}
                 <div className="rounded-3xl border border-border bg-card p-6 shadow-2xl shadow-black/5 dark:shadow-black/40">
                   <div className="flex items-end gap-3">
                     <span className="text-3xl font-bold text-fg">
