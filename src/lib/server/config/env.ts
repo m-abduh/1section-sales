@@ -26,6 +26,9 @@ const envSchema = z.object({
   CLOUDINARY_API_SECRET: z.string().optional(),
   CLOUDINARY_FOLDER: z.string().default("1section/bundles"),
 
+  GROQ_API_KEY: z.string().optional(),
+  GROQ_MODEL: z.string().default("openai/gpt-oss-20b"),
+
   RATE_LIMIT_DISABLED: z
     .enum(["true", "false"])
     .default("false")

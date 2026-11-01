@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Providers } from "./providers";
+import { CustomerServiceWidget } from "@/components/site/customer-service-widget";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -27,7 +28,10 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <body className="min-h-full antialiased">
-        <Providers>{children}</Providers>
+        <Providers>
+          {children}
+          <CustomerServiceWidget />
+        </Providers>
       </body>
     </html>
   );
