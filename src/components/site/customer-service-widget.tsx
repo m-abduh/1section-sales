@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { usePathname } from "next/navigation";
 
 type ChatRole = "user" | "assistant";
@@ -16,6 +16,13 @@ interface ChatMessage {
 
 const GREETING = "Hey, need a hand with anything here? 👋";
 const OPENER_KEY = "1section:customer-service-opened-v2";
+
+function createSessionKey(): string {
+  if (typeof crypto !== "undefined" && typeof crypto.randomUUID === "function") {
+    return crypto.randomUUID();
+  }
+  return `cs-${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
+}
 
 function isNicheSubdomain(hostname: string): boolean {
   const host = hostname.split(":")[0]?.toLowerCase() ?? "";
@@ -147,6 +154,37 @@ export function CustomerServiceWidget() {
   const listRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const nextId = useRef(1);
+  const sessionKeyRef = useRef<string | null>(null);
+  const openedAtRef = useRef<string | null>(null);
+  const hasMessagesRef = useRef(false);
+
+  const endSession = useCallback((reason: "user_closed" | "page_exit") => {
+    const sessionKey = sessionKeyRef.current;
+    if (!sessionKey || !hasMessagesRef.current) return;
+
+    const payload = JSON.stringify({ sessionKey, reason });
+
+    if (
+      reason === "page_exit" &&
+      typeof navigator !== "undefined" &&
+      typeof navigator.sendBeacon === "function"
+    ) {
+      const sent = navigator.sendBeacon(
+        "/api/chat/session",
+        new Blob([payload], { type: "application/json" }),
+      );
+      if (sent) return;
+    }
+
+    void fetch("/api/chat/session", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: payload,
+      keepalive: true,
+    }).catch(() => {
+      // Best effort: the server also closes idle sessions.
+    });
+  }, []);
 
   const isAdmin =
     pathname.startsWith("/admin") ||
@@ -175,11 +213,20 @@ export function CustomerServiceWidget() {
   useEffect(() => {
     if (!open) return;
     const onKeyDown = (event: KeyboardEvent) => {
-      if (event.key === "Escape") setOpen(false);
+      if (event.key === "Escape") {
+        endSession("user_closed");
+        setOpen(false);
+      }
     };
     window.addEventListener("keydown", onKeyDown);
     return () => window.removeEventListener("keydown", onKeyDown);
-  }, [open]);
+  }, [open, endSession]);
+
+  useEffect(() => {
+    const onPageHide = () => endSession("page_exit");
+    window.addEventListener("pagehide", onPageHide);
+    return () => window.removeEventListener("pagehide", onPageHide);
+  }, [endSession]);
 
   useEffect(() => {
     if (!open) return;
@@ -190,6 +237,8 @@ export function CustomerServiceWidget() {
   if (!mounted || isAdmin) return null;
 
   const openChat = () => {
+    if (!sessionKeyRef.current) sessionKeyRef.current = createSessionKey();
+    if (!openedAtRef.current) openedAtRef.current = new Date().toISOString();
     setOpen(true);
     setTeaser(false);
     try {
@@ -223,6 +272,8 @@ export function CustomerServiceWidget() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           path: pathname,
+          sessionKey: sessionKeyRef.current ?? undefined,
+          openedAt: openedAtRef.current ?? undefined,
           messages: outgoing.map(({ role, content: messageContent }) => ({
             role,
             content: messageContent,
@@ -246,6 +297,7 @@ export function CustomerServiceWidget() {
         ...current,
         { id: nextId.current++, role: "assistant", content: reply },
       ]);
+      hasMessagesRef.current = true;
     } catch (error) {
       setMessages((current) => [
         ...current,
@@ -339,7 +391,10 @@ export function CustomerServiceWidget() {
             </div>
             <button
               type="button"
-              onClick={() => setOpen(false)}
+              onClick={() => {
+                endSession("user_closed");
+                setOpen(false);
+              }}
               aria-label="Close chat"
               className="inline-flex size-8 items-center justify-center rounded-full text-fg-muted transition hover:bg-card hover:text-fg focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
             >
@@ -464,6 +519,7 @@ export function CustomerServiceWidget() {
         type="button"
         onClick={() => {
           if (open) {
+            endSession("user_closed");
             setOpen(false);
             return;
           }

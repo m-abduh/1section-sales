@@ -27,6 +27,18 @@ export default async function PrivacyPage() {
         </p>
       </div>
       <div>
+        <h2>Chat assistant</h2>
+        <p className="mt-3">
+          Our on-site assistant uses AI to answer questions. When you send a
+          message, the text is processed by our AI provider to generate a reply.
+          Conversations that include at least one message are stored with the
+          page you were viewing, timestamps, and the message count so we can
+          review and improve answer quality. Emails, order numbers, and other
+          long numbers are replaced with placeholders before a conversation is
+          stored, and chat records are deleted automatically after 30 days.
+        </p>
+      </div>
+      <div>
         <h2>How we use information</h2>
         <p className="mt-3">
           We use your email address to deliver access links, provide support, and
@@ -37,9 +49,9 @@ export default async function PrivacyPage() {
       <div>
         <h2>Service providers</h2>
         <p className="mt-3">
-          We rely on trusted providers for payments (Paddle), file storage and
-          delivery, and transactional email. These providers process data only
-          as needed to provide their service to us.
+          We rely on trusted providers for payments (Paddle), AI chat replies
+          (Groq), file storage and delivery, and transactional email. These
+          providers process data only as needed to provide their service to us.
         </p>
       </div>
       <div>
