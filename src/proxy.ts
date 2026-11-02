@@ -45,9 +45,17 @@ export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
   if (subdomain === "admin") {
-    if (pathname.startsWith("/admin")) {
-      return NextResponse.next();
+    // The admin subdomain is already the admin area, so keep the address bar
+    // clean: /admin/products -> /products. The clean path is rewritten back to
+    // the underlying /admin route below.
+    const isAdminPath = pathname === "/admin" || pathname.startsWith("/admin/");
+    if (isAdminPath) {
+      const url = request.nextUrl.clone();
+      url.host = request.headers.get("host") ?? request.nextUrl.host;
+      url.pathname = pathname.slice("/admin".length) || "/";
+      return NextResponse.redirect(url, 308);
     }
+
     const url = request.nextUrl.clone();
     url.pathname = `/admin${pathname === "/" ? "" : pathname}`;
     return NextResponse.rewrite(url);

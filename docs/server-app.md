@@ -14,7 +14,7 @@
 
 ### Middleware (`src/proxy.ts`)
 - Subdomain routing: niche subdomain `/` → rewrite ke `/niche/<slug>`; root `/niche/<slug>` & `/resources/<slug>` → 308 ke subdomain.
-- Admin subdomain (`admin.*`) → rewrite ke `/admin/*`.
+- Admin subdomain (`admin.*`): path bersih di-rewrite ke `/admin/*` (mis. `/products` → `/admin/products`); `/admin/*` lama di-redirect 308 ke path bersih.
 
 ### Lapisan kode
 Route handler (`route.ts`) → service (`*.service.ts`) → Prisma. Validasi via zod di route handler. Auth/rate-limit helper di `src/lib/server/next-helpers.ts`.

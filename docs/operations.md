@@ -95,7 +95,7 @@ npm run typecheck      # tsc --noEmit
 ### Akses Dev
 - Storefront: `http://localhost:3000`
 - Niche: `http://finance.localhost:3000` (produksi: `https://finance.1section.com`)
-- Admin: `http://admin.localhost:3000/admin` (fallback path: `http://localhost:3000/admin`)
+- Admin: `http://admin.localhost:3000` (path bersih, mis. `/products`; fallback path: `http://localhost:3000/admin`)
 
 `*.localhost` otomatis diizinkan (Next `allowedDevOrigins`, resolver subdomain proxy). Alternatif: `lvh.me`.
 

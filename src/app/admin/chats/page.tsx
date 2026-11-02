@@ -7,6 +7,7 @@ import {
   useAdminChats,
 } from "@/hooks/use-admin-chats";
 import { Modal } from "@/components/admin/modal";
+import { AdminPageHeader } from "@/components/admin/page-header";
 import { StatCard } from "@/components/admin/stat-card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -70,23 +71,11 @@ export default function AdminChatsPage() {
 
   return (
     <div className="space-y-6">
-      <div className="relative overflow-hidden rounded-3xl border border-border bg-card p-6 sm:p-8">
-        <div className="cinema-grid pointer-events-none absolute inset-0 opacity-30" />
-        <div className="cinema-spotlight pointer-events-none absolute inset-0" />
-        <div className="relative flex flex-wrap items-center justify-between gap-4">
-          <div>
-            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-fg-muted">
-              Assistant
-            </p>
-            <h1 className="mt-2 text-2xl font-bold tracking-tight text-fg">
-              Conversations
-            </h1>
-            <p className="mt-1 text-sm text-fg-muted">
-              What visitors ask the on-site assistant, captured for review.
-            </p>
-          </div>
-        </div>
-      </div>
+      <AdminPageHeader
+        eyebrow="Assistant"
+        title="Conversations"
+        description="What visitors ask the on-site assistant, captured for review."
+      />
 
       {chats.data?.stats ? (
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
@@ -127,9 +116,9 @@ export default function AdminChatsPage() {
         </div>
       ) : null}
 
-      <div className="flex flex-wrap items-center gap-3 rounded-2xl border border-border bg-card p-4">
+      <div className="flex flex-wrap items-center gap-3 rounded-2xl border border-border bg-card p-3">
         <select
-          className="rounded-xl border-0 bg-surface-muted px-3 py-2 text-sm text-fg ring-1 ring-inset ring-border focus:ring-2 focus:ring-accent"
+          className="rounded-lg border-0 bg-surface-muted px-3 py-2 text-sm text-fg ring-1 ring-inset ring-border focus:ring-2 focus:ring-accent"
           value={status}
           onChange={(event) => {
             setStatus(event.target.value as "open" | "closed" | "");
@@ -167,7 +156,7 @@ export default function AdminChatsPage() {
       ) : null}
 
       {chats.data && chats.data.items.length === 0 ? (
-        <div className="flex flex-col items-center justify-center rounded-3xl border border-dashed border-border bg-card px-6 py-16 text-center">
+        <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-border bg-card px-6 py-16 text-center">
           <span className="grid size-12 place-items-center rounded-2xl bg-surface-muted text-2xl">
             💬
           </span>
@@ -182,16 +171,17 @@ export default function AdminChatsPage() {
 
       {chats.data && chats.data.items.length > 0 ? (
         <>
-          <div className="overflow-hidden rounded-3xl border border-border bg-card shadow-sm">
-            <table className="w-full text-left text-sm">
-              <thead className="bg-surface-muted/60 text-xs uppercase tracking-wide text-fg-muted">
+          <div className="overflow-hidden rounded-2xl border border-border bg-card">
+            <div className="overflow-x-auto">
+            <table className="w-full min-w-[760px] text-left text-sm">
+              <thead className="bg-surface-muted/60 text-[11px] uppercase tracking-[0.12em] text-fg-muted">
                 <tr>
-                  <th className="px-5 py-3 font-medium">Conversation</th>
-                  <th className="px-5 py-3 font-medium">Messages</th>
-                  <th className="px-5 py-3 font-medium">Status</th>
-                  <th className="px-5 py-3 font-medium">Duration</th>
-                  <th className="px-5 py-3 font-medium">When</th>
-                  <th className="px-5 py-3 text-right font-medium">Actions</th>
+                  <th className="px-5 py-3 font-semibold">Conversation</th>
+                  <th className="px-5 py-3 font-semibold">Messages</th>
+                  <th className="px-5 py-3 font-semibold">Status</th>
+                  <th className="px-5 py-3 font-semibold">Duration</th>
+                  <th className="px-5 py-3 font-semibold">When</th>
+                  <th className="px-5 py-3 text-right font-semibold">Actions</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-border">
@@ -241,6 +231,7 @@ export default function AdminChatsPage() {
                 ))}
               </tbody>
             </table>
+            </div>
           </div>
 
           <div className="flex flex-wrap items-center justify-between gap-3 text-sm text-fg-muted">

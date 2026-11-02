@@ -16,6 +16,7 @@ import { getApiErrorMessage } from "@/lib/api";
 import { formatCurrency, formatRelative } from "@/lib/format";
 import { ProductForm } from "@/components/admin/product-form";
 import { Modal } from "@/components/admin/modal";
+import { AdminPageHeader } from "@/components/admin/page-header";
 import { Button } from "@/components/ui/button";
 import { Spinner } from "@/components/ui/spinner";
 
@@ -108,24 +109,16 @@ export default function AdminProductsPage() {
 
   return (
     <div className="space-y-6">
-      <div className="relative overflow-hidden rounded-3xl border border-border bg-card p-6 sm:p-8">
-        <div className="cinema-grid pointer-events-none absolute inset-0 opacity-30" />
-        <div className="cinema-spotlight pointer-events-none absolute inset-0" />
-        <div className="relative flex flex-wrap items-center justify-between gap-4">
-          <div>
-            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-fg-muted">
-              Catalog
-            </p>
-            <h1 className="mt-2 text-2xl font-bold tracking-tight text-fg">Products</h1>
-            <p className="mt-1 text-sm text-fg-muted">
-              One-time purchase PDF guides. Sync langsung ke katalog Paddle.
-            </p>
-          </div>
+      <AdminPageHeader
+        eyebrow="Catalog"
+        title="Products"
+        description="One-time purchase PDF guides. Sync langsung ke katalog Paddle."
+        actions={
           <Button onClick={openCreate} disabled={!canCreate}>
             + New product
           </Button>
-        </div>
-      </div>
+        }
+      />
 
       {message ? (
         <p className="rounded-2xl border border-border bg-surface-muted px-4 py-3 text-sm text-fg">
@@ -146,7 +139,7 @@ export default function AdminProductsPage() {
       ) : null}
 
       {products.data && products.data.length === 0 ? (
-        <div className="flex flex-col items-center justify-center rounded-3xl border border-dashed border-border bg-card px-6 py-16 text-center">
+        <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-border bg-card px-6 py-16 text-center">
           <span className="grid size-12 place-items-center rounded-2xl bg-surface-muted text-2xl">
             ▤
           </span>
@@ -163,15 +156,16 @@ export default function AdminProductsPage() {
       ) : null}
 
       {products.data && products.data.length > 0 ? (
-        <div className="overflow-hidden rounded-3xl border border-border bg-card shadow-sm">
-          <table className="w-full text-left text-sm">
-            <thead className="bg-surface-muted/60 text-xs uppercase tracking-wide text-fg-muted">
+        <div className="overflow-hidden rounded-2xl border border-border bg-card">
+          <div className="overflow-x-auto">
+          <table className="w-full min-w-[860px] text-left text-sm">
+            <thead className="bg-surface-muted/60 text-[11px] uppercase tracking-[0.12em] text-fg-muted">
               <tr>
-                <th className="px-5 py-3 font-medium">Product</th>
-                <th className="px-5 py-3 font-medium">Niche</th>
-                <th className="px-5 py-3 font-medium">Price</th>
-                <th className="px-5 py-3 font-medium">Paddle</th>
-                <th className="px-5 py-3 text-right font-medium">Actions</th>
+                <th className="px-5 py-3 font-semibold">Product</th>
+                <th className="px-5 py-3 font-semibold">Niche</th>
+                <th className="px-5 py-3 font-semibold">Price</th>
+                <th className="px-5 py-3 font-semibold">Paddle</th>
+                <th className="px-5 py-3 text-right font-semibold">Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-border">
@@ -250,6 +244,7 @@ export default function AdminProductsPage() {
               })}
             </tbody>
           </table>
+          </div>
         </div>
       ) : null}
 
