@@ -93,9 +93,10 @@ export function validateCompletedTransaction(
 
   const totals = readRecord(readRecord(data, "details"), "totals");
   const total = readNumber(totals, "total") ?? readNumber(totals, "grandTotal");
-  if (typeof total === "number" && total < order.total) {
+  const discount = readNumber(totals, "discount") ?? 0;
+  if (typeof total === "number" && total + discount < order.total) {
     throw ApiError.badRequest(
-      `Transaction total (${total}) is less than the order total (${order.total})`,
+      `Transaction total (${total}) plus discount (${discount}) is less than the order total (${order.total})`,
     );
   }
 }

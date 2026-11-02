@@ -71,6 +71,8 @@ async function markOrderPaid(event: PaddleEvent): Promise<void> {
 
   const customerId = readString(data, "customerId");
   const email = order.email ?? (await resolveCustomerEmail(customerId)) ?? null;
+  const totals = readRecord(readRecord(data, "details"), "totals");
+  const amountPaid = readNumber(totals, "total") ?? order.total;
 
   await prisma.$transaction(async (tx) => {
     await tx.order.update({
@@ -87,13 +89,13 @@ async function markOrderPaid(event: PaddleEvent): Promise<void> {
     if (transactionId) {
       await tx.payment.upsert({
         where: { providerTransactionId: transactionId },
-        update: { status: "COMPLETED", amount: order.total, currency: order.currency },
+        update: { status: "COMPLETED", amount: amountPaid, currency: order.currency },
         create: {
           orderId: order.id,
           provider: "PADDLE",
           providerTransactionId: transactionId,
           status: "COMPLETED",
-          amount: order.total,
+          amount: amountPaid,
           currency: order.currency,
         },
       });

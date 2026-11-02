@@ -65,6 +65,32 @@ describe("validateCompletedTransaction", () => {
       ),
     ).toThrow(/less than the order total/);
   });
+
+  it("accepts a fully discounted transaction", () => {
+    expect(() =>
+      validateCompletedTransaction(
+        transaction({
+          details: {
+            totals: { subtotal: "2900", discount: "2900", total: "0" },
+          },
+        }),
+        order,
+      ),
+    ).not.toThrow();
+  });
+
+  it("rejects an underpaid transaction even with a partial discount", () => {
+    expect(() =>
+      validateCompletedTransaction(
+        transaction({
+          details: {
+            totals: { subtotal: "2900", discount: "1000", total: "1000" },
+          },
+        }),
+        order,
+      ),
+    ).toThrow(/less than the order total/);
+  });
 });
 
 describe("decideRefund", () => {
