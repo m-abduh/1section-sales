@@ -238,7 +238,7 @@ export const products: SeedProduct[] = [
       "Sales results depend on your offer, market, and execution. No outcome is guaranteed.",
     license: "Personal and internal business use. Do not resell.",
     level: "PRACTICAL",
-    priceAmount: 0,
+    priceAmount: 100,
     compareAtAmount: 1000,
     features: [
       "Seven techniques with worked examples",
@@ -273,7 +273,7 @@ export const products: SeedProduct[] = [
       "Educational content only. It is not personalized financial advice.",
     license: "Personal use. Do not redistribute or resell the files.",
     level: "PRACTICAL",
-    priceAmount: 0,
+    priceAmount: 100,
     compareAtAmount: 1000,
     features: [
       "12-step 90-day action plan",
@@ -308,7 +308,7 @@ export const products: SeedProduct[] = [
       "Educational content only. It is not financial advice; investments can lose value.",
     license: "Personal use. Do not redistribute or resell the files.",
     level: "PRACTICAL",
-    priceAmount: 0,
+    priceAmount: 100,
     compareAtAmount: 1000,
     features: [
       "Seven-stage readiness framework",
@@ -343,7 +343,7 @@ export const products: SeedProduct[] = [
       "Technology and workplace expectations change quickly. This guide offers principles, not guarantees.",
     license: "Personal use. Do not redistribute or resell the files.",
     level: "PRACTICAL",
-    priceAmount: 0,
+    priceAmount: 100,
     compareAtAmount: 1000,
     features: [
       "Seven habits for thinking with AI",
@@ -378,7 +378,7 @@ export const products: SeedProduct[] = [
       "Career outcomes depend on your field, effort, and circumstances. No result is guaranteed.",
     license: "Personal use. Do not redistribute or resell the files.",
     level: "PRACTICAL",
-    priceAmount: 0,
+    priceAmount: 100,
     compareAtAmount: 1000,
     features: [
       "12-chapter personal brand framework",
@@ -413,7 +413,7 @@ export const products: SeedProduct[] = [
       "Educational content only. It is not a substitute for professional mental-health care.",
     license: "Personal use. Do not redistribute or resell the files.",
     level: "PRACTICAL",
-    priceAmount: 0,
+    priceAmount: 100,
     compareAtAmount: 1000,
     features: [
       "15 start strategies with examples",
@@ -448,7 +448,7 @@ export const products: SeedProduct[] = [
       "Educational content only. It is not medical advice; consult a professional for health concerns.",
     license: "Personal use. Do not redistribute or resell the files.",
     level: "FOUNDATIONS",
-    priceAmount: 0,
+    priceAmount: 100,
     compareAtAmount: 1000,
     features: [
       "Seven mistakes and fixes",
@@ -483,7 +483,7 @@ export const products: SeedProduct[] = [
       "Educational content only. Every child and family differs; it is not clinical advice.",
     license: "Personal use. Do not redistribute or resell the files.",
     level: "FOUNDATIONS",
-    priceAmount: 0,
+    priceAmount: 100,
     compareAtAmount: 1000,
     features: [
       "Overparenting self-check",
@@ -518,7 +518,7 @@ export const products: SeedProduct[] = [
       "Educational content only. It is not therapy and cannot assess safety or clinical needs.",
     license: "Personal use. Do not redistribute or resell the files.",
     level: "FOUNDATIONS",
-    priceAmount: 0,
+    priceAmount: 100,
     compareAtAmount: 1000,
     features: [
       "Nine principles with reflection prompts",
@@ -553,7 +553,7 @@ export const products: SeedProduct[] = [
       "Learning outcomes depend on consistent practice. No grade or result is guaranteed.",
     license: "Personal use. Do not redistribute or resell the files.",
     level: "PRACTICAL",
-    priceAmount: 0,
+    priceAmount: 100,
     compareAtAmount: 1000,
     features: [
       "Eight-step learning method",

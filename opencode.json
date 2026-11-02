@@ -1,0 +1,27 @@
+{
+  "$schema": "https://opencode.ai/config.json",
+  "mcp": {
+    "servers": {
+      "paddle-sandbox": {
+        "type": "remote",
+        "url": "https://sandbox-mcp.paddle.com/mcp",
+        "headers": {
+          "Authorization": "Bearer {env:PADDLE_SANDBOX_API_KEY}"
+        },
+        "oauth": false
+      },
+      "paddle-live": {
+        "type": "remote",
+        "url": "https://mcp.paddle.com/mcp",
+        "headers": {
+          "Authorization": "Bearer {env:PADDLE_LIVE_API_KEY}"
+        },
+        "oauth": false
+      },
+      "paddle-docs": {
+        "type": "remote",
+        "url": "https://paddlehq.mcp.kapa.ai"
+      }
+    }
+  }
+}
