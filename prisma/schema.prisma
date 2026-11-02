@@ -317,3 +317,26 @@ model Setting {
 
   @@map("settings")
 }
+
+model ChatSession {
+  id             String    @id @default(cuid())
+  sessionKey     String    @unique
+  pagePath       String
+  productSlug    String?
+  nicheSlug      String?
+  openedAt       DateTime  @default(now())
+  firstMessageAt DateTime  @default(now())
+  lastSeenAt     DateTime  @default(now())
+  closedAt       DateTime?
+  closeReason    String?
+  messageCount   Int       @default(0)
+  transcript     Json      @default("[]")
+  expiresAt      DateTime
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  @@index([lastSeenAt])
+  @@index([closedAt])
+  @@index([expiresAt])
+  @@map("chat_sessions")
+}

@@ -12,6 +12,10 @@ import {
   buildKnowledgeContext,
   generateCustomerServiceReply,
 } from "@/lib/server/modules/chat/chat.service";
+import {
+  closeStaleChatSessions,
+  recordChatExchange,
+} from "@/lib/server/modules/chat/chat.session";
 
 export async function POST(req: NextRequest) {
   try {
@@ -32,12 +36,33 @@ export async function POST(req: NextRequest) {
     const hostname =
       req.headers.get("x-forwarded-host") ?? req.headers.get("host") ?? "";
 
+    await closeStaleChatSessions().catch((error) => {
+      console.error("[chat] failed to close stale sessions:", error);
+    });
+
     const pageContext = await buildKnowledgeContext(
       body.path ?? "/",
       hostname,
       body.messages,
     );
     const reply = await generateCustomerServiceReply(body.messages, pageContext);
+
+    const userMessage =
+      [...body.messages].reverse().find((message) => message.role === "user")
+        ?.content ?? "";
+
+    if (body.sessionKey && userMessage) {
+      await recordChatExchange({
+        sessionKey: body.sessionKey,
+        path: body.path ?? "/",
+        hostname,
+        openedAt: body.openedAt,
+        userContent: userMessage,
+        reply,
+      }).catch((error) => {
+        console.error("[chat] failed to record exchange:", error);
+      });
+    }
 
     return ok({ reply });
   } catch (error) {

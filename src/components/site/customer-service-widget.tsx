@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { usePathname } from "next/navigation";
 
 type ChatRole = "user" | "assistant";
@@ -16,6 +16,13 @@ interface ChatMessage {
 
 const GREETING = "Hey, need a hand with anything here? 👋";
 const OPENER_KEY = "1section:customer-service-opened-v2";
+
+function createSessionKey(): string {
+  if (typeof crypto !== "undefined" && typeof crypto.randomUUID === "function") {
+    return crypto.randomUUID();
+  }
+  return `cs-${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
+}
 
 function isNicheSubdomain(hostname: string): boolean {
   const host = hostname.split(":")[0]?.toLowerCase() ?? "";
@@ -134,6 +141,52 @@ function ChatIcon({ className = "" }: { className?: string }) {
   );
 }
 
+function CloseIcon({ className = "" }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" aria-hidden className={className}>
+      <path
+        d="M6 6l12 12M18 6 6 18"
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeLinecap="round"
+      />
+    </svg>
+  );
+}
+
+function SendIcon({ className = "" }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" aria-hidden className={className}>
+      <path
+        d="M4.5 12h14M13 6.5l5.5 5.5-5.5 5.5"
+        stroke="currentColor"
+        strokeWidth="1.9"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
+
+function SparkIcon({ className = "" }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" aria-hidden className={className}>
+      <path
+        d="M12 3.5l1.6 4.4L18 9.5l-4.4 1.6L12 15.5l-1.6-4.4L6 9.5l4.4-1.6L12 3.5Z"
+        stroke="currentColor"
+        strokeWidth="1.6"
+        strokeLinejoin="round"
+      />
+      <path
+        d="M18.5 15l.8 2.2 2.2.8-2.2.8-.8 2.2-.8-2.2-2.2-.8 2.2-.8.8-2.2Z"
+        stroke="currentColor"
+        strokeWidth="1.4"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
+
 export function CustomerServiceWidget() {
   const pathname = usePathname();
   const [mounted, setMounted] = useState(false);
@@ -147,6 +200,37 @@ export function CustomerServiceWidget() {
   const listRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const nextId = useRef(1);
+  const sessionKeyRef = useRef<string | null>(null);
+  const openedAtRef = useRef<string | null>(null);
+  const hasMessagesRef = useRef(false);
+
+  const endSession = useCallback((reason: "user_closed" | "page_exit") => {
+    const sessionKey = sessionKeyRef.current;
+    if (!sessionKey || !hasMessagesRef.current) return;
+
+    const payload = JSON.stringify({ sessionKey, reason });
+
+    if (
+      reason === "page_exit" &&
+      typeof navigator !== "undefined" &&
+      typeof navigator.sendBeacon === "function"
+    ) {
+      const sent = navigator.sendBeacon(
+        "/api/chat/session",
+        new Blob([payload], { type: "application/json" }),
+      );
+      if (sent) return;
+    }
+
+    void fetch("/api/chat/session", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: payload,
+      keepalive: true,
+    }).catch(() => {
+      // Best effort: the server also closes idle sessions.
+    });
+  }, []);
 
   const isAdmin =
     pathname.startsWith("/admin") ||
@@ -175,11 +259,20 @@ export function CustomerServiceWidget() {
   useEffect(() => {
     if (!open) return;
     const onKeyDown = (event: KeyboardEvent) => {
-      if (event.key === "Escape") setOpen(false);
+      if (event.key === "Escape") {
+        endSession("user_closed");
+        setOpen(false);
+      }
     };
     window.addEventListener("keydown", onKeyDown);
     return () => window.removeEventListener("keydown", onKeyDown);
-  }, [open]);
+  }, [open, endSession]);
+
+  useEffect(() => {
+    const onPageHide = () => endSession("page_exit");
+    window.addEventListener("pagehide", onPageHide);
+    return () => window.removeEventListener("pagehide", onPageHide);
+  }, [endSession]);
 
   useEffect(() => {
     if (!open) return;
@@ -190,6 +283,8 @@ export function CustomerServiceWidget() {
   if (!mounted || isAdmin) return null;
 
   const openChat = () => {
+    if (!sessionKeyRef.current) sessionKeyRef.current = createSessionKey();
+    if (!openedAtRef.current) openedAtRef.current = new Date().toISOString();
     setOpen(true);
     setTeaser(false);
     try {
@@ -223,6 +318,8 @@ export function CustomerServiceWidget() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           path: pathname,
+          sessionKey: sessionKeyRef.current ?? undefined,
+          openedAt: openedAtRef.current ?? undefined,
           messages: outgoing.map(({ role, content: messageContent }) => ({
             role,
             content: messageContent,
@@ -246,6 +343,7 @@ export function CustomerServiceWidget() {
         ...current,
         { id: nextId.current++, role: "assistant", content: reply },
       ]);
+      hasMessagesRef.current = true;
     } catch (error) {
       setMessages((current) => [
         ...current,
@@ -273,116 +371,117 @@ export function CustomerServiceWidget() {
   return (
     <>
       {!open && teaser ? (
-        <div className="fixed bottom-24 right-4 z-50 w-[calc(100vw-5.5rem)] max-w-[290px] origin-bottom-right animate-fade-up sm:right-6">
-          <div className="relative rounded-2xl rounded-br-md border border-border bg-card p-3.5 shadow-xl shadow-black/15">
+        <div className="fixed bottom-24 right-4 z-50 w-[calc(100vw-5.5rem)] max-w-[300px] origin-bottom-right animate-fade-up sm:right-6">
+          <div className="relative rounded-2xl rounded-br-md border border-border/80 bg-card/95 p-4 shadow-[0_18px_45px_-18px_rgba(0,0,0,0.4)] ring-1 ring-black/5 backdrop-blur-xl dark:ring-white/5">
             <button
               type="button"
               onClick={() => setTeaser(false)}
               aria-label="Dismiss message"
-              className="absolute right-2 top-2 inline-flex size-6 items-center justify-center rounded-full text-fg-muted transition hover:bg-surface-muted hover:text-fg"
+              className="absolute right-2.5 top-2.5 inline-flex size-6 items-center justify-center rounded-full text-fg-muted/70 transition hover:bg-surface-muted hover:text-fg"
             >
-              <svg viewBox="0 0 24 24" fill="none" aria-hidden className="size-3">
-                <path
-                  d="M6 6l12 12M18 6 6 18"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                />
-              </svg>
+              <CloseIcon className="size-3" />
             </button>
             <button
               type="button"
               onClick={openChat}
-              className="block w-full text-left"
+              className="group block w-full text-left"
             >
-              <span className="flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-[0.14em] text-fg-muted">
-                <span className="size-1.5 rounded-full bg-emerald-500" />
-                1 new message
+              <span className="flex items-center gap-2">
+                <span className="relative flex size-7 shrink-0 items-center justify-center rounded-full bg-accent text-accent-fg">
+                  <ChatIcon className="size-3.5" />
+                  <span className="absolute -bottom-0.5 -right-0.5 size-2 rounded-full border-2 border-card bg-emerald-500" />
+                </span>
+                <span className="flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-[0.14em] text-fg-muted">
+                  <span className="size-1.5 animate-pulse rounded-full bg-emerald-500" />
+                  1 new message
+                </span>
               </span>
-              <span className="mt-1.5 block pr-4 text-sm leading-5 text-fg">
+              <span className="mt-2.5 block pr-4 text-sm leading-5 text-fg">
                 {GREETING}
               </span>
-              <span className="mt-2 block text-[10px] font-medium text-fg-muted">
+              <span className="mt-2.5 flex items-center gap-1 text-[11px] font-medium text-fg-muted transition group-hover:text-fg">
                 Tap to chat
+                <SendIcon className="size-3 transition-transform group-hover:translate-x-0.5" />
               </span>
             </button>
             <span
               aria-hidden
-              className="absolute -bottom-1.5 right-5 size-3 rotate-45 border-b border-r border-border bg-card"
+              className="absolute -bottom-1.5 right-5 size-3 rotate-45 border-b border-r border-border/80 bg-card"
             />
           </div>
         </div>
       ) : null}
 
       <div
-        className={`fixed bottom-24 right-4 z-50 w-[calc(100vw-2rem)] max-w-[380px] origin-bottom-right animate-fade-up sm:right-6 ${
+        className={`fixed bottom-24 right-4 z-50 w-[calc(100vw-2rem)] max-w-[390px] origin-bottom-right animate-fade-up sm:right-6 ${
           open ? "" : "pointer-events-none hidden"
         }`}
       >
         <div
           role="dialog"
           aria-label="Customer service chat"
-          className="flex h-[min(540px,calc(100dvh-8rem))] flex-col overflow-hidden rounded-2xl border border-border bg-card shadow-2xl shadow-black/20"
+          className="flex h-[min(580px,calc(100dvh-8rem))] flex-col overflow-hidden rounded-[26px] border border-border/80 bg-card/95 shadow-[0_30px_80px_-24px_rgba(0,0,0,0.45)] ring-1 ring-black/5 backdrop-blur-xl dark:ring-white/5"
         >
-          <div className="flex items-center gap-3 border-b border-border bg-surface-muted/60 px-4 py-3">
-            <span className="relative flex size-9 shrink-0 items-center justify-center rounded-full bg-accent text-accent-fg">
-              <ChatIcon className="size-4" />
+          <div className="relative flex items-center gap-3 border-b border-border/70 bg-gradient-to-b from-surface-muted to-card px-4 py-3.5">
+            <span className="relative flex size-10 shrink-0 items-center justify-center rounded-2xl bg-accent text-accent-fg shadow-sm ring-1 ring-inset ring-accent-fg/20">
+              <ChatIcon className="size-5" />
               <span className="absolute -bottom-0.5 -right-0.5 size-2.5 rounded-full border-2 border-card bg-emerald-500" />
             </span>
             <div className="min-w-0 flex-1">
-              <p className="truncate text-sm font-semibold text-fg">
+              <p className="truncate text-sm font-semibold tracking-tight text-fg">
                 1section support
               </p>
-              <p className="truncate text-[11px] text-fg-muted">
-                AI assistant · here to help
+              <p className="mt-0.5 flex items-center gap-1.5 truncate text-[11px] text-fg-muted">
+                <span className="relative flex size-1.5 shrink-0">
+                  <span className="absolute inline-flex size-full animate-ping rounded-full bg-emerald-500 opacity-60" />
+                  <span className="relative inline-flex size-1.5 rounded-full bg-emerald-500" />
+                </span>
+                AI assistant · online
               </p>
             </div>
             <button
               type="button"
-              onClick={() => setOpen(false)}
+              onClick={() => {
+                endSession("user_closed");
+                setOpen(false);
+              }}
               aria-label="Close chat"
-              className="inline-flex size-8 items-center justify-center rounded-full text-fg-muted transition hover:bg-card hover:text-fg focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
+              className="inline-flex size-8 items-center justify-center rounded-full border border-border/60 bg-card/60 text-fg-muted transition hover:bg-surface-muted hover:text-fg focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
             >
-              <svg viewBox="0 0 24 24" fill="none" aria-hidden className="size-4">
-                <path
-                  d="M6 6l12 12M18 6 6 18"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                />
-              </svg>
+              <CloseIcon className="size-4" />
             </button>
           </div>
 
           <div
             ref={listRef}
             aria-live="polite"
-            className="flex-1 space-y-3 overflow-y-auto px-4 py-4"
+            className="flex-1 space-y-3.5 overflow-y-auto bg-surface/40 px-4 py-5"
           >
-            {messages.map((message) => (
-              <div
-                key={message.id}
-                className={`flex ${
-                  message.role === "user" ? "justify-end" : "justify-start"
-                }`}
-              >
-                <p
-                  className={`max-w-[85%] whitespace-pre-wrap rounded-2xl px-3.5 py-2.5 text-sm leading-6 ${
-                    message.role === "user"
-                      ? "rounded-br-md bg-accent text-accent-fg"
-                      : message.error
-                        ? "rounded-bl-md border border-border bg-surface-muted text-fg-muted"
-                        : "rounded-bl-md bg-surface-muted text-fg"
-                  }`}
-                >
-                  {message.content}
-                </p>
-              </div>
-            ))}
+            {messages.map((message) =>
+              message.role === "user" ? (
+                <div key={message.id} className="flex justify-end">
+                  <p className="max-w-[85%] whitespace-pre-wrap rounded-2xl rounded-br-md bg-accent px-3.5 py-2.5 text-sm leading-6 text-accent-fg shadow-sm">
+                    {message.content}
+                  </p>
+                </div>
+              ) : (
+                <div key={message.id} className="flex justify-start">
+                  <p
+                    className={`max-w-[88%] whitespace-pre-wrap rounded-2xl rounded-bl-md px-3.5 py-2.5 text-sm leading-6 ${
+                      message.error
+                        ? "border border-red-500/25 bg-red-500/5 text-fg"
+                        : "bg-surface-muted text-fg ring-1 ring-inset ring-border/60"
+                    }`}
+                  >
+                    {message.content}
+                  </p>
+                </div>
+              ),
+            )}
 
             {sending ? (
               <div className="flex justify-start">
-                <span className="inline-flex items-center gap-1 rounded-2xl rounded-bl-md bg-surface-muted px-3.5 py-3">
+                <span className="inline-flex items-center gap-1 rounded-2xl rounded-bl-md bg-surface-muted px-3.5 py-3 ring-1 ring-inset ring-border/60">
                   <span className="size-1.5 animate-bounce rounded-full bg-fg-muted [animation-delay:-0.3s]" />
                   <span className="size-1.5 animate-bounce rounded-full bg-fg-muted [animation-delay:-0.15s]" />
                   <span className="size-1.5 animate-bounce rounded-full bg-fg-muted" />
@@ -392,9 +491,10 @@ export function CustomerServiceWidget() {
             ) : null}
 
             {showSuggestions ? (
-              <div className="pt-1">
-                <p className="mb-2 text-[10px] font-medium uppercase tracking-[0.14em] text-fg-muted">
-                  Quick questions
+              <div className="pt-2">
+                <p className="mb-2.5 flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-[0.14em] text-fg-muted">
+                  <SparkIcon className="size-3" />
+                  Try asking
                 </p>
                 <div className="flex flex-wrap gap-2">
                   {quickQuestions.map((suggestion) => (
@@ -402,9 +502,10 @@ export function CustomerServiceWidget() {
                       key={suggestion}
                       type="button"
                       onClick={() => void send(suggestion)}
-                      className="rounded-full border border-border bg-card px-3 py-1.5 text-xs font-medium text-fg-muted transition hover:border-fg/30 hover:text-fg"
+                      className="group inline-flex items-center gap-1.5 rounded-full border border-border bg-card px-3 py-1.5 text-xs font-medium text-fg-muted shadow-sm transition hover:-translate-y-0.5 hover:border-fg/25 hover:text-fg hover:shadow-md"
                     >
                       {suggestion}
+                      <SendIcon className="size-3 opacity-0 transition-all group-hover:translate-x-0.5 group-hover:opacity-100" />
                     </button>
                   ))}
                 </div>
@@ -417,9 +518,9 @@ export function CustomerServiceWidget() {
               event.preventDefault();
               void send(input);
             }}
-            className="border-t border-border p-3"
+            className="border-t border-border/70 bg-card/80 p-3"
           >
-            <div className="flex items-end gap-2 rounded-xl border border-border bg-surface p-1.5 focus-within:border-fg/30">
+            <div className="flex items-end gap-2 rounded-2xl border border-border bg-surface p-1.5 pl-3.5 shadow-sm transition focus-within:border-fg/25 focus-within:ring-2 focus-within:ring-fg/5">
               <input
                 ref={inputRef}
                 value={input}
@@ -428,30 +529,22 @@ export function CustomerServiceWidget() {
                 aria-label="Message"
                 autoComplete="off"
                 maxLength={500}
-                className="min-w-0 flex-1 bg-transparent px-2 py-1.5 text-sm text-fg outline-none placeholder:text-fg-muted"
+                className="min-w-0 flex-1 bg-transparent py-2 text-sm text-fg outline-none placeholder:text-fg-muted"
               />
               <button
                 type="submit"
                 disabled={sending || !input.trim()}
                 aria-label="Send message"
-                className="inline-flex size-8 shrink-0 items-center justify-center rounded-lg bg-accent text-accent-fg transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-40"
+                className="inline-flex size-9 shrink-0 items-center justify-center rounded-xl bg-accent text-accent-fg shadow-sm transition hover:scale-105 hover:opacity-95 active:scale-95 disabled:cursor-not-allowed disabled:opacity-30 disabled:hover:scale-100"
               >
-                <svg viewBox="0 0 24 24" fill="none" aria-hidden className="size-4">
-                  <path
-                    d="M4 12h15M13 6l6 6-6 6"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  />
-                </svg>
+                <SendIcon className="size-4" />
               </button>
             </div>
-            <p className="mt-2 text-center text-[10px] text-fg-muted">
-              Contact:{" "}
+            <p className="mt-2 flex items-center justify-center gap-1 text-center text-[10px] text-fg-muted">
+              <span>AI assistant can make mistakes ·</span>
               <a
                 href="mailto:support@1section.com"
-                className="font-medium text-fg transition hover:underline"
+                className="font-medium text-fg underline decoration-fg/40 underline-offset-2 transition hover:decoration-fg"
               >
                 support@1section.com
               </a>
@@ -464,6 +557,7 @@ export function CustomerServiceWidget() {
         type="button"
         onClick={() => {
           if (open) {
+            endSession("user_closed");
             setOpen(false);
             return;
           }
@@ -471,25 +565,36 @@ export function CustomerServiceWidget() {
         }}
         aria-label={open ? "Close customer service chat" : "Open customer service chat"}
         aria-expanded={open}
-        className="fixed bottom-5 right-4 z-[60] inline-flex size-14 items-center justify-center rounded-full bg-accent text-accent-fg shadow-lg shadow-black/25 transition hover:scale-105 hover:opacity-95 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent sm:right-6"
+        className={`group fixed bottom-5 right-4 z-[60] inline-flex h-14 items-center justify-center gap-2.5 rounded-full bg-accent text-accent-fg ring-1 ring-inset ring-accent-fg/20 transition-all duration-300 hover:-translate-y-0.5 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent sm:right-6 ${
+          open ? "w-14" : "w-14 sm:w-auto sm:pl-5 sm:pr-5"
+        } ${
+          !open && teaser
+            ? "shadow-[0_0_0_5px_rgba(16,185,129,0.16),0_14px_44px_-10px_rgba(0,0,0,0.6)]"
+            : "shadow-[0_12px_40px_-10px_rgba(0,0,0,0.55)] hover:shadow-[0_18px_50px_-12px_rgba(0,0,0,0.6)]"
+        }`}
       >
         {!open && teaser ? (
-          <span className="absolute -right-0.5 -top-0.5 inline-flex size-5 items-center justify-center rounded-full bg-red-500 text-[10px] font-bold text-white ring-2 ring-surface">
+          <span className="absolute -right-0.5 -top-0.5 inline-flex size-5 items-center justify-center rounded-full bg-emerald-500 text-[10px] font-bold text-white ring-2 ring-surface">
             1
           </span>
         ) : null}
-        {open ? (
-          <svg viewBox="0 0 24 24" fill="none" aria-hidden className="size-5">
-            <path
-              d="M6 6l12 12M18 6 6 18"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-            />
-          </svg>
-        ) : (
-          <ChatIcon className="size-6" />
-        )}
+        <span className="relative flex size-6 items-center justify-center">
+          <ChatIcon
+            className={`absolute size-6 transition-all duration-300 ${
+              open ? "rotate-90 scale-50 opacity-0" : "rotate-0 scale-100 opacity-100"
+            }`}
+          />
+          <CloseIcon
+            className={`absolute size-5 transition-all duration-300 ${
+              open ? "rotate-0 scale-100 opacity-100" : "-rotate-90 scale-50 opacity-0"
+            }`}
+          />
+        </span>
+        {!open ? (
+          <span className="hidden text-sm font-medium tracking-tight sm:inline">
+            Chat with us
+          </span>
+        ) : null}
       </button>
     </>
   );

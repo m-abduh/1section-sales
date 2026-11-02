@@ -135,6 +135,41 @@ export interface Pagination {
   totalPages: number;
 }
 
+export interface ChatTranscriptMessage {
+  role: "user" | "assistant";
+  content: string;
+  at: string;
+}
+
+export interface AdminChatSessionSummary {
+  id: string;
+  pagePath: string;
+  productSlug: string | null;
+  nicheSlug: string | null;
+  openedAt: string;
+  firstMessageAt: string;
+  lastSeenAt: string;
+  closedAt: string | null;
+  closeReason: string | null;
+  messageCount: number;
+  preview: string | null;
+}
+
+export interface AdminChatSessionDetail
+  extends Omit<AdminChatSessionSummary, "preview"> {
+  transcript: ChatTranscriptMessage[];
+}
+
+export interface AdminChatStats {
+  total: number;
+  open: number;
+  closed: number;
+  today: number;
+  messages: number;
+  averageMessages: number;
+  topPages: { path: string; sessions: number }[];
+}
+
 export interface AdminUser {
   id: string;
   email: string;

@@ -55,6 +55,10 @@ export function useAdminStats() {
           revenueLast7Days: number;
           averageOrderValue: number;
           conversionRate: number;
+          chatSessions: number;
+          chatSessionsLast7Days: number;
+          chatMessages: number;
+          chatAverageMessages: number;
           recentOrders: AdminOrder[];
           topProducts: {
             productId: string;

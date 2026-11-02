@@ -24,6 +24,9 @@ export async function getDashboardStats() {
     revenueLast7Days,
     recentOrders,
     paidOrderItems,
+    chatSessions,
+    chatSessionsLast7Days,
+    chatMessageAgg,
   ] = await Promise.all([
     prisma.niche.count(),
     prisma.niche.count({ where: { active: true } }),
@@ -50,6 +53,9 @@ export async function getDashboardStats() {
       where: { order: { status: "PAID" } },
       include: { product: { include: { niche: { select: { name: true } } } } },
     }),
+    prisma.chatSession.count(),
+    prisma.chatSession.count({ where: { createdAt: { gte: sevenDaysAgo } } }),
+    prisma.chatSession.aggregate({ _sum: { messageCount: true } }),
   ]);
 
   // Aggregate top products by units sold.
@@ -82,6 +88,7 @@ export async function getDashboardStats() {
   const revenueTotal = revenue._sum.total ?? 0;
   const averageOrderValue = paidOrders > 0 ? Math.round(revenueTotal / paidOrders) : 0;
   const conversionRate = orders > 0 ? Math.round((paidOrders / orders) * 100) : 0;
+  const chatMessages = chatMessageAgg._sum.messageCount ?? 0;
 
   return {
     niches,
@@ -96,6 +103,11 @@ export async function getDashboardStats() {
     revenueLast7Days: revenueLast7Days._sum.total ?? 0,
     averageOrderValue,
     conversionRate,
+    chatSessions,
+    chatSessionsLast7Days,
+    chatMessages,
+    chatAverageMessages:
+      chatSessions > 0 ? Math.round((chatMessages / chatSessions) * 10) / 10 : 0,
     recentOrders,
     topProducts,
   };
