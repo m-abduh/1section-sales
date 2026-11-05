@@ -130,9 +130,27 @@ model Product {
   files           ProductFile[]
   orderItems      OrderItem[]
   entitlements    Entitlement[]
+  ebookProject    EbookProject?
 
   @@index([nicheId, active, sortOrder])
   @@map("products")
+}
+
+/// Draft ebook produced by the admin Product Builder. When published, the
+/// generated PDF is uploaded to storage and linked to a Product.
+model EbookProject {
+  id        String   @id @default(cuid())
+  title     String
+  prompt    String
+  content   Json
+  status    String   @default("draft")
+  productId String?  @unique
+  product   Product? @relation(fields: [productId], references: [id], onDelete: SetNull)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([createdAt])
+  @@map("ebook_projects")
 }
 
 model ProductFile {

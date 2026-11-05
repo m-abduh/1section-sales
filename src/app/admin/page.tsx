@@ -149,6 +149,12 @@ export default function AdminDashboardPage() {
               <span aria-hidden>+</span> New product
             </Link>
             <Link
+              href="/admin/builder"
+              className="rounded-lg border border-border bg-card px-4 py-2 text-sm font-medium text-fg transition hover:bg-surface-muted"
+            >
+              Ebook builder
+            </Link>
+            <Link
               href="/admin/niches"
               className="rounded-lg border border-border bg-card px-4 py-2 text-sm font-medium text-fg transition hover:bg-surface-muted"
             >
