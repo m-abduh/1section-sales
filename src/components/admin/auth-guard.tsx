@@ -10,13 +10,21 @@ export function AuthGuard({ children }: { children: ReactNode }) {
   const { user, isLoading } = useAuth();
   const pathname = usePathname();
   const router = useRouter();
-  const isLoginRoute = pathname === "/admin/login";
+
+  // On the admin subdomain (admin.localhost:3001) the proxy rewrites /login
+  // to /admin/login, but usePathname() still reports the public path. Detect
+  // both shapes so the guard does not render null on the login screen.
+  const isLoginRoute =
+    pathname === "/admin/login" || pathname === "/login";
+  const loginPath = pathname.startsWith("/admin")
+    ? "/admin/login"
+    : "/login";
 
   useEffect(() => {
     if (!isLoading && !user && !isLoginRoute) {
-      router.replace("/admin/login");
+      router.replace(loginPath);
     }
-  }, [isLoading, user, isLoginRoute, router]);
+  }, [isLoading, user, isLoginRoute, loginPath, router]);
 
   if (isLoginRoute) {
     return <>{children}</>;

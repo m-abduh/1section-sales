@@ -291,38 +291,50 @@ export function EbookPreview({ projectId }: { projectId: string }) {
         </div>
         <p className="text-[11px] text-fg-muted">
           {tab === "docx"
-            ? "Preview dokumen Word persis seperti file yang diunduh."
-            : "PDF dibuat di server memakai PDFKit dengan ukuran A5."}
+            ? "Preview dokumen Word persis seperti file yang diunduh, dengan halaman A5."
+            : "PDF dibuat di server memakai PDFKit dengan ukuran A5 (148 × 210 mm)."}
         </p>
       </div>
 
       {tab === "docx" ? (
-        <div className="relative min-h-[420px] rounded-2xl border border-border bg-surface-muted/50 p-3 sm:p-5">
-          <div ref={docxRef} className="docx-stage" />
-
-          {docxState === "loading" ? (
-            <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 rounded-2xl bg-card/80 backdrop-blur-sm">
-              <Loader2 className="size-5 animate-spin text-fg-muted" />
-              <p className="text-xs text-fg-muted">Menyiapkan preview DOCX…</p>
+        <div className="rounded-2xl border border-border bg-surface-muted/50 p-3 sm:p-5">
+          <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
+            <p className="text-[11px] font-semibold text-fg-muted">
+              DOCX Preview · A5 · 148 × 210 mm
+            </p>
+            <p className="text-[11px] text-fg-muted">
+              Halaman dirender sesuai ukuran kertas A5.
+            </p>
+          </div>
+          <div className="relative min-h-[420px]">
+            <div className="overflow-x-auto pb-1">
+              <div ref={docxRef} className="docx-stage" />
             </div>
-          ) : null}
 
-          {docxState === "error" ? (
-            <div className="flex min-h-[380px] flex-col items-center justify-center gap-3 text-center">
-              <AlertTriangle className="size-6 text-red-500" />
-              <p className="max-w-sm text-xs leading-relaxed text-red-700 dark:text-red-400">
-                {docxError ?? "Gagal memuat preview DOCX."}
-              </p>
-              <Button
-                variant="secondary"
-                size="sm"
-                onClick={() => setDocxRetry((value) => value + 1)}
-              >
-                <RefreshCw className="size-3.5" />
-                Coba lagi
-              </Button>
-            </div>
-          ) : null}
+            {docxState === "loading" ? (
+              <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 rounded-2xl bg-card/80 backdrop-blur-sm">
+                <Loader2 className="size-5 animate-spin text-fg-muted" />
+                <p className="text-xs text-fg-muted">Menyiapkan preview DOCX…</p>
+              </div>
+            ) : null}
+
+            {docxState === "error" ? (
+              <div className="flex min-h-[380px] flex-col items-center justify-center gap-3 text-center">
+                <AlertTriangle className="size-6 text-red-500" />
+                <p className="max-w-sm text-xs leading-relaxed text-red-700 dark:text-red-400">
+                  {docxError ?? "Gagal memuat preview DOCX."}
+                </p>
+                <Button
+                  variant="secondary"
+                  size="sm"
+                  onClick={() => setDocxRetry((value) => value + 1)}
+                >
+                  <RefreshCw className="size-3.5" />
+                  Coba lagi
+                </Button>
+              </div>
+            ) : null}
+          </div>
         </div>
       ) : (
         <div>
@@ -370,10 +382,10 @@ export function EbookPreview({ projectId }: { projectId: string }) {
               )}
             </div>
           ) : (
-            <div className="overflow-hidden rounded-2xl border border-border bg-card">
-              <div className="flex flex-wrap items-center justify-between gap-2 border-b border-border bg-surface-muted/50 px-4 py-2.5">
+            <div className="rounded-2xl border border-border bg-surface-muted/50 p-3 sm:p-5">
+              <div className="mx-auto flex w-full max-w-[595px] flex-wrap items-center justify-between gap-2 pb-3">
                 <p className="text-[11px] font-semibold text-fg-muted">
-                  PDF Preview · A5
+                  PDF Preview · A5 · 148 × 210 mm
                 </p>
                 <div className="flex items-center gap-2">
                   <a
@@ -398,11 +410,13 @@ export function EbookPreview({ projectId }: { projectId: string }) {
                   </Button>
                 </div>
               </div>
-              <iframe
-                src={pdfSrc}
-                title={`PDF preview ${data.title}`}
-                className="h-[75vh] min-h-[560px] w-full bg-surface-muted/40"
-              />
+              <div className="mx-auto w-full max-w-[595px] overflow-hidden rounded-sm border border-border bg-white shadow-[0_1px_2px_rgba(9,9,11,0.08),0_18px_40px_-24px_rgba(9,9,11,0.35)]">
+                <iframe
+                  src={pdfSrc}
+                  title={`PDF preview ${data.title}`}
+                  className="aspect-[148/210] w-full bg-white"
+                />
+              </div>
             </div>
           )}
         </div>

@@ -9,5 +9,9 @@ export default function AdminLayout({
 }: {
   children: React.ReactNode;
 }) {
-  return <AuthGuard>{children}</AuthGuard>;
+  return (
+    <div className="min-h-full font-montserrat">
+      <AuthGuard>{children}</AuthGuard>
+    </div>
+  );
 }

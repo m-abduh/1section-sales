@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -22,6 +22,8 @@ type FormValues = z.infer<typeof schema>;
 export default function AdminLoginPage() {
   const { login } = useAuth();
   const router = useRouter();
+  const pathname = usePathname();
+  const homePath = pathname.startsWith("/admin") ? "/admin" : "/";
   const [serverError, setServerError] = useState<string | null>(null);
 
   const {
@@ -34,7 +36,7 @@ export default function AdminLoginPage() {
     setServerError(null);
     try {
       await login(values);
-      router.replace("/admin");
+      router.replace(homePath);
     } catch (error) {
       setServerError(getApiErrorMessage(error));
     }
