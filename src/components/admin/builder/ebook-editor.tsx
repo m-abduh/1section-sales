@@ -372,7 +372,7 @@ export function EbookEditor({
               </Button>
               <Button size="sm" onClick={handlePreview} disabled={busy}>
                 <Eye className="size-3.5" />
-                Preview DOCX &amp; PDF
+                Preview PDF
               </Button>
             </div>
           </div>

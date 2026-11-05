@@ -258,7 +258,7 @@ class PdfBook {
       .fillColor(INK)
       .text(this.ebook.title, MARGIN, this.y, {
         width: CONTENT_WIDTH,
-        align: "center",
+        align: "left",
         lineGap: 4,
       });
     this.y = d.y + 18;
@@ -271,7 +271,7 @@ class PdfBook {
       .fillColor(INK)
       .text(this.ebook.description, MARGIN, this.y, {
         width: CONTENT_WIDTH,
-        align: "center",
+        align: "left",
         lineGap: 5,
       });
   }

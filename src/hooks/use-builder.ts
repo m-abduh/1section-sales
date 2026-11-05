@@ -165,10 +165,8 @@ async function fetchBlob(url: string) {
   return response.data;
 }
 
-export function fetchEbookDocx(id: string, preview = false) {
-  return fetchBlob(
-    `/admin/builder/${id}/docx${preview ? "?preview=1" : "?download=1"}`,
-  );
+export function fetchEbookDocx(id: string) {
+  return fetchBlob(`/admin/builder/${id}/docx?download=1`);
 }
 
 export function fetchEbookPdf(id: string) {

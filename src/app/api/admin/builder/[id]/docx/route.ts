@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { fail, getAdmin, requireAdminSync } from "@/lib/server/next-helpers";
 import { generateEbookDocx } from "@/lib/ebook/docx";
-import { prepareDocxForPreview } from "@/lib/ebook/docx-preview";
 import {
   getEbookProject,
   parseProjectContent,
@@ -33,12 +32,10 @@ export async function GET(req: NextRequest, { params }: RouteContext) {
 
     const generated = await generateEbookDocx(content);
     const search = req.nextUrl.searchParams;
-    const preview = search.get("preview") === "1";
-    const buffer = preview ? await prepareDocxForPreview(generated) : generated;
     const download = search.get("download") === "1";
     const filename = `${slugify(project.title)}.docx`;
 
-    return new NextResponse(new Uint8Array(buffer), {
+    return new NextResponse(new Uint8Array(generated), {
       headers: {
         "Content-Type":
           "application/vnd.openxmlformats-officedocument.wordprocessingml.document",

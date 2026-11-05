@@ -37,7 +37,7 @@ export default function AdminBuilderPage() {
       <AdminPageHeader
         eyebrow="Product Builder"
         title="Ebook Studio"
-        description="Ubah brief menjadi ebook siap jual: editor berpaginasi, preview DOCX, export PDF, lalu publish ke katalog."
+        description="Ubah brief menjadi ebook siap jual: editor berpaginasi, preview PDF A5, download DOCX, lalu publish ke katalog."
         actions={
           <Link href="/admin/builder/new">
             <Button>
