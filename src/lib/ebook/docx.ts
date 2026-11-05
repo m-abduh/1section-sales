@@ -282,7 +282,7 @@ function createDocument(ebook: EbookContent) {
     ...ebook.about.map((text) => docxParagraph(text)),
   ];
 
-  const kicker = `${ebook.chapters.length} LANGKAH`;
+  const kicker = `${ebook.brand} · ${ebook.niche}`;
   const sections = [
     createSection(cover, undefined, kicker, { startsPageNumber: true }),
     createSection(contents, "DAFTAR ISI", kicker),

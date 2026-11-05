@@ -115,7 +115,7 @@ class PdfBook {
     d.font("Bold")
       .fontSize(RUNNING_SIZE)
       .fillColor(MUTED)
-      .text(`${this.ebook.chapters.length} LANGKAH`, MARGIN, 30, {
+      .text(`${this.ebook.brand} · ${this.ebook.niche}`, MARGIN, 30, {
         width: CONTENT_WIDTH / 2,
         align: "left",
         lineBreak: false,
