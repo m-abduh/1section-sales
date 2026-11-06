@@ -122,7 +122,7 @@ class PdfBook {
   }
 
   async render(pageMap: PageMap): Promise<{ buffer: Buffer; pageMap: PageMap }> {
-    this.drawCover();
+    await this.drawCover();
     this.drawContents(pageMap);
     this.drawIntroduction();
     await this.drawChapters();
@@ -397,7 +397,21 @@ class PdfBook {
     this.y += height + IMAGE_AFTER;
   }
 
-  private drawCover() {
+  private async drawCover() {
+    const coverUrl = this.ebook.cover?.renderedUrl;
+    if (coverUrl) {
+      const buffer = await loadImage(coverUrl, this.images);
+      if (buffer) {
+        this.page = 0;
+        this.y = TOP;
+        this.doc.image(buffer, 0, 0, {
+          width: PAGE_WIDTH,
+          height: PAGE_HEIGHT,
+        });
+        return;
+      }
+    }
+
     const d = this.doc;
     this.page = 0;
     this.y = TOP + 48;

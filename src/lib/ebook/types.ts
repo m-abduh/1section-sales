@@ -45,6 +45,35 @@ export type EbookChapter = {
   references?: EbookChapterReference[];
 };
 
+export type EbookCoverTemplate =
+  | "minimal"
+  | "editorial"
+  | "bold"
+  | "gradient"
+  | "photo";
+
+export type EbookCoverBackground =
+  | { type: "solid"; color: string }
+  | { type: "gradient"; from: string; to: string; angle?: number }
+  | { type: "image"; url: string; overlay?: number };
+
+/**
+ * Cover design settings. The cover itself is a reusable React/Tailwind
+ * component that is rasterised in the browser and stored in Cloudinary, so
+ * exports only need `renderedUrl`.
+ */
+export type EbookCover = {
+  template: EbookCoverTemplate;
+  accent: string;
+  background: EbookCoverBackground;
+  showDescription: boolean;
+  showBadge: boolean;
+  /** Cloudinary URL of the last rendered A5 JPEG. */
+  renderedUrl?: string;
+  /** Fingerprint of the inputs used for the last render. */
+  renderedHash?: string;
+};
+
 export type EbookContent = {
   brand: string;
   niche: string;
@@ -55,6 +84,7 @@ export type EbookContent = {
   conclusion: string[];
   references: EbookReference[];
   about: string[];
+  cover?: EbookCover;
 };
 
 export type TocEntry = {

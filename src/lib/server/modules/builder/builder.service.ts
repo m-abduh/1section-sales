@@ -151,7 +151,7 @@ export async function publishEbookProject(
     license: "Penggunaan pribadi. Dilarang mendistribusikan ulang.",
     sampleUrl: null,
     level: input.level ?? "FOUNDATIONS",
-    coverImage: null,
+    coverImage: content.cover?.renderedUrl ?? null,
     priceAmount: input.priceAmount,
     compareAtAmount: input.compareAtAmount ?? null,
     currency: "USD",

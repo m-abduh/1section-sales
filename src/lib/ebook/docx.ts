@@ -5,6 +5,7 @@ import {
   Footer,
   Header,
   HeadingLevel,
+  HorizontalPositionRelativeFrom,
   ImageRun,
   PageNumber,
   Packer,
@@ -14,6 +15,8 @@ import {
   TabStopType,
   TableOfContents,
   TextRun,
+  TextWrappingType,
+  VerticalPositionRelativeFrom,
 } from "docx";
 import { estimatePageNumbersWith } from "docx/layout";
 import { imageInfoOf } from "./image";
@@ -134,7 +137,7 @@ function createSection(
   children: (Paragraph | TableOfContents)[],
   sectionTitle: string | undefined,
   kicker: string,
-  options: { startsPageNumber?: boolean } = {},
+  options: { startsPageNumber?: boolean; bleed?: boolean } = {},
 ) {
   const isCover = sectionTitle === undefined;
   const blankHeader = new Header({ children: [new Paragraph("")] });
@@ -147,14 +150,16 @@ function createSection(
       page: {
         size: { width: 8391, height: 11906 },
         pageNumbers: options.startsPageNumber ? { start: 0 } : undefined,
-        margin: {
-          top: 1134,
-          right: 1134,
-          bottom: 1134,
-          left: 1134,
-          header: RUNNING_MATTER_OFFSET,
-          footer: RUNNING_MATTER_OFFSET,
-        },
+        margin: options.bleed
+          ? { top: 0, right: 0, bottom: 0, left: 0, header: 0, footer: 0 }
+          : {
+              top: 1134,
+              right: 1134,
+              bottom: 1134,
+              left: 1134,
+              header: RUNNING_MATTER_OFFSET,
+              footer: RUNNING_MATTER_OFFSET,
+            },
       },
     },
     headers: {
@@ -198,6 +203,19 @@ async function loadDocxImage(
   }
   cache.set(src, buffer);
   return buffer;
+}
+
+async function loadCoverImage(
+  ebook: EbookContent,
+  images: DocxImageCache,
+): Promise<{ data: Buffer; type: "png" | "jpg" } | null> {
+  const src = ebook.cover?.renderedUrl;
+  if (!src) return null;
+  const buffer = await loadDocxImage(src, images);
+  if (!buffer) return null;
+  const info = imageInfoOf(buffer);
+  if (!info || info.type === "webp") return null;
+  return { data: buffer, type: info.type };
 }
 
 function docxRuns(nodes: EbookRichTextNode[]): TextRun[] {
@@ -324,28 +342,54 @@ async function createDocument(
   ebook: EbookContent,
   images: DocxImageCache,
 ): Promise<Document> {
-  const cover = [
-    new Paragraph({
-      children: [
-        new TextRun({ text: `${ebook.brand} · ${ebook.niche}`, bold: true }),
-      ],
-      alignment: AlignmentType.CENTER,
-    }),
-    docxParagraph(" ", "Divider", {
-      bottomBorder: true,
-      alignment: AlignmentType.CENTER,
-      indent: { firstLine: 0 },
-    }),
-    docxParagraph(ebook.title, "CoverTitle"),
-    docxParagraph(" ", "Divider", {
-      bottomBorder: true,
-      alignment: AlignmentType.CENTER,
-      indent: { firstLine: 0 },
-    }),
-    docxParagraph(ebook.description, "CoverDescription", {
-      indent: { firstLine: 0 },
-    }),
-  ];
+  const coverImage = await loadCoverImage(ebook, images);
+  const cover = coverImage
+    ? [
+        new Paragraph({
+          spacing: { before: 0, after: 0 },
+          children: [
+            new ImageRun({
+              type: coverImage.type,
+              data: coverImage.data,
+              transformation: { width: 559, height: 794 },
+              floating: {
+                horizontalPosition: {
+                  relative: HorizontalPositionRelativeFrom.PAGE,
+                  offset: 0,
+                },
+                verticalPosition: {
+                  relative: VerticalPositionRelativeFrom.PAGE,
+                  offset: 0,
+                },
+                wrap: { type: TextWrappingType.NONE },
+                allowOverlap: true,
+              },
+            }),
+          ],
+        }),
+      ]
+    : [
+        new Paragraph({
+          children: [
+            new TextRun({ text: `${ebook.brand} · ${ebook.niche}`, bold: true }),
+          ],
+          alignment: AlignmentType.CENTER,
+        }),
+        docxParagraph(" ", "Divider", {
+          bottomBorder: true,
+          alignment: AlignmentType.CENTER,
+          indent: { firstLine: 0 },
+        }),
+        docxParagraph(ebook.title, "CoverTitle"),
+        docxParagraph(" ", "Divider", {
+          bottomBorder: true,
+          alignment: AlignmentType.CENTER,
+          indent: { firstLine: 0 },
+        }),
+        docxParagraph(ebook.description, "CoverDescription", {
+          indent: { firstLine: 0 },
+        }),
+      ];
 
   const contents = [
     docxParagraph("Daftar Isi", "SectionHeading"),
@@ -442,7 +486,10 @@ async function createDocument(
 
   const kicker = `${ebook.brand} · ${ebook.niche}`;
   const sections = [
-    createSection(cover, undefined, kicker, { startsPageNumber: true }),
+    createSection(cover, undefined, kicker, {
+      startsPageNumber: true,
+      bleed: Boolean(coverImage),
+    }),
     createSection(contents, "DAFTAR ISI", kicker),
     createSection(introduction, "PENDAHULUAN", kicker),
     ...chapters.map(({ title, children }) =>

@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import {
@@ -14,15 +14,28 @@ import {
   Trash2,
   Undo2,
 } from "lucide-react";
-import type { EbookChapter, EbookContent } from "@/lib/ebook/types";
+import type { EbookChapter, EbookContent, EbookCover } from "@/lib/ebook/types";
 import { richTextFromChapter } from "@/lib/ebook/rich-text";
-import { useUpdateEbookProject, type EbookStatus } from "@/hooks/use-builder";
+import {
+  COVER_HEIGHT,
+  COVER_WIDTH,
+  coverFingerprint,
+  isCoverStale,
+} from "@/lib/ebook/cover";
+import { captureCoverElement } from "@/lib/ebook/capture-cover";
+import {
+  useUpdateEbookProject,
+  useUploadBuilderImage,
+  type EbookStatus,
+} from "@/hooks/use-builder";
 import { getApiErrorMessage } from "@/lib/api";
 import { formatDate } from "@/lib/format";
 import { Button } from "@/components/ui/button";
 import { Field, Input, Textarea } from "@/components/ui/input";
 import { Modal } from "@/components/admin/modal";
 import { RichTextEditor } from "@/components/admin/builder/rich-text-editor";
+import { CoverBuilder } from "@/components/admin/builder/cover-builder";
+import { EbookCoverDesign } from "@/components/admin/builder/ebook-cover";
 import { Spinner } from "@/components/ui/spinner";
 
 type PageKey =
@@ -52,12 +65,16 @@ export function EbookEditor({
 }) {
   const router = useRouter();
   const updateProject = useUpdateEbookProject();
+  const uploadCover = useUploadBuilderImage();
+  const coverNodeRef = useRef<HTMLDivElement | null>(null);
   const [content, setContent] = useState<EbookContent>(initialContent);
   const [status, setStatus] = useState<EbookStatus>(initialStatus);
   const [pageIndex, setPageIndex] = useState(0);
   const [dirty, setDirty] = useState(false);
   const [saving, setSaving] = useState(false);
   const [statusBusy, setStatusBusy] = useState(false);
+  const [coverBusy, setCoverBusy] = useState(false);
+  const [coverError, setCoverError] = useState<string | null>(null);
   const [pendingDelete, setPendingDelete] = useState<number | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -89,16 +106,48 @@ export function EbookEditor({
     setDirty(true);
     setNotice(null);
     setError(null);
+    setCoverError(null);
+  }
+
+  async function renderCover(next: EbookContent): Promise<EbookCover | null> {
+    const node = coverNodeRef.current;
+    if (!next.cover || !node) return null;
+
+    setCoverBusy(true);
+    setCoverError(null);
+    try {
+      const file = await captureCoverElement(node);
+      const uploaded = await uploadCover.mutateAsync(file);
+      return {
+        ...next.cover,
+        renderedUrl: uploaded.url,
+        renderedHash: coverFingerprint(next),
+      };
+    } catch (caught) {
+      setCoverError(getApiErrorMessage(caught));
+      return null;
+    } finally {
+      setCoverBusy(false);
+    }
   }
 
   async function persistContent() {
     setSaving(true);
     setError(null);
     setNotice(null);
+    let nextContent = content;
     try {
+      if (content.cover && isCoverStale(content)) {
+        setNotice("Memperbarui gambar cover…");
+        const rendered = await renderCover(content);
+        if (rendered) {
+          nextContent = { ...content, cover: rendered };
+          setContent(nextContent);
+        }
+      }
       const project = await updateProject.mutateAsync({
         id: projectId,
-        input: { content },
+        input: { content: nextContent },
       });
       setDirty(false);
       setSavedAt(project.updatedAt);
@@ -290,7 +339,21 @@ export function EbookEditor({
             />
             <div className="mt-5">
               {page.key === "metadata" ? (
-                <MetadataPage content={content} onChange={patchContent} />
+                <div className="space-y-6">
+                  <CoverBuilder
+                    content={content}
+                    busy={busy || coverBusy}
+                    stale={isCoverStale(content)}
+                    error={coverError}
+                    onChange={(cover) =>
+                      patchContent((previous) => ({ ...previous, cover }))
+                    }
+                    onRender={() => void persistContent()}
+                  />
+                  <div className="border-t border-border pt-5">
+                    <MetadataPage content={content} onChange={patchContent} />
+                  </div>
+                </div>
               ) : null}
               {page.key === "introduction" ? (
                 <ParagraphList
@@ -414,6 +477,17 @@ export function EbookEditor({
           </div>
         </div>
       </div>
+
+      {content.cover ? (
+        <div
+          ref={coverNodeRef}
+          aria-hidden
+          className="pointer-events-none fixed left-[-20000px] top-0"
+          style={{ width: COVER_WIDTH, height: COVER_HEIGHT }}
+        >
+          <EbookCoverDesign content={content} cover={content.cover} />
+        </div>
+      ) : null}
 
       <Modal
         open={pendingDelete !== null}

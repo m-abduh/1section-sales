@@ -24,6 +24,37 @@ const richTextNode: z.ZodType<EbookRichTextNode> = z.lazy(() =>
 
 const richTextBody = z.array(richTextNode).max(400).optional();
 
+const hexColor = z
+  .string()
+  .regex(/^#[0-9a-fA-F]{6}$/, "Warna harus format #RRGGBB.");
+
+const coverBackground = z.discriminatedUnion("type", [
+  z.object({ type: z.literal("solid"), color: hexColor }),
+  z.object({
+    type: z.literal("gradient"),
+    from: hexColor,
+    to: hexColor,
+    angle: z.number().min(0).max(360).optional(),
+  }),
+  z.object({
+    type: z.literal("image"),
+    url: z.string().url().max(600),
+    overlay: z.number().min(0).max(1).optional(),
+  }),
+]);
+
+const cover = z
+  .object({
+    template: z.enum(["minimal", "editorial", "bold", "gradient", "photo"]),
+    accent: hexColor,
+    background: coverBackground,
+    showDescription: z.boolean(),
+    showBadge: z.boolean(),
+    renderedUrl: z.string().url().max(600).optional(),
+    renderedHash: z.string().max(80).optional(),
+  })
+  .optional();
+
 export const ebookSchema = z.object({
   brand: z.string().trim().min(1).max(80).default("1section"),
   niche: z.string().trim().min(1).max(120),
@@ -69,6 +100,7 @@ export const ebookSchema = z.object({
     .min(1)
     .max(20),
   about: z.array(paragraph).min(1).max(8),
+  cover,
 });
 
 export type EbookContentInput = z.input<typeof ebookSchema>;
