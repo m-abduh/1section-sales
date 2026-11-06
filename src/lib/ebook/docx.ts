@@ -5,6 +5,8 @@ import {
   Footer,
   Header,
   HeadingLevel,
+  HorizontalPositionRelativeFrom,
+  ImageRun,
   PageNumber,
   Packer,
   Paragraph,
@@ -13,9 +15,17 @@ import {
   TabStopType,
   TableOfContents,
   TextRun,
+  TextWrappingType,
+  VerticalPositionRelativeFrom,
 } from "docx";
 import { estimatePageNumbersWith } from "docx/layout";
-import type { EbookContent } from "./types";
+import { imageInfoOf } from "./image";
+import {
+  richTextImageSrc,
+  richTextPlainText,
+  richTextRuns,
+} from "./rich-text";
+import type { EbookContent, EbookRichTextNode } from "./types";
 
 const RUNNING_MATTER_COLOR = "7A8589";
 const RUNNING_MATTER_OFFSET = 432;
@@ -127,7 +137,7 @@ function createSection(
   children: (Paragraph | TableOfContents)[],
   sectionTitle: string | undefined,
   kicker: string,
-  options: { startsPageNumber?: boolean } = {},
+  options: { startsPageNumber?: boolean; bleed?: boolean } = {},
 ) {
   const isCover = sectionTitle === undefined;
   const blankHeader = new Header({ children: [new Paragraph("")] });
@@ -140,14 +150,16 @@ function createSection(
       page: {
         size: { width: 8391, height: 11906 },
         pageNumbers: options.startsPageNumber ? { start: 0 } : undefined,
-        margin: {
-          top: 1134,
-          right: 1134,
-          bottom: 1134,
-          left: 1134,
-          header: RUNNING_MATTER_OFFSET,
-          footer: RUNNING_MATTER_OFFSET,
-        },
+        margin: options.bleed
+          ? { top: 0, right: 0, bottom: 0, left: 0, header: 0, footer: 0 }
+          : {
+              top: 1134,
+              right: 1134,
+              bottom: 1134,
+              left: 1134,
+              header: RUNNING_MATTER_OFFSET,
+              footer: RUNNING_MATTER_OFFSET,
+            },
       },
     },
     headers: {
@@ -168,8 +180,170 @@ function referenceLine(reference: { title: string; url?: string }) {
     : reference.title;
 }
 
-function createDocument(ebook: EbookContent) {
-  const cover = [
+type DocxImageCache = Map<string, Buffer | null>;
+
+async function loadDocxImage(
+  src: string,
+  cache: DocxImageCache,
+): Promise<Buffer | null> {
+  if (cache.has(src)) return cache.get(src) ?? null;
+  let buffer: Buffer | null = null;
+  try {
+    const url = new URL(src);
+    if (url.protocol !== "https:" || url.hostname !== "res.cloudinary.com") {
+      cache.set(src, null);
+      return null;
+    }
+    const response = await fetch(src, { signal: AbortSignal.timeout(15000) });
+    if (response.ok) {
+      buffer = Buffer.from(await response.arrayBuffer());
+    }
+  } catch {
+    buffer = null;
+  }
+  cache.set(src, buffer);
+  return buffer;
+}
+
+async function loadCoverImage(
+  ebook: EbookContent,
+  images: DocxImageCache,
+): Promise<{ data: Buffer; type: "png" | "jpg" } | null> {
+  const src = ebook.cover?.renderedUrl;
+  if (!src) return null;
+  const buffer = await loadDocxImage(src, images);
+  if (!buffer) return null;
+  const info = imageInfoOf(buffer);
+  if (!info || info.type === "webp") return null;
+  return { data: buffer, type: info.type };
+}
+
+function docxRuns(nodes: EbookRichTextNode[]): TextRun[] {
+  const runs: TextRun[] = [];
+  for (const run of richTextRuns(nodes)) {
+    if (run.text.length === 0) continue;
+    const marks = run.marks.map((mark) => mark.type);
+    const lines = run.text.split("\n");
+    lines.forEach((line, index) => {
+      runs.push(
+        new TextRun({
+          text: line,
+          font: "Montserrat",
+          bold: marks.includes("bold"),
+          italics: marks.includes("italic"),
+          break: index > 0 ? 1 : undefined,
+        }),
+      );
+    });
+  }
+  return runs;
+}
+
+async function docxImageParagraph(
+  node: EbookRichTextNode,
+  images: DocxImageCache,
+): Promise<Paragraph | null> {
+  const src = richTextImageSrc(node);
+  if (!src) return null;
+  const buffer = await loadDocxImage(src, images);
+  if (!buffer) return null;
+  const info = imageInfoOf(buffer);
+  if (!info || info.type === "webp") return null;
+
+  const scale = Math.min(400 / info.width, 320 / info.height, 1);
+  return new Paragraph({
+    alignment: AlignmentType.CENTER,
+    spacing: { before: 120, after: 120 },
+    children: [
+      new ImageRun({
+        type: info.type === "png" ? "png" : "jpg",
+        data: buffer,
+        transformation: {
+          width: Math.max(1, Math.round(info.width * scale)),
+          height: Math.max(1, Math.round(info.height * scale)),
+        },
+      }),
+    ],
+  });
+}
+
+async function richDocxBlocks(
+  nodes: EbookRichTextNode[],
+  images: DocxImageCache,
+): Promise<Paragraph[]> {
+  const blocks: Paragraph[] = [];
+
+  for (const node of nodes) {
+    if (node.type === "paragraph") {
+      const runs = docxRuns(node.content ?? []);
+      if (runs.length > 0) {
+        blocks.push(new Paragraph({ children: runs, style: "Normal" }));
+      }
+      continue;
+    }
+
+    if (node.type === "heading") {
+      const text = richTextPlainText(node.content ?? []).trim();
+      if (text) {
+        blocks.push(
+          docxParagraph(text, undefined, { heading: HeadingLevel.HEADING_3 }),
+        );
+      }
+      continue;
+    }
+
+    if (node.type === "bulletList" || node.type === "orderedList") {
+      const ordered = node.type === "orderedList";
+      let position = 1;
+      for (const item of node.content ?? []) {
+        const inline: EbookRichTextNode[] = [];
+        const nested: EbookRichTextNode[] = [];
+        for (const child of item.content ?? []) {
+          if (child.type === "paragraph" || child.type === "heading") {
+            inline.push(...(child.content ?? []));
+          } else {
+            nested.push(child);
+          }
+        }
+        const marker = ordered ? `${position}.` : "•";
+        blocks.push(
+          new Paragraph({
+            style: "Normal",
+            indent: { left: 360, firstLine: 0 },
+            children: docxRuns([
+              { type: "text", text: `${marker} ` },
+              ...inline,
+            ]),
+          }),
+        );
+        if (nested.length > 0) {
+          blocks.push(...(await richDocxBlocks(nested, images)));
+        }
+        position += 1;
+      }
+      continue;
+    }
+
+    if (node.type === "image") {
+      const paragraph = await docxImageParagraph(node, images);
+      if (paragraph) blocks.push(paragraph);
+      continue;
+    }
+
+    if (node.content?.length) {
+      blocks.push(...(await richDocxBlocks(node.content, images)));
+    }
+  }
+
+  return blocks;
+}
+
+async function createDocument(
+  ebook: EbookContent,
+  images: DocxImageCache,
+): Promise<Document> {
+  const coverImage = await loadCoverImage(ebook, images);
+  const coverText = [
     new Paragraph({
       children: [
         new TextRun({ text: `${ebook.brand} · ${ebook.niche}`, bold: true }),
@@ -191,6 +365,32 @@ function createDocument(ebook: EbookContent) {
       indent: { firstLine: 0 },
     }),
   ];
+  const coverVisual = coverImage
+    ? [
+        new Paragraph({
+          spacing: { before: 0, after: 0 },
+          children: [
+            new ImageRun({
+              type: coverImage.type,
+              data: coverImage.data,
+              transformation: { width: 559, height: 794 },
+              floating: {
+                horizontalPosition: {
+                  relative: HorizontalPositionRelativeFrom.PAGE,
+                  offset: 0,
+                },
+                verticalPosition: {
+                  relative: VerticalPositionRelativeFrom.PAGE,
+                  offset: 0,
+                },
+                wrap: { type: TextWrappingType.NONE },
+                allowOverlap: true,
+              },
+            }),
+          ],
+        }),
+      ]
+    : null;
 
   const contents = [
     docxParagraph("Daftar Isi", "SectionHeading"),
@@ -208,8 +408,9 @@ function createDocument(ebook: EbookContent) {
     ...ebook.introduction.map((text) => docxParagraph(text)),
   ];
 
-  const chapters = ebook.chapters.map((chapter, index) => {
-    const children = [
+  const chapters: { title: string; children: Paragraph[] }[] = [];
+  for (const [index, chapter] of ebook.chapters.entries()) {
+    const children: Paragraph[] = [
       new Paragraph(""),
       new Paragraph({
         heading: HeadingLevel.HEADING_2,
@@ -234,16 +435,20 @@ function createDocument(ebook: EbookContent) {
       new Paragraph(""),
     ];
 
-    (chapter.intro ?? []).forEach((text) => children.push(docxParagraph(text)));
+    if (chapter.body !== undefined) {
+      children.push(...(await richDocxBlocks(chapter.body, images)));
+    } else {
+      (chapter.intro ?? []).forEach((text) => children.push(docxParagraph(text)));
 
-    chapter.sections.forEach((section) => {
-      children.push(
-        docxParagraph(section.title, undefined, {
-          heading: HeadingLevel.HEADING_3,
-        }),
-      );
-      section.paragraphs.forEach((text) => children.push(docxParagraph(text)));
-    });
+      chapter.sections.forEach((section) => {
+        children.push(
+          docxParagraph(section.title, undefined, {
+            heading: HeadingLevel.HEADING_3,
+          }),
+        );
+        section.paragraphs.forEach((text) => children.push(docxParagraph(text)));
+      });
+    }
 
     if (chapter.references?.length) {
       children.push(
@@ -253,11 +458,9 @@ function createDocument(ebook: EbookContent) {
         ),
       );
     }
-    return {
-      title: `${index + 1}. ${chapter.title}`,
-      children,
-    };
-  });
+
+    chapters.push({ title: `${index + 1}. ${chapter.title}`, children });
+  }
 
   const conclusion = [
     docxParagraph("Kesimpulan", undefined, {
@@ -282,9 +485,18 @@ function createDocument(ebook: EbookContent) {
     ...ebook.about.map((text) => docxParagraph(text)),
   ];
 
-  const kicker = `${ebook.chapters.length} LANGKAH`;
+  const kicker = `${ebook.brand} · ${ebook.niche}`;
+  const coverSections = coverVisual
+    ? [
+        createSection(coverVisual, undefined, kicker, {
+          startsPageNumber: true,
+          bleed: true,
+        }),
+        createSection(coverText, undefined, kicker),
+      ]
+    : [createSection(coverText, undefined, kicker, { startsPageNumber: true })];
   const sections = [
-    createSection(cover, undefined, kicker, { startsPageNumber: true }),
+    ...coverSections,
     createSection(contents, "DAFTAR ISI", kicker),
     createSection(introduction, "PENDAHULUAN", kicker),
     ...chapters.map(({ title, children }) =>
@@ -441,5 +653,5 @@ function createDocument(ebook: EbookContent) {
 }
 
 export async function generateEbookDocx(ebook: EbookContent): Promise<Buffer> {
-  return Packer.toBuffer(createDocument(ebook));
+  return Packer.toBuffer(await createDocument(ebook, new Map()));
 }

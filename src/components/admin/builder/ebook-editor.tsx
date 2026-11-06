@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import {
@@ -14,16 +14,28 @@ import {
   Trash2,
   Undo2,
 } from "lucide-react";
-import type {
-  EbookChapter,
-  EbookContent,
-  EbookSection,
-} from "@/lib/ebook/types";
-import { useUpdateEbookProject, type EbookStatus } from "@/hooks/use-builder";
+import type { EbookChapter, EbookContent, EbookCover } from "@/lib/ebook/types";
+import { richTextFromChapter } from "@/lib/ebook/rich-text";
+import {
+  COVER_HEIGHT,
+  COVER_WIDTH,
+  coverFingerprint,
+  isCoverStale,
+} from "@/lib/ebook/cover";
+import { captureCoverElement } from "@/lib/ebook/capture-cover";
+import {
+  useUpdateEbookProject,
+  useUploadBuilderImage,
+  type EbookStatus,
+} from "@/hooks/use-builder";
 import { getApiErrorMessage } from "@/lib/api";
 import { formatDate } from "@/lib/format";
 import { Button } from "@/components/ui/button";
 import { Field, Input, Textarea } from "@/components/ui/input";
+import { Modal } from "@/components/admin/modal";
+import { RichTextEditor } from "@/components/admin/builder/rich-text-editor";
+import { CoverBuilder } from "@/components/admin/builder/cover-builder";
+import { EbookCoverDesign } from "@/components/admin/builder/ebook-cover";
 import { Spinner } from "@/components/ui/spinner";
 
 type PageKey =
@@ -53,12 +65,17 @@ export function EbookEditor({
 }) {
   const router = useRouter();
   const updateProject = useUpdateEbookProject();
+  const uploadCover = useUploadBuilderImage();
+  const coverNodeRef = useRef<HTMLDivElement | null>(null);
   const [content, setContent] = useState<EbookContent>(initialContent);
   const [status, setStatus] = useState<EbookStatus>(initialStatus);
   const [pageIndex, setPageIndex] = useState(0);
   const [dirty, setDirty] = useState(false);
   const [saving, setSaving] = useState(false);
   const [statusBusy, setStatusBusy] = useState(false);
+  const [coverBusy, setCoverBusy] = useState(false);
+  const [coverError, setCoverError] = useState<string | null>(null);
+  const [pendingDelete, setPendingDelete] = useState<number | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [savedAt, setSavedAt] = useState(updatedAt);
@@ -82,21 +99,55 @@ export function EbookEditor({
   const safePageIndex = Math.min(pageIndex, pages.length - 1);
   const page = pages[safePageIndex];
 
-  function patchContent(next: EbookContent) {
+  function patchContent(
+    next: EbookContent | ((previous: EbookContent) => EbookContent),
+  ) {
     setContent(next);
     setDirty(true);
     setNotice(null);
     setError(null);
+    setCoverError(null);
+  }
+
+  async function renderCover(next: EbookContent): Promise<EbookCover | null> {
+    const node = coverNodeRef.current;
+    if (!next.cover || !node) return null;
+
+    setCoverBusy(true);
+    setCoverError(null);
+    try {
+      const file = await captureCoverElement(node);
+      const uploaded = await uploadCover.mutateAsync(file);
+      return {
+        ...next.cover,
+        renderedUrl: uploaded.url,
+        renderedHash: coverFingerprint(next),
+      };
+    } catch (caught) {
+      setCoverError(getApiErrorMessage(caught));
+      return null;
+    } finally {
+      setCoverBusy(false);
+    }
   }
 
   async function persistContent() {
     setSaving(true);
     setError(null);
     setNotice(null);
+    let nextContent = content;
     try {
+      if (content.cover && isCoverStale(content)) {
+        setNotice("Memperbarui gambar cover…");
+        const rendered = await renderCover(content);
+        if (rendered) {
+          nextContent = { ...content, cover: rendered };
+          setContent(nextContent);
+        }
+      }
       const project = await updateProject.mutateAsync({
         id: projectId,
-        input: { content },
+        input: { content: nextContent },
       });
       setDirty(false);
       setSavedAt(project.updatedAt);
@@ -142,6 +193,18 @@ export function EbookEditor({
 
   function goTo(index: number) {
     setPageIndex(Math.max(0, Math.min(pages.length - 1, index)));
+  }
+
+  function deleteChapter(index: number) {
+    const total = content.chapters.length;
+    if (total <= 1) return;
+    patchContent((previous) => ({
+      ...previous,
+      chapters: previous.chapters.filter(
+        (_unused, itemIndex) => itemIndex !== index,
+      ),
+    }));
+    setPageIndex(Math.min(index + 1, total + 3));
   }
 
   const busy = saving || statusBusy;
@@ -230,23 +293,40 @@ export function EbookEditor({
               Halaman ebook
             </p>
             <nav className="mt-1 space-y-0.5">
-              {pages.map((item, index) => (
-                <button
-                  key={item.key}
-                  type="button"
-                  onClick={() => goTo(index)}
-                  className={`flex w-full items-start gap-2 rounded-lg px-2 py-1.5 text-left text-[11px] leading-snug transition ${
-                    safePageIndex === index
-                      ? "bg-surface-muted font-semibold text-fg"
-                      : "text-fg-muted hover:bg-surface-muted/70 hover:text-fg"
-                  }`}
-                >
-                  <span className="w-5 shrink-0 font-mono text-[10px] text-fg-muted">
-                    {String(index + 1).padStart(2, "0")}
-                  </span>
-                  <span className="line-clamp-2">{item.label}</span>
-                </button>
-              ))}
+              {pages.map((item, index) => {
+                const chapterIndex = index - 2;
+                const isChapter =
+                  chapterIndex >= 0 && chapterIndex < content.chapters.length;
+                return (
+                  <div key={item.key} className="group relative">
+                    <button
+                      type="button"
+                      onClick={() => goTo(index)}
+                      className={`flex w-full items-start gap-2 rounded-lg px-2 py-1.5 pr-8 text-left text-[11px] leading-snug transition ${
+                        safePageIndex === index
+                          ? "bg-surface-muted font-semibold text-fg"
+                          : "text-fg-muted hover:bg-surface-muted/70 hover:text-fg"
+                      }`}
+                    >
+                      <span className="w-5 shrink-0 font-mono text-[10px] text-fg-muted">
+                        {String(index + 1).padStart(2, "0")}
+                      </span>
+                      <span className="line-clamp-2">{item.label}</span>
+                    </button>
+                    {isChapter && content.chapters.length > 1 ? (
+                      <button
+                        type="button"
+                        aria-label={`Hapus ${item.shortLabel}`}
+                        title={`Hapus ${item.shortLabel}`}
+                        onClick={() => setPendingDelete(chapterIndex)}
+                        className="absolute right-1 top-1.5 grid size-6 place-items-center rounded-md text-fg-muted opacity-0 transition hover:bg-red-500/10 hover:text-red-600 focus-visible:opacity-100 group-hover:opacity-100"
+                      >
+                        <Trash2 className="size-3" />
+                      </button>
+                    ) : null}
+                  </div>
+                );
+              })}
             </nav>
           </div>
         </aside>
@@ -259,7 +339,21 @@ export function EbookEditor({
             />
             <div className="mt-5">
               {page.key === "metadata" ? (
-                <MetadataPage content={content} onChange={patchContent} />
+                <div className="space-y-6">
+                  <CoverBuilder
+                    content={content}
+                    busy={busy || coverBusy}
+                    stale={isCoverStale(content)}
+                    error={coverError}
+                    onChange={(cover) =>
+                      patchContent((previous) => ({ ...previous, cover }))
+                    }
+                    onRender={() => void persistContent()}
+                  />
+                  <div className="border-t border-border pt-5">
+                    <MetadataPage content={content} onChange={patchContent} />
+                  </div>
+                </div>
               ) : null}
               {page.key === "introduction" ? (
                 <ParagraphList
@@ -272,20 +366,25 @@ export function EbookEditor({
               ) : null}
               {page.key.startsWith("chapter-") ? (
                 <ChapterEditor
+                  key={page.key}
                   chapter={
                     content.chapters[Number(page.key.split("-")[1])] ?? {
                       title: "",
                       sections: [],
                     }
                   }
+                  canDelete={content.chapters.length > 1}
+                  onRequestDelete={() =>
+                    setPendingDelete(Number(page.key.split("-")[1]))
+                  }
                   onChange={(chapter) => {
                     const index = Number(page.key.split("-")[1]);
-                    patchContent({
-                      ...content,
-                      chapters: content.chapters.map((item, itemIndex) =>
+                    patchContent((previous) => ({
+                      ...previous,
+                      chapters: previous.chapters.map((item, itemIndex) =>
                         itemIndex === index ? chapter : item,
                       ),
-                    });
+                    }));
                   }}
                 />
               ) : null}
@@ -378,6 +477,54 @@ export function EbookEditor({
           </div>
         </div>
       </div>
+
+      {content.cover ? (
+        <div
+          ref={coverNodeRef}
+          aria-hidden
+          className="pointer-events-none fixed left-[-20000px] top-0"
+          style={{ width: COVER_WIDTH, height: COVER_HEIGHT }}
+        >
+          <EbookCoverDesign content={content} cover={content.cover} />
+        </div>
+      ) : null}
+
+      <Modal
+        open={pendingDelete !== null}
+        title="Hapus bab ini?"
+        onClose={() => setPendingDelete(null)}
+      >
+        <p className="text-xs leading-relaxed text-fg-muted">
+          Bab{" "}
+          <span className="font-semibold text-fg">
+            {pendingDelete !== null
+              ? content.chapters[pendingDelete]?.title || "tanpa judul"
+              : ""}
+          </span>{" "}
+          beserta seluruh isi dan gambarnya akan dihapus. Tindakan ini tidak
+          bisa dibatalkan setelah perubahan disimpan.
+        </p>
+        <div className="mt-5 flex justify-end gap-2">
+          <Button
+            variant="secondary"
+            size="sm"
+            onClick={() => setPendingDelete(null)}
+          >
+            Batal
+          </Button>
+          <Button
+            variant="danger"
+            size="sm"
+            onClick={() => {
+              if (pendingDelete !== null) deleteChapter(pendingDelete);
+              setPendingDelete(null);
+            }}
+          >
+            <Trash2 className="size-3.5" />
+            Hapus bab
+          </Button>
+        </div>
+      </Modal>
     </div>
   );
 }
@@ -602,74 +749,91 @@ function AddButton({ label, onClick }: { label: string; onClick: () => void }) {
 
 function ChapterEditor({
   chapter,
+  canDelete,
+  onRequestDelete,
   onChange,
 }: {
   chapter: EbookChapter;
+  canDelete: boolean;
+  onRequestDelete: () => void;
   onChange: (chapter: EbookChapter) => void;
 }) {
-  function updateSection(sectionIndex: number, next: EbookSection) {
-    onChange({
-      ...chapter,
-      sections: chapter.sections.map((section, itemIndex) =>
-        itemIndex === sectionIndex ? next : section,
-      ),
-    });
-  }
-
   return (
     <div className="space-y-5">
-      <Field label="Judul bab">
-        <Input
-          value={chapter.title}
-          onChange={(event) =>
-            onChange({ ...chapter, title: event.target.value })
-          }
-        />
-      </Field>
-
-      <div className="rounded-xl border border-border bg-surface-muted/40 p-4">
-        <div className="flex items-center justify-between gap-3">
-          <p className="text-[11px] font-semibold uppercase tracking-wide text-fg-muted">
-            Paragraf pembuka bab (opsional)
-          </p>
-          {chapter.intro?.length ? (
-            <button
-              type="button"
-              onClick={() => onChange({ ...chapter, intro: undefined })}
-              className="inline-flex items-center gap-1 text-[11px] font-semibold text-red-600 transition hover:text-red-700 dark:text-red-400"
-            >
-              <Trash2 className="size-3" />
-              Hapus
-            </button>
-          ) : null}
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <div className="min-w-0 flex-1">
+          <Field label="Judul bab">
+            <Input
+              value={chapter.title}
+              onChange={(event) =>
+                onChange({ ...chapter, title: event.target.value })
+              }
+            />
+          </Field>
         </div>
-        <div className="mt-3">
-          <ParagraphList
-            values={chapter.intro ?? []}
-            max={8}
-            onChange={(intro) => onChange({ ...chapter, intro })}
+        {canDelete ? (
+          <button
+            type="button"
+            onClick={onRequestDelete}
+            className="mt-6 inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-[11px] font-semibold text-red-600 transition hover:bg-red-500/10 hover:text-red-700 dark:text-red-400"
+          >
+            <Trash2 className="size-3.5" />
+            Hapus bab
+          </button>
+        ) : null}
+      </div>
+
+      <div>
+        <p className="text-[11px] font-semibold uppercase tracking-wide text-fg-muted">
+          Isi bab
+        </p>
+        <p className="mt-1 text-[11px] text-fg-muted">
+          Tulis beberapa paragraf, pakai sub-judul bila perlu, dan sisipkan
+          gambar untuk memperjelas pembahasan.
+        </p>
+        <div className="mt-2">
+          <RichTextEditor
+            value={richTextFromChapter(chapter)}
+            onChange={(body) => onChange({ ...chapter, body })}
+            placeholder="Tulis isi bab…"
           />
         </div>
       </div>
 
-      <div className="space-y-4">
-        {chapter.sections.map((section, sectionIndex) => (
-          <div
-            key={sectionIndex}
-            className="rounded-xl border border-border bg-surface-muted/40 p-4"
-          >
-            <div className="flex items-center justify-between gap-3">
-              <p className="text-[11px] font-semibold uppercase tracking-wide text-fg-muted">
-                Sub-bagian {sectionIndex + 1}
-              </p>
-              {chapter.sections.length > 1 ? (
+      <div className="rounded-xl border border-border bg-surface-muted/40 p-4">
+        <div className="flex items-center justify-between gap-3">
+          <p className="text-[11px] font-semibold uppercase tracking-wide text-fg-muted">
+            Referensi bab (opsional)
+          </p>
+          {chapter.references?.length ? (
+            <button
+              type="button"
+              onClick={() => onChange({ ...chapter, references: undefined })}
+              className="inline-flex items-center gap-1 text-[11px] font-semibold text-red-600 transition hover:text-red-700 dark:text-red-400"
+            >
+              <Trash2 className="size-3" />
+              Hapus semua
+            </button>
+          ) : null}
+        </div>
+
+        <div className="mt-3 space-y-3">
+          {(chapter.references ?? []).map((reference, referenceIndex) => (
+            <div
+              key={referenceIndex}
+              className="rounded-lg border border-border bg-card p-3"
+            >
+              <div className="flex items-center justify-between gap-3">
+                <p className="text-[10px] font-semibold uppercase tracking-wide text-fg-muted">
+                  Referensi {referenceIndex + 1}
+                </p>
                 <button
                   type="button"
                   onClick={() =>
                     onChange({
                       ...chapter,
-                      sections: chapter.sections.filter(
-                        (_unused, itemIndex) => itemIndex !== sectionIndex,
+                      references: (chapter.references ?? []).filter(
+                        (_unused, itemIndex) => itemIndex !== referenceIndex,
                       ),
                     })
                   }
@@ -678,144 +842,55 @@ function ChapterEditor({
                   <Trash2 className="size-3" />
                   Hapus
                 </button>
-              ) : null}
-            </div>
-
-            <div className="mt-3">
-              <Field label="Judul sub-bagian">
-                <Input
-                  value={section.title}
-                  onChange={(event) =>
-                    updateSection(sectionIndex, {
-                      ...section,
-                      title: event.target.value,
-                    })
-                  }
-                />
-              </Field>
-            </div>
-
-            <div className="mt-4">
-              <p className="text-[11px] font-semibold uppercase tracking-wide text-fg-muted">
-                Paragraf
-              </p>
-              <div className="mt-2">
-                <ParagraphList
-                  values={section.paragraphs}
-                  max={6}
-                  onChange={(paragraphs) =>
-                    updateSection(sectionIndex, { ...section, paragraphs })
-                  }
-                />
               </div>
-            </div>
-          </div>
-        ))}
-
-        {chapter.sections.length < 6 ? (
-          <AddButton
-            label="Tambah sub-bagian"
-            onClick={() =>
-              onChange({
-                ...chapter,
-                sections: [...chapter.sections, { title: "", paragraphs: [""] }],
-              })
-            }
-          />
-        ) : null}
-
-        <div className="rounded-xl border border-border bg-surface-muted/40 p-4">
-          <div className="flex items-center justify-between gap-3">
-            <p className="text-[11px] font-semibold uppercase tracking-wide text-fg-muted">
-              Referensi bab (opsional)
-            </p>
-            {chapter.references?.length ? (
-              <button
-                type="button"
-                onClick={() => onChange({ ...chapter, references: undefined })}
-                className="inline-flex items-center gap-1 text-[11px] font-semibold text-red-600 transition hover:text-red-700 dark:text-red-400"
-              >
-                <Trash2 className="size-3" />
-                Hapus semua
-              </button>
-            ) : null}
-          </div>
-
-          <div className="mt-3 space-y-3">
-            {(chapter.references ?? []).map((reference, referenceIndex) => (
-              <div
-                key={referenceIndex}
-                className="rounded-lg border border-border bg-card p-3"
-              >
-                <div className="flex items-center justify-between gap-3">
-                  <p className="text-[10px] font-semibold uppercase tracking-wide text-fg-muted">
-                    Referensi {referenceIndex + 1}
-                  </p>
-                  <button
-                    type="button"
-                    onClick={() =>
+              <div className="mt-3 grid gap-3 sm:grid-cols-2">
+                <Field label="Sitasi">
+                  <Input
+                    value={reference.title}
+                    onChange={(event) =>
                       onChange({
                         ...chapter,
-                        references: (chapter.references ?? []).filter(
-                          (_unused, itemIndex) => itemIndex !== referenceIndex,
+                        references: updateReference(
+                          chapter.references ?? [],
+                          referenceIndex,
+                          { title: event.target.value },
                         ),
                       })
                     }
-                    className="inline-flex items-center gap-1 text-[11px] font-semibold text-red-600 transition hover:text-red-700 dark:text-red-400"
-                  >
-                    <Trash2 className="size-3" />
-                    Hapus
-                  </button>
-                </div>
-                <div className="mt-3 grid gap-3 sm:grid-cols-2">
-                  <Field label="Sitasi">
-                    <Input
-                      value={reference.title}
-                      onChange={(event) =>
-                        onChange({
-                          ...chapter,
-                          references: updateReference(
-                            chapter.references ?? [],
-                            referenceIndex,
-                            { title: event.target.value },
-                          ),
-                        })
-                      }
-                    />
-                  </Field>
-                  <Field label="URL (opsional)">
-                    <Input
-                      value={reference.url ?? ""}
-                      onChange={(event) =>
-                        onChange({
-                          ...chapter,
-                          references: updateReference(
-                            chapter.references ?? [],
-                            referenceIndex,
-                            { url: event.target.value },
-                          ),
-                        })
-                      }
-                    />
-                  </Field>
-                </div>
+                  />
+                </Field>
+                <Field label="URL (opsional)">
+                  <Input
+                    value={reference.url ?? ""}
+                    onChange={(event) =>
+                      onChange({
+                        ...chapter,
+                        references: updateReference(
+                          chapter.references ?? [],
+                          referenceIndex,
+                          { url: event.target.value },
+                        ),
+                      })
+                    }
+                  />
+                </Field>
               </div>
-            ))}
-            {(chapter.references?.length ?? 0) < 20 ? (
-              <AddButton
-                label="Tambah referensi bab"
-                onClick={() =>
-                  onChange({
-                    ...chapter,
-                    references: [
-                      ...(chapter.references ?? []),
-                      { title: "", url: "" },
-                    ],
-                  })
-                }
-              />
-            ) : null}
-          </div>
+            </div>
+          ))}
+          {(chapter.references?.length ?? 0) < 20 ? (
+            <AddButton
+              label="Tambah referensi bab"
+              onClick={() =>
+                onChange({
+                  ...chapter,
+                  references: [
+                    ...(chapter.references ?? []),
+                    { title: "", url: "" },
+                  ],
+                })
+              }
+            />
+          ) : null}
         </div>
       </div>
     </div>

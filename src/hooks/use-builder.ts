@@ -25,6 +25,15 @@ export interface GenerateEbookInput {
   title?: string;
 }
 
+export interface UploadedBuilderImage {
+  provider: "CLOUDINARY";
+  storageKey: string;
+  url: string;
+  format: string;
+  bytes: number;
+  checksum: string;
+}
+
 export interface PublishEbookInput {
   nicheId: string;
   name?: string;
@@ -119,6 +128,21 @@ export function useUpdateEbookProject() {
     onSuccess: (project) => {
       queryClient.invalidateQueries({ queryKey: builderKeys.all });
       queryClient.invalidateQueries({ queryKey: builderKeys.detail(project.id) });
+    },
+  });
+}
+
+export function useUploadBuilderImage() {
+  return useMutation({
+    mutationFn: async (file: File) => {
+      const formData = new FormData();
+      formData.append("file", file);
+      const response = await api.post<{ data: UploadedBuilderImage }>(
+        "/admin/builder/images",
+        formData,
+        { headers: { "Content-Type": "multipart/form-data" } },
+      );
+      return response.data.data;
     },
   });
 }

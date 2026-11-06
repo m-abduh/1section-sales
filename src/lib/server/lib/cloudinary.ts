@@ -54,10 +54,11 @@ function publicIdBase(originalName: string): string {
     .slice(0, 80);
 }
 
-/** Uploads a public cover/thumbnail image (JPEG, PNG or WebP). */
+/** Uploads a public image (JPEG, PNG or WebP). */
 export async function uploadImageBuffer(
   buffer: Buffer,
   originalName: string,
+  folder = "covers",
 ): Promise<UploadedImage> {
   ensureConfigured();
 
@@ -71,7 +72,7 @@ export async function uploadImageBuffer(
       {
         resource_type: "image",
         type: "upload",
-        folder: `${env.CLOUDINARY_FOLDER}/covers`,
+        folder: `${env.CLOUDINARY_FOLDER}/${folder}`,
         public_id: `${publicIdBase(originalName)}-${Date.now()}`,
         transformation: [{ quality: "auto", fetch_format: "auto" }],
       },

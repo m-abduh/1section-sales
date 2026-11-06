@@ -1,6 +1,13 @@
 import path from "node:path";
 import PDFDocument from "pdfkit";
-import { tocEntriesOf, type EbookContent, type TocEntry } from "./types";
+import { imageInfoOf } from "./image";
+import {
+  richTextImageSrc,
+  richTextMarksOf,
+  richTextPlainText,
+  richTextRuns,
+} from "./rich-text";
+import { tocEntriesOf, type EbookContent, type EbookRichTextNode, type TocEntry } from "./types";
 
 const PAGE_WIDTH = 419.53;
 const PAGE_HEIGHT = 595.28;
@@ -29,6 +36,10 @@ const TOC_SIZE = 12;
 const TOC_LINE_GAP = 4;
 const TOC_AFTER = 8;
 
+const IMAGE_MAX_HEIGHT = 240;
+const IMAGE_BEFORE = 12;
+const IMAGE_AFTER = 14;
+
 const FONT_DIR = path.join(process.cwd(), "assets", "fonts");
 const FONTS = {
   regular: path.join(FONT_DIR, "Montserrat-Regular.ttf"),
@@ -45,19 +56,47 @@ function referenceLine(reference: { title: string; url?: string }) {
 
 type PageMap = Record<string, number>;
 
+type ImageCache = Map<string, Buffer | null>;
+
+/**
+ * Inline images come from our own Cloudinary account. Restricting the host
+ * keeps the server-side fetch from being used as an SSRF probe.
+ */
+async function loadImage(src: string, cache: ImageCache): Promise<Buffer | null> {
+  if (cache.has(src)) return cache.get(src) ?? null;
+  let buffer: Buffer | null = null;
+  try {
+    const url = new URL(src);
+    if (url.protocol !== "https:" || url.hostname !== "res.cloudinary.com") {
+      cache.set(src, null);
+      return null;
+    }
+    const response = await fetch(src, { signal: AbortSignal.timeout(15000) });
+    if (response.ok) {
+      buffer = Buffer.from(await response.arrayBuffer());
+    }
+  } catch {
+    buffer = null;
+  }
+  cache.set(src, buffer);
+  return buffer;
+}
+
 class PdfBook {
   private readonly doc: PDFKit.PDFDocument;
   private readonly chunks: Buffer[] = [];
   private readonly ended: Promise<Buffer>;
   private readonly ebook: EbookContent;
+  private readonly images: ImageCache;
 
   private page = 0;
   private y = TOP;
   private section = "";
   private pageMap: PageMap = {};
 
-  constructor(ebook: EbookContent) {
+  constructor(ebook: EbookContent, images: ImageCache = new Map()) {
     this.ebook = ebook;
+    this.images = images;
     this.doc = new PDFDocument({
       size: [PAGE_WIDTH, PAGE_HEIGHT],
       margins: { top: 0, bottom: 0, left: 0, right: 0 },
@@ -83,10 +122,10 @@ class PdfBook {
   }
 
   async render(pageMap: PageMap): Promise<{ buffer: Buffer; pageMap: PageMap }> {
-    this.drawCover();
+    await this.drawCover();
     this.drawContents(pageMap);
     this.drawIntroduction();
-    this.drawChapters();
+    await this.drawChapters();
     this.drawConclusion();
     this.drawReferences();
     this.drawAbout();
@@ -115,7 +154,7 @@ class PdfBook {
     d.font("Bold")
       .fontSize(RUNNING_SIZE)
       .fillColor(MUTED)
-      .text(`${this.ebook.chapters.length} LANGKAH`, MARGIN, 30, {
+      .text(`${this.ebook.brand} · ${this.ebook.niche}`, MARGIN, 30, {
         width: CONTENT_WIDTH / 2,
         align: "left",
         lineBreak: false,
@@ -235,10 +274,157 @@ class PdfBook {
     this.y = d.y + BODY_AFTER;
   }
 
-  private drawCover() {
+  private async richBody(nodes: EbookRichTextNode[]) {
+    for (const node of nodes) {
+      if (node.type === "paragraph") {
+        this.richParagraph(node.content ?? []);
+        continue;
+      }
+      if (node.type === "heading") {
+        const text = richTextPlainText(node.content ?? []).trim();
+        if (!text) continue;
+        const level = Number(node.attrs?.level ?? 3);
+        this.heading(text, level <= 2 ? H3_SIZE : 14, 12, 6);
+        continue;
+      }
+      if (node.type === "bulletList" || node.type === "orderedList") {
+        await this.richList(node, 0);
+        continue;
+      }
+      if (node.type === "image") {
+        await this.richImage(node);
+        continue;
+      }
+      if (node.content?.length) {
+        await this.richBody(node.content);
+      }
+    }
+  }
+
+  private richParagraph(nodes: EbookRichTextNode[], left = 0) {
+    const runs = richTextRuns(nodes).filter((run) => run.text.length > 0);
+    if (runs.length === 0) return;
+    const plain = runs.map((run) => run.text).join("");
+    if (!plain.trim()) return;
+
     const d = this.doc;
-    this.page = 0;
-    this.y = TOP + 48;
+    const x = MARGIN + left;
+    const options = {
+      width: CONTENT_WIDTH - left,
+      align: "justify" as const,
+      lineGap: BODY_LINE_GAP,
+      indent: left === 0 ? 18 : 0,
+    };
+    d.font("Body").fontSize(BODY_SIZE);
+    const height = d.heightOfString(plain, options);
+    this.ensureSpace(BODY_BEFORE + height + BODY_AFTER);
+    this.y += BODY_BEFORE;
+
+    runs.forEach((run, index) => {
+      const isLast = index === runs.length - 1;
+      const marks = richTextMarksOf({ type: "text", text: run.text, marks: run.marks });
+      const font =
+        marks.bold && marks.italic
+          ? "BoldItalic"
+          : marks.bold
+            ? "Bold"
+            : marks.italic
+              ? "Italic"
+              : "Body";
+      d.font(font).fontSize(BODY_SIZE).fillColor(INK);
+      if (index === 0) {
+        d.text(run.text, x, this.y, { ...options, continued: !isLast });
+      } else {
+        d.text(run.text, { ...options, continued: !isLast });
+      }
+    });
+
+    this.y = d.y + BODY_AFTER;
+  }
+
+  private async richList(node: EbookRichTextNode, level: number) {
+    const ordered = node.type === "orderedList";
+    const items = node.content ?? [];
+    let position = 1;
+
+    for (const item of items) {
+      const inline: EbookRichTextNode[] = [];
+      const nested: EbookRichTextNode[] = [];
+
+      for (const child of item.content ?? []) {
+        if (child.type === "paragraph" || child.type === "heading") {
+          inline.push(...(child.content ?? []));
+        } else {
+          nested.push(child);
+        }
+      }
+
+      const marker = ordered ? `${position}.` : "•";
+      this.richParagraph(
+        [{ type: "text", text: `${marker} ` }, ...inline],
+        16 + level * 16,
+      );
+
+      for (const child of nested) {
+        await this.richList(child, level + 1);
+      }
+      position += 1;
+    }
+  }
+
+  private async richImage(node: EbookRichTextNode) {
+    const src = richTextImageSrc(node);
+    if (!src) return;
+    const buffer = await loadImage(src, this.images);
+    if (!buffer) return;
+    const info = imageInfoOf(buffer);
+    if (!info) return;
+
+    const scale = Math.min(
+      CONTENT_WIDTH / info.width,
+      IMAGE_MAX_HEIGHT / info.height,
+      1,
+    );
+    const width = Math.max(1, Math.round(info.width * scale));
+    const height = Math.max(1, Math.round(info.height * scale));
+
+    this.ensureSpace(IMAGE_BEFORE + height + IMAGE_AFTER);
+    this.y += IMAGE_BEFORE;
+    this.doc.image(buffer, MARGIN + (CONTENT_WIDTH - width) / 2, this.y, {
+      width,
+      height,
+    });
+    this.y += height + IMAGE_AFTER;
+  }
+
+  private async drawCover() {
+    const coverUrl = this.ebook.cover?.renderedUrl;
+    const buffer = coverUrl ? await loadImage(coverUrl, this.images) : null;
+
+    if (buffer) {
+      this.page = 0;
+      this.y = TOP;
+      this.doc.image(buffer, 0, 0, {
+        width: PAGE_WIDTH,
+        height: PAGE_HEIGHT,
+      });
+
+      // Keep the legacy typographic cover as a second page so the exported
+      // book stacks the designed cover on top of the old one.
+      this.doc.addPage();
+      this.page += 1;
+      this.section = "COVER";
+      this.y = TOP + 48;
+    } else {
+      this.page = 0;
+      this.y = TOP + 48;
+    }
+
+    this.drawCoverText();
+  }
+
+  private drawCoverText() {
+    const d = this.doc;
 
     d.font("Bold")
       .fontSize(12)
@@ -357,8 +543,8 @@ class PdfBook {
     this.ebook.introduction.forEach((text) => this.paragraph(text));
   }
 
-  private drawChapters() {
-    this.ebook.chapters.forEach((chapter, index) => {
+  private async drawChapters() {
+    for (const [index, chapter] of this.ebook.chapters.entries()) {
       this.addPage(`${index + 1}. ${chapter.title}`);
       this.pageMap[`chapter-${index}`] = this.page;
 
@@ -382,15 +568,19 @@ class PdfBook {
         });
       this.y = this.doc.y + 12;
 
-      (chapter.intro ?? []).forEach((text) => this.paragraph(text));
+      if (chapter.body !== undefined) {
+        await this.richBody(chapter.body);
+      } else {
+        (chapter.intro ?? []).forEach((text) => this.paragraph(text));
 
-      chapter.sections.forEach((section) => {
-        const keepWith = section.paragraphs[0]
-          ? this.paragraphHeight(section.paragraphs[0])
-          : 0;
-        this.heading(section.title, H3_SIZE, 6, 6, INK, keepWith);
-        section.paragraphs.forEach((text) => this.paragraph(text));
-      });
+        chapter.sections.forEach((section) => {
+          const keepWith = section.paragraphs[0]
+            ? this.paragraphHeight(section.paragraphs[0])
+            : 0;
+          this.heading(section.title, H3_SIZE, 6, 6, INK, keepWith);
+          section.paragraphs.forEach((text) => this.paragraph(text));
+        });
+      }
 
       if (chapter.references?.length) {
         this.heading("Research Reference", BODY_SIZE, BODY_BEFORE, 2, MUTED);
@@ -398,7 +588,7 @@ class PdfBook {
           this.paragraph(referenceLine(reference)),
         );
       }
-    });
+    }
   }
 
   private drawConclusion() {
@@ -425,16 +615,23 @@ class PdfBook {
   }
 }
 
-async function renderOnce(ebook: EbookContent, pageMap: PageMap) {
-  return new PdfBook(ebook).render(pageMap);
+async function renderOnce(
+  ebook: EbookContent,
+  pageMap: PageMap,
+  images: ImageCache,
+) {
+  return new PdfBook(ebook, images).render(pageMap);
 }
 
 export async function generateEbookPdf(ebook: EbookContent): Promise<Buffer> {
   let pageMap: PageMap = {};
   let buffer: Buffer | undefined;
+  // The layout is rendered up to five times to settle TOC page numbers, so
+  // remote images are fetched once and reused across passes.
+  const images: ImageCache = new Map();
 
   for (let pass = 0; pass < 5; pass += 1) {
-    const result = await renderOnce(ebook, pageMap);
+    const result = await renderOnce(ebook, pageMap, images);
     buffer = result.buffer;
     if (JSON.stringify(result.pageMap) === JSON.stringify(pageMap)) {
       break;
