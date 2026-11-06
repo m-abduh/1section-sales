@@ -13,10 +13,35 @@ export type EbookSection = {
   paragraphs: string[];
 };
 
+/**
+ * ProseMirror/Tiptap JSON node. Chapter bodies are stored as a flat list of
+ * block nodes (paragraph, heading, image, list) so both DOCX and PDF exports
+ * can render the exact same structure the editor shows.
+ */
+export type EbookRichTextAttrs = Record<
+  string,
+  string | number | boolean | null
+>;
+
+export type EbookRichTextMark = {
+  type: string;
+  attrs?: EbookRichTextAttrs;
+};
+
+export type EbookRichTextNode = {
+  type: string;
+  attrs?: EbookRichTextAttrs;
+  content?: EbookRichTextNode[];
+  text?: string;
+  marks?: EbookRichTextMark[];
+};
+
 export type EbookChapter = {
   title: string;
   intro?: string[];
   sections: EbookSection[];
+  /** Rich text body. Takes precedence over `intro` + `sections` when present. */
+  body?: EbookRichTextNode[];
   references?: EbookChapterReference[];
 };
 

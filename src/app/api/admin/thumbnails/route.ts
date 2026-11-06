@@ -2,27 +2,12 @@ import { NextRequest } from "next/server";
 import { ok, fail, getAdmin, requireAdminSync } from "@/lib/server/next-helpers";
 import { recordAudit } from "@/lib/server/lib/audit";
 import { uploadImageBuffer } from "@/lib/server/lib/cloudinary";
+import {
+  IMAGE_TYPES,
+  MAX_IMAGE_BYTES,
+  looksLikeImage,
+} from "@/lib/server/lib/image-file";
 import { ApiError } from "@/lib/server/utils/api-error";
-
-const MAX_BYTES = 4 * 1024 * 1024;
-
-const IMAGE_TYPES = new Set(["image/jpeg", "image/png", "image/webp"]);
-
-function looksLikeImage(buf: Buffer): boolean {
-  if (buf.length < 12) return false;
-  // PNG
-  if (buf.subarray(0, 4).equals(Buffer.from([0x89, 0x50, 0x4e, 0x47]))) return true;
-  // JPEG
-  if (buf[0] === 0xff && buf[1] === 0xd8 && buf[2] === 0xff) return true;
-  // WebP: "RIFF" .... "WEBP"
-  if (
-    buf.subarray(0, 4).toString("ascii") === "RIFF" &&
-    buf.subarray(8, 12).toString("ascii") === "WEBP"
-  ) {
-    return true;
-  }
-  return false;
-}
 
 export async function POST(req: NextRequest) {
   try {
@@ -37,7 +22,7 @@ export async function POST(req: NextRequest) {
         code: "BAD_FILE",
       });
     }
-    if (file.size > MAX_BYTES) {
+    if (file.size > MAX_IMAGE_BYTES) {
       throw new ApiError(400, "Image is too large (max 4 MB)", {
         code: "FILE_TOO_LARGE",
       });
