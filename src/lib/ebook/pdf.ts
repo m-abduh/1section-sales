@@ -399,22 +399,32 @@ class PdfBook {
 
   private async drawCover() {
     const coverUrl = this.ebook.cover?.renderedUrl;
-    if (coverUrl) {
-      const buffer = await loadImage(coverUrl, this.images);
-      if (buffer) {
-        this.page = 0;
-        this.y = TOP;
-        this.doc.image(buffer, 0, 0, {
-          width: PAGE_WIDTH,
-          height: PAGE_HEIGHT,
-        });
-        return;
-      }
+    const buffer = coverUrl ? await loadImage(coverUrl, this.images) : null;
+
+    if (buffer) {
+      this.page = 0;
+      this.y = TOP;
+      this.doc.image(buffer, 0, 0, {
+        width: PAGE_WIDTH,
+        height: PAGE_HEIGHT,
+      });
+
+      // Keep the legacy typographic cover as a second page so the exported
+      // book stacks the designed cover on top of the old one.
+      this.doc.addPage();
+      this.page += 1;
+      this.section = "COVER";
+      this.y = TOP + 48;
+    } else {
+      this.page = 0;
+      this.y = TOP + 48;
     }
 
+    this.drawCoverText();
+  }
+
+  private drawCoverText() {
     const d = this.doc;
-    this.page = 0;
-    this.y = TOP + 48;
 
     d.font("Bold")
       .fontSize(12)

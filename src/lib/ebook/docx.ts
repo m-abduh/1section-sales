@@ -343,7 +343,29 @@ async function createDocument(
   images: DocxImageCache,
 ): Promise<Document> {
   const coverImage = await loadCoverImage(ebook, images);
-  const cover = coverImage
+  const coverText = [
+    new Paragraph({
+      children: [
+        new TextRun({ text: `${ebook.brand} · ${ebook.niche}`, bold: true }),
+      ],
+      alignment: AlignmentType.CENTER,
+    }),
+    docxParagraph(" ", "Divider", {
+      bottomBorder: true,
+      alignment: AlignmentType.CENTER,
+      indent: { firstLine: 0 },
+    }),
+    docxParagraph(ebook.title, "CoverTitle"),
+    docxParagraph(" ", "Divider", {
+      bottomBorder: true,
+      alignment: AlignmentType.CENTER,
+      indent: { firstLine: 0 },
+    }),
+    docxParagraph(ebook.description, "CoverDescription", {
+      indent: { firstLine: 0 },
+    }),
+  ];
+  const coverVisual = coverImage
     ? [
         new Paragraph({
           spacing: { before: 0, after: 0 },
@@ -368,28 +390,7 @@ async function createDocument(
           ],
         }),
       ]
-    : [
-        new Paragraph({
-          children: [
-            new TextRun({ text: `${ebook.brand} · ${ebook.niche}`, bold: true }),
-          ],
-          alignment: AlignmentType.CENTER,
-        }),
-        docxParagraph(" ", "Divider", {
-          bottomBorder: true,
-          alignment: AlignmentType.CENTER,
-          indent: { firstLine: 0 },
-        }),
-        docxParagraph(ebook.title, "CoverTitle"),
-        docxParagraph(" ", "Divider", {
-          bottomBorder: true,
-          alignment: AlignmentType.CENTER,
-          indent: { firstLine: 0 },
-        }),
-        docxParagraph(ebook.description, "CoverDescription", {
-          indent: { firstLine: 0 },
-        }),
-      ];
+    : null;
 
   const contents = [
     docxParagraph("Daftar Isi", "SectionHeading"),
@@ -485,11 +486,17 @@ async function createDocument(
   ];
 
   const kicker = `${ebook.brand} · ${ebook.niche}`;
+  const coverSections = coverVisual
+    ? [
+        createSection(coverVisual, undefined, kicker, {
+          startsPageNumber: true,
+          bleed: true,
+        }),
+        createSection(coverText, undefined, kicker),
+      ]
+    : [createSection(coverText, undefined, kicker, { startsPageNumber: true })];
   const sections = [
-    createSection(cover, undefined, kicker, {
-      startsPageNumber: true,
-      bleed: Boolean(coverImage),
-    }),
+    ...coverSections,
     createSection(contents, "DAFTAR ISI", kicker),
     createSection(introduction, "PENDAHULUAN", kicker),
     ...chapters.map(({ title, children }) =>
