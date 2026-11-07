@@ -112,12 +112,14 @@ export const ebookSchema = z.object({
     .array(ebookChapterSchema)
     .min(1, "Ebook harus berisi minimal 1 bab.")
     .max(30, "Ebook maksimal berisi 30 bab."),
-  conclusion: z.array(paragraph).min(1).max(8),
+  conclusion: z.array(paragraph).min(1).max(60),
   conclusionBrief: brief,
+  conclusionBody: richTextBody,
   references: z.array(ebookReferenceSchema).min(1).max(20),
   referencesBrief: brief,
-  about: z.array(paragraph).min(1).max(8),
+  about: z.array(paragraph).min(1).max(60),
   aboutBrief: brief,
+  aboutBody: richTextBody,
   cover,
 });
 

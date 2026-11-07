@@ -125,11 +125,11 @@ class PdfBook {
   async render(pageMap: PageMap): Promise<{ buffer: Buffer; pageMap: PageMap }> {
     await this.drawCover();
     this.drawContents(pageMap);
-    await this.drawIntroduction();
-    await this.drawChapters();
-    this.drawConclusion();
-    this.drawReferences();
-    this.drawAbout();
+      await this.drawIntroduction();
+      await this.drawChapters();
+      await this.drawConclusion();
+      this.drawReferences();
+      await this.drawAbout();
     this.doc.end();
     const buffer = await this.ended;
     return { buffer, pageMap: this.pageMap };
@@ -279,6 +279,10 @@ class PdfBook {
     for (const node of nodes) {
       if (node.type === "paragraph") {
         this.richParagraph(node.content ?? []);
+        continue;
+      }
+      if (node.type === "blockquote") {
+        await this.richBlockquote(node);
         continue;
       }
       if (node.type === "heading") {
@@ -442,6 +446,56 @@ class PdfBook {
     });
 
     this.y = d.y + BODY_AFTER;
+  }
+
+  private async richBlockquote(node: EbookRichTextNode) {
+    const d = this.doc;
+    const runs = richTextRuns(node.content ?? []);
+    const plain = runs.map((r) => r.text).join("");
+    if (!plain.trim()) return;
+
+    const QUOTE_INDENT = 28;
+    const x = MARGIN + QUOTE_INDENT;
+    const options = {
+      width: CONTENT_WIDTH - QUOTE_INDENT,
+      align: "justify" as const,
+      lineGap: BODY_LINE_GAP,
+      indent: 0,
+    };
+
+    d.font("Body").fontSize(BODY_SIZE);
+    const height = d.heightOfString(plain, options);
+    this.ensureSpace(12 + height + 12);
+    this.y += 12;
+
+    d.save();
+    d.strokeColor(GOLD);
+    d.lineWidth(2);
+    d.lineCap("round");
+    d.moveTo(MARGIN + 12, this.y).lineTo(MARGIN + 12, this.y + height);
+    d.stroke();
+    d.restore();
+
+    runs.forEach((run, index) => {
+      const isLast = index === runs.length - 1;
+      const marks = richTextMarksOf({ type: "text", text: run.text, marks: run.marks });
+      const font =
+        marks.bold && marks.italic
+          ? "BoldItalic"
+          : marks.bold
+            ? "Bold"
+            : marks.italic
+              ? "Italic"
+              : "Body";
+      d.font(font).fontSize(BODY_SIZE).fillColor(MUTED);
+      if (index === 0) {
+        d.text(run.text, x, this.y, { ...options, continued: !isLast });
+      } else {
+        d.text(run.text, { ...options, continued: !isLast });
+      }
+    });
+
+    this.y = d.y + 12;
   }
 
   private async richList(node: EbookRichTextNode, level: number) {
@@ -699,10 +753,15 @@ class PdfBook {
     }
   }
 
-  private drawConclusion() {
+  private async drawConclusion() {
     this.addPage("CONCLUSION");
     this.pageMap.conclusion = this.page;
     this.heading("Conclusion", H1_SIZE, 0, 6);
+    const body = this.ebook.conclusionBody;
+    if (body && !richTextIsEmpty(body)) {
+      await this.richBody(body);
+      return;
+    }
     this.ebook.conclusion.forEach((text) => this.paragraph(text));
   }
 
@@ -715,10 +774,15 @@ class PdfBook {
     });
   }
 
-  private drawAbout() {
+  private async drawAbout() {
     this.addPage("ABOUT");
     this.pageMap.about = this.page;
     this.heading("About", H1_SIZE, 0, 6);
+    const body = this.ebook.aboutBody;
+    if (body && !richTextIsEmpty(body)) {
+      await this.richBody(body);
+      return;
+    }
     this.ebook.about.forEach((text) => this.paragraph(text));
   }
 }

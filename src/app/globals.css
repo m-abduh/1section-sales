@@ -301,3 +301,21 @@ body {
   pointer-events: none;
 }
 
+.ebook-rte .ProseMirror blockquote {
+  margin: 0 0 16px;
+  padding: 10px 16px 10px 40px;
+  border-left: 4px solid var(--accent);
+  border-radius: 6px;
+  color: var(--fg);
+  font-style: normal !important;
+}
+
+.ebook-rte .ProseMirror blockquote p {
+  margin: 0 0 8px;
+  font-style: normal !important;
+}
+
+.ebook-rte .ProseMirror blockquote p:last-child {
+  margin-bottom: 0;
+}
+

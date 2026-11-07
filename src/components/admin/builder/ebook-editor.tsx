@@ -726,13 +726,32 @@ export function EbookEditor({
                     }
                     hint="AI akan mengisi kolom kesimpulan di bawah dari brief ini."
                   />
-                  <ParagraphList
-                    values={content.conclusion}
-                    max={8}
-                    onChange={(conclusion) =>
-                      patchContent({ ...content, conclusion })
-                    }
-                  />
+                  <div>
+                    <p className="mb-2 text-[11px] text-fg-muted">
+                      Tulis kesimpulan dengan format tebal, sub-judul, daftar,
+                      tabel, atau gambar.
+                    </p>
+                    <RichTextEditor
+                      value={
+                        content.conclusionBody ??
+                        richTextFromParagraphs(content.conclusion)
+                      }
+                      onChange={(conclusionBody) =>
+                        patchContent((previous) => {
+                          const paragraphs =
+                            richTextToParagraphs(conclusionBody);
+                          return {
+                            ...previous,
+                            conclusionBody,
+                            conclusion: paragraphs.length
+                              ? paragraphs
+                              : previous.conclusion,
+                          };
+                        })
+                      }
+                      placeholder="Tulis kesimpulan…"
+                    />
+                  </div>
                 </div>
               ) : null}
               {page.key === "references" ? (
@@ -771,11 +790,30 @@ export function EbookEditor({
                     }
                     hint="AI akan mengisi kolom about di bawah dari brief ini."
                   />
-                  <ParagraphList
-                    values={content.about}
-                    max={8}
-                    onChange={(about) => patchContent({ ...content, about })}
-                  />
+                  <div>
+                    <p className="mb-2 text-[11px] text-fg-muted">
+                      Tulis about dengan format tebal, sub-judul, daftar,
+                      tabel, atau gambar.
+                    </p>
+                    <RichTextEditor
+                      value={
+                        content.aboutBody ?? richTextFromParagraphs(content.about)
+                      }
+                      onChange={(aboutBody) =>
+                        patchContent((previous) => {
+                          const paragraphs = richTextToParagraphs(aboutBody);
+                          return {
+                            ...previous,
+                            aboutBody,
+                            about: paragraphs.length
+                              ? paragraphs
+                              : previous.about,
+                          };
+                        })
+                      }
+                      placeholder="Tulis about…"
+                    />
+                  </div>
                 </div>
               ) : null}
             </div>
@@ -1080,56 +1118,6 @@ function updateReference<T extends { title: string }>(
 ) {
   return references.map((reference, itemIndex) =>
     itemIndex === index ? { ...reference, ...patch } : reference,
-  );
-}
-
-function ParagraphList({
-  values,
-  onChange,
-  max,
-}: {
-  values: string[];
-  onChange: (values: string[]) => void;
-  max: number;
-}) {
-  return (
-    <div className="space-y-3">
-      {values.map((value, index) => (
-        <div key={index} className="relative">
-          <Textarea
-            value={value}
-            rows={5}
-            onChange={(event) =>
-              onChange(
-                values.map((item, itemIndex) =>
-                  itemIndex === index ? event.target.value : item,
-                ),
-              )
-            }
-            className="pr-10"
-            placeholder="Tulis paragraf…"
-          />
-          {values.length > 1 ? (
-            <button
-              type="button"
-              onClick={() =>
-                onChange(values.filter((_, itemIndex) => itemIndex !== index))
-              }
-              className="absolute right-2.5 top-2.5 rounded-md p-1.5 text-fg-muted transition hover:bg-red-500/10 hover:text-red-600"
-              aria-label="Hapus paragraf"
-            >
-              <Trash2 className="size-3.5" />
-            </button>
-          ) : null}
-        </div>
-      ))}
-      {values.length < max ? (
-        <AddButton
-          label="Tambah paragraf"
-          onClick={() => onChange([...values, ""])}
-        />
-      ) : null}
-    </div>
   );
 }
 
