@@ -146,14 +146,14 @@ export function EbookEditor({
   const pages = useMemo<EditorPage[]>(
     () => [
       { key: "metadata", label: "Cover & metadata", shortLabel: "Cover" },
-      { key: "introduction", label: "Pendahuluan", shortLabel: "Pendahuluan" },
+      { key: "introduction", label: "Introduction", shortLabel: "Introduction" },
       ...content.chapters.map<EditorPage>((chapter, index) => ({
         key: `chapter-${index}`,
-        label: `${String(index + 1).padStart(2, "0")}. ${chapter.title || "Bab tanpa judul"}`,
-        shortLabel: `Bab ${index + 1}`,
+        label: `${String(index + 1).padStart(2, "0")}. ${chapter.title || "Chapter without title"}`,
+        shortLabel: `Chapter ${index + 1}`,
       })),
-      { key: "conclusion", label: "Kesimpulan", shortLabel: "Kesimpulan" },
-      { key: "references", label: "Referensi", shortLabel: "Referensi" },
+      { key: "conclusion", label: "Conclusion", shortLabel: "Conclusion" },
+      { key: "references", label: "References", shortLabel: "References" },
       { key: "about", label: "About", shortLabel: "About" },
     ],
     [content.chapters],
@@ -438,6 +438,18 @@ export function EbookEditor({
     setPageIndex(Math.min(index + 1, total + 3));
   }
 
+  function addChapter() {
+    const newChapter: EbookChapter = {
+      title: "New Chapter",
+      sections: [],
+    };
+    patchContent((previous) => ({
+      ...previous,
+      chapters: [...previous.chapters, newChapter],
+    }));
+    setPageIndex(2 + content.chapters.length);
+  }
+
   const busy = saving || statusBusy;
 
   return (
@@ -488,6 +500,15 @@ export function EbookEditor({
           <Button size="sm" onClick={handlePreview} disabled={busy}>
             <Eye className="size-3.5" />
             Preview &amp; Export
+          </Button>
+          <Button
+            variant="secondary"
+            size="sm"
+            onClick={addChapter}
+            disabled={busy}
+          >
+            <Plus className="size-3.5" />
+            Tambah Bab
           </Button>
         </div>
       </div>

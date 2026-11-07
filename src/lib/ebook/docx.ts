@@ -461,7 +461,7 @@ async function createDocument(
     : null;
 
   const contents = [
-    docxParagraph("Daftar Isi", "SectionHeading"),
+    docxParagraph("Table of Contents", "SectionHeading"),
     new TableOfContents("Daftar Isi", {
       headingStyleRange: "1-2",
       hyperlink: true,
@@ -471,7 +471,7 @@ async function createDocument(
 
   const introductionBody = ebook.introductionBody;
   const introduction = [
-    docxParagraph("Pendahuluan", undefined, {
+    docxParagraph("Introduction", undefined, {
       heading: HeadingLevel.HEADING_1,
     }),
     ...(introductionBody && !richTextIsEmpty(introductionBody)
@@ -523,7 +523,7 @@ async function createDocument(
 
     if (chapter.references?.length) {
       children.push(
-        docxParagraph("Research Reference", "ChapterReferenceLabel"),
+        docxParagraph("Research References", "ChapterReferenceLabel"),
         ...chapter.references.map((reference) =>
           docxParagraph(referenceLine(reference), "ChapterReference"),
         ),
@@ -534,14 +534,14 @@ async function createDocument(
   }
 
   const conclusion = [
-    docxParagraph("Kesimpulan", undefined, {
+    docxParagraph("Conclusion", undefined, {
       heading: HeadingLevel.HEADING_1,
     }),
     ...ebook.conclusion.map((text) => docxParagraph(text)),
   ];
 
   const references = [
-    docxParagraph("Referensi", undefined, {
+    docxParagraph("References", undefined, {
       heading: HeadingLevel.HEADING_1,
     }),
     ...ebook.references.map((reference, index) =>
