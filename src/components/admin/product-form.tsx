@@ -43,7 +43,7 @@ const schema = z.object({
   active: z.boolean(),
 });
 
-type FormValues = z.infer<typeof schema>;
+export type FormValues = z.infer<typeof schema>;
 
 const LEVEL_LABELS: Record<LearningLevel, string> = {
   FOUNDATIONS: "Foundations",
@@ -68,12 +68,16 @@ export function ProductForm({
   onSubmit,
   onCancel,
   isSubmitting,
+  projectId,
+  initialValues,
 }: {
   product?: Product | null;
   niches: Niche[];
-  onSubmit: (input: ProductInput) => void;
+  onSubmit: (input: ProductInput) => void | Promise<void>;
   onCancel: () => void;
   isSubmitting: boolean;
+  projectId?: string;
+  initialValues?: Partial<FormValues>;
 }) {
   const uploadPdf = useUploadPdf();
   const uploadThumbnail = useUploadThumbnail();
@@ -137,6 +141,7 @@ export function ProductForm({
         features: "",
         sortOrder: 0,
         active: true,
+        ...initialValues,
       };
 
   const {
@@ -329,11 +334,12 @@ export function ProductForm({
         <Textarea rows={4} {...register("features")} />
       </Field>
 
-      <Field
-        label="Cover image"
-        hint="JPG, PNG or WebP up to 4 MB. Uploaded to Cloudinary."
-        error={errors.coverImage?.message}
-      >
+      {!projectId ? (
+        <Field
+          label="Cover image"
+          hint="JPG, PNG or WebP up to 4 MB. Uploaded to Cloudinary."
+          error={errors.coverImage?.message}
+        >
         <div className="space-y-3">
           {coverImage ? (
             <div className="relative aspect-[16/10] w-full max-w-sm overflow-hidden rounded-xl border border-border bg-surface-muted">
@@ -384,11 +390,13 @@ export function ProductForm({
           ) : null}
         </div>
       </Field>
+      ) : null}
 
-      <div className="rounded-lg bg-surface-muted p-4">
-        <div className="flex items-center justify-between">
-          <div>
-            <p className="text-sm font-medium text-fg">Files</p>
+      {!projectId ? (
+        <div className="rounded-lg bg-surface-muted p-4">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm font-medium text-fg">Files</p>
             <p className="mt-0.5 text-xs text-fg-muted">
               Upload one or more PDFs. Buyers receive all of them in a single
               purchase.
@@ -449,6 +457,7 @@ export function ProductForm({
           <p className="mt-3 text-xs text-fg-muted">No files yet.</p>
         )}
       </div>
+      ) : null}
 
       <label className="flex items-center gap-2 text-sm text-fg">
         <input type="checkbox" className="size-4" {...register("active")} />
