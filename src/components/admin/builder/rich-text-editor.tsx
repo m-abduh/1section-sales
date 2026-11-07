@@ -50,6 +50,8 @@ export function RichTextEditor({
   const fileInput = useRef<HTMLInputElement | null>(null);
   const [error, setError] = useState<string | null>(null);
   const onChangeRef = useRef(onChange);
+  /** Blocks last emitted by the editor itself, used to detect external updates. */
+  const lastEmittedRef = useRef<EbookRichTextNode[] | null>(null);
 
   useEffect(() => {
     onChangeRef.current = onChange;
@@ -83,9 +85,25 @@ export function RichTextEditor({
     },
     onUpdate: ({ editor: instance }) => {
       const doc = instance.getJSON();
-      onChangeRef.current(doc.content ?? []);
+      const blocks = doc.content ?? [];
+      lastEmittedRef.current = blocks;
+      onChangeRef.current(blocks);
     },
   });
+
+  // Apply external changes (for example AI generation) to the editor. Without
+  // this, Tiptap keeps the content it was initialised with and the generated
+  // text never appears in the rich text field.
+  useEffect(() => {
+    if (!editor) return;
+    if (lastEmittedRef.current === value) return;
+    const blocks = value.length ? value : [{ type: "paragraph" }];
+    editor.commands.setContent(
+      { type: "doc", content: blocks },
+      { emitUpdate: false },
+    );
+    lastEmittedRef.current = value;
+  }, [editor, value]);
 
   const editorState = useEditorState({
     editor,
