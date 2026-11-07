@@ -3,7 +3,6 @@ import { ok, fail, getAdmin, requireAdminSync } from "@/lib/server/next-helpers"
 import { ApiError } from "@/lib/server/utils/api-error";
 import { recordAudit } from "@/lib/server/lib/audit";
 import { generateEbookWithGroq } from "@/lib/ebook/groq";
-import { sampleEbook } from "@/lib/ebook/sample";
 import { ebookSchema } from "@/lib/ebook/schema";
 import type { EbookContent } from "@/lib/ebook/types";
 import {
@@ -28,7 +27,6 @@ export async function POST(req: NextRequest) {
   try {
     const admin = requireAdminSync(await getAdmin(req), ["admin"]);
     const body = (await req.json().catch(() => ({}))) as {
-      useSample?: boolean;
       content?: unknown;
       prompt?: string;
       brand?: string;
@@ -37,15 +35,13 @@ export async function POST(req: NextRequest) {
     };
 
     let content: EbookContent;
-    let prompt = body.prompt?.trim() || "Konten contoh 1section.";
+    const prompt =
+      body.prompt?.trim() || "Konten 1section yang dibuat dari editor.";
 
-    if (body.useSample) {
-      content = sampleEbook;
-    } else if (body.content !== undefined) {
+    if (body.content !== undefined) {
       content = ebookSchema.parse(body.content);
     } else {
       const input = generateEbookSchema.parse(body);
-      prompt = input.prompt;
       content = await generateEbookWithGroq(input);
     }
 
@@ -64,7 +60,7 @@ export async function POST(req: NextRequest) {
       ip: req.headers.get("x-forwarded-for")?.split(",")[0]?.trim(),
     });
 
-    return ok({ id: project.id }, 201);
+    return ok({ id: project.id, updatedAt: project.updatedAt }, 201);
   } catch (e) {
     if (e instanceof Error && /rate_limit_exceeded|\(429\)/i.test(e.message)) {
       const wait = e.message.match(/try again in ([\d.]+)s/i)?.[1];

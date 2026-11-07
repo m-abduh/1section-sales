@@ -7,6 +7,41 @@ export const generateEbookSchema = z.object({
   title: z.string().trim().max(200).optional(),
 });
 
+const partBrief = z.string().trim().min(20, "Brief minimal 20 karakter.").max(12000);
+const partBase = {
+  brand: z.string().trim().min(1).max(80).default("1section"),
+  niche: z.string().trim().min(2).max(120),
+  bookTitle: z.string().trim().max(200).optional(),
+};
+
+export const generateEbookPartSchema = z.discriminatedUnion("kind", [
+  z.object({
+    kind: z.literal("chapter"),
+    ...partBase,
+    chapterTitle: z.string().trim().max(200).optional(),
+    brief: partBrief,
+    index: z.number().int().min(0).max(39),
+    total: z.number().int().min(1).max(40),
+  }),
+  z.object({
+    kind: z.literal("section"),
+    ...partBase,
+    section: z.enum(["introduction", "conclusion", "about"]),
+    brief: partBrief,
+  }),
+  z.object({
+    kind: z.literal("references"),
+    ...partBase,
+    brief: partBrief,
+  }),
+  z.object({
+    kind: z.literal("metadata"),
+    ...partBase,
+    brief: partBrief,
+    currentTitle: z.string().trim().max(200).optional(),
+  }),
+]);
+
 export const createEbookProjectSchema = z.object({
   content: z.unknown(),
   prompt: z.string().trim().max(10000).optional(),

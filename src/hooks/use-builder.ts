@@ -2,7 +2,7 @@
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { api } from "@/lib/api";
-import type { EbookContent } from "@/lib/ebook/types";
+import type { EbookChapter, EbookContent, EbookReference } from "@/lib/ebook/types";
 import type { LearningLevel, Product } from "@/lib/types";
 
 export type EbookStatus = "draft" | "final";
@@ -90,14 +90,68 @@ export function useGenerateEbook() {
   });
 }
 
-export function useCreateSampleEbook() {
+type GeneratePartBase = {
+  brand: string;
+  niche: string;
+  bookTitle: string;
+  brief: string;
+};
+
+export async function generateEbookChapterPart(
+  input: GeneratePartBase & {
+    chapterTitle?: string;
+    index: number;
+    total: number;
+  },
+): Promise<EbookChapter> {
+  const response = await api.post<{ data: EbookChapter }>(
+    "/admin/builder/generate",
+    { kind: "chapter", ...input },
+  );
+  return response.data.data;
+}
+
+export async function generateEbookSectionPart(
+  input: GeneratePartBase & {
+    section: "introduction" | "conclusion" | "about";
+  },
+): Promise<{ paragraphs: string[] }> {
+  const response = await api.post<{ data: { paragraphs: string[] } }>(
+    "/admin/builder/generate",
+    { kind: "section", ...input },
+  );
+  return response.data.data;
+}
+
+export async function generateEbookReferencesPart(
+  input: GeneratePartBase,
+): Promise<{ references: EbookReference[] }> {
+  const response = await api.post<{ data: { references: EbookReference[] } }>(
+    "/admin/builder/generate",
+    { kind: "references", ...input },
+  );
+  return response.data.data;
+}
+
+export async function generateEbookMetadataPart(input: {
+  brand: string;
+  niche: string;
+  brief: string;
+  currentTitle?: string;
+}): Promise<{ title: string; description: string }> {
+  const response = await api.post<{
+    data: { title: string; description: string };
+  }>("/admin/builder/generate", { kind: "metadata", ...input });
+  return response.data.data;
+}
+
+export function useCreateEbookContent() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: async () => {
-      const response = await api.post<{ data: { id: string } }>(
-        "/admin/builder",
-        { useSample: true },
-      );
+    mutationFn: async (input: { content: EbookContent }) => {
+      const response = await api.post<{
+        data: { id: string; updatedAt: string };
+      }>("/admin/builder", input);
       return response.data.data;
     },
     onSuccess: () =>
