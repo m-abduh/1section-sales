@@ -41,6 +41,13 @@ export interface PublishEbookInput {
   slug?: string;
   summary?: string | null;
   description?: string | null;
+  audience?: string | null;
+  notFor?: string | null;
+  outcome?: string | null;
+  learnings?: string[];
+  limitations?: string | null;
+  license?: string | null;
+  sampleUrl?: string | null;
   priceAmount: number;
   compareAtAmount?: number | null;
   level?: LearningLevel;
