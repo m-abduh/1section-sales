@@ -26,6 +26,7 @@ import {
 } from "@/hooks/use-builder";
 import { useAdminNiches } from "@/hooks/use-admin-niches";
 import type { ProductInput } from "@/hooks/use-admin-products";
+import { useAdminProducts } from "@/hooks/use-admin-products";
 import { getApiErrorMessage } from "@/lib/api";
 import { formatDate } from "@/lib/format";
 import { Button } from "@/components/ui/button";
@@ -175,7 +176,7 @@ export function EbookPreview({ projectId }: { projectId: string }) {
             onClick={() => setPublishOpen(true)}
           >
             <UploadCloud className="size-3.5" />
-            Publish
+            {data.productId ? "Update product" : "Publish"}
           </Button>
         </div>
       </div>
@@ -200,10 +201,16 @@ export function EbookPreview({ projectId }: { projectId: string }) {
 
       {published ? (
         <div className="rounded-xl border border-emerald-500/30 bg-emerald-500/10 px-4 py-3 text-xs leading-relaxed text-emerald-700 dark:text-emerald-400">
-          Product berhasil dibuat: <strong>{published}</strong>.{" "}
+          {data.productId ? "Product berhasil diperbarui" : "Product berhasil dibuat"}:{" "}
+          <strong>{published}</strong>.{" "}
           <Link href="/admin/products" className="font-semibold underline">
             Buka katalog
           </Link>
+        </div>
+      ) : data.productId ? (
+        <div className="rounded-xl border border-border bg-surface-muted px-4 py-3 text-xs leading-relaxed text-fg-muted">
+          Ebook ini sudah terhubung ke product di katalog. Klik <strong>Update product</strong>{" "}
+          untuk memperbarui product yang sama (PDF, cover, dan metadata) tanpa membuat duplikat.
         </div>
       ) : null}
 
@@ -357,6 +364,7 @@ export function EbookPreview({ projectId }: { projectId: string }) {
         open={publishOpen}
         onClose={() => setPublishOpen(false)}
         projectId={projectId}
+        existingProductId={data.productId}
         defaultName={data.title}
         defaultSummary={data.content.description}
         defaultNicheName={data.content.niche}
@@ -374,6 +382,7 @@ function PublishModal({
   open,
   onClose,
   projectId,
+  existingProductId,
   defaultName,
   defaultSummary,
   defaultNicheName,
@@ -383,6 +392,7 @@ function PublishModal({
   open: boolean;
   onClose: () => void;
   projectId: string;
+  existingProductId: string | null;
   defaultName: string;
   defaultSummary: string;
   defaultNicheName: string;
@@ -390,6 +400,7 @@ function PublishModal({
   onPublished: (name: string) => void;
 }) {
   const niches = useAdminNiches();
+  const products = useAdminProducts();
   const publish = usePublishEbookProject();
   const generateMetadata = useGenerateProductMetadata();
   const [error, setError] = useState<string | null>(null);
@@ -397,6 +408,10 @@ function PublishModal({
   const formRef = useRef<{
     setValue: (name: string, value: unknown, options?: any) => void;
   } | null>(null);
+
+  const existingProduct = existingProductId
+    ? products.data?.find((p) => p.id === existingProductId) ?? null
+    : null;
 
   const savedNiche = niches.data?.find(
     (niche) =>
@@ -447,12 +462,17 @@ function PublishModal({
   }
 
   return (
-    <Modal open={open} onClose={onClose} title="Publish ebook ke katalog" wide>
+    <Modal
+      open={open}
+      onClose={onClose}
+      title={existingProductId ? "Update product dari ebook" : "Publish ebook ke katalog"}
+      wide
+    >
       <div className="space-y-4">
         <p className="rounded-lg bg-surface-muted p-3 text-xs leading-relaxed text-fg-muted">
-          PDF akan dibuat ulang dari konten terbaru, diunggah ke penyimpanan
-          privat, lalu ditautkan ke product baru. Product juga otomatis
-          disinkronkan ke Paddle.
+          {existingProductId
+            ? "PDF akan dibuat ulang dari konten terbaru dan diunggah, lalu product yang sama di katalog akan diperbarui (tanpa membuat duplikat). Metadata yang kamu isi di form ini akan disimpan ke product tersebut."
+            : "PDF akan dibuat ulang dari konten terbaru, diunggah ke penyimpanan privat, lalu ditautkan ke product baru. Product juga otomatis disinkronkan ke Paddle."}
         </p>
         {error ? (
           <p className="rounded-lg bg-red-500/10 px-3 py-2 text-xs text-red-700 dark:text-red-400">
@@ -497,23 +517,29 @@ function PublishModal({
             {aiLoading ? "Generating..." : "Fill with AI"}
           </Button>
           <span className="text-[11px] text-fg-muted">
-            Fills: level, outcome, audience, not for, learnings, limitations, features
+            Fills: level, outcome, audience, not for, learnings, limitations, features, summary
           </span>
         </div>
         <ProductForm
           ref={formRef}
+          key={existingProduct?.id ?? "new"}
           niches={niches.data ?? []}
           projectId={projectId}
-          initialValues={{
-            name: defaultName,
-            summary: "",
-            description: defaultSummary ?? "",
-            nicheId: savedNiche?.id ?? "",
-            level: "FOUNDATIONS",
-            price: 10,
-            license: "Personal use. Do not redistribute or resell the files.",
-            active: false,
-          }}
+          product={existingProduct}
+          initialValues={
+            existingProduct
+              ? undefined
+              : {
+                  name: defaultName,
+                  summary: "",
+                  description: defaultSummary ?? "",
+                  nicheId: savedNiche?.id ?? "",
+                  level: "FOUNDATIONS",
+                  price: 10,
+                  license: "Personal use. Do not redistribute or resell the files.",
+                  active: false,
+                }
+          }
           onSubmit={handlePublishSubmit}
           onCancel={onClose}
           isSubmitting={publish.isPending}
