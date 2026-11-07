@@ -22,6 +22,80 @@ export function richTextHeading(
   };
 }
 
+/** Converts legacy plain paragraphs into rich text blocks. */
+export function richTextFromParagraphs(
+  paragraphs: string[],
+): EbookRichTextNode[] {
+  return paragraphs
+    .filter((text) => text.trim())
+    .map((text) => richTextParagraph(text));
+}
+
+/**
+ * Flattens rich text blocks back into plain paragraphs, used as a fallback for
+ * older consumers that only understand `string[]`.
+ */
+export function richTextToParagraphs(nodes: EbookRichTextNode[]): string[] {
+  const paragraphs: string[] = [];
+  for (const node of nodes) {
+    if (node.type === "image") continue;
+    if (node.type === "bulletList" || node.type === "orderedList") {
+      for (const item of node.content ?? []) {
+        const text = richTextPlainText(item.content ?? []).trim();
+        if (text) paragraphs.push(text);
+      }
+      continue;
+    }
+    const text = richTextPlainText([node]).trim();
+    if (text) paragraphs.push(text);
+  }
+  return paragraphs;
+}
+
+/**
+ * Serialises rich text into a plain-text prompt while keeping its structure:
+ * headings become markdown headings and lists keep their markers, so the AI
+ * still sees the outline the user wrote.
+ */
+export function richTextToPrompt(nodes: EbookRichTextNode[]): string {
+  const lines: string[] = [];
+
+  for (const node of nodes) {
+    if (node.type === "paragraph") {
+      const text = richTextInlineText(node.content ?? []).trim();
+      if (text) lines.push(text, "");
+      continue;
+    }
+    if (node.type === "heading") {
+      const text = richTextPlainText(node.content ?? []).trim();
+      if (text) lines.push(`## ${text}`, "");
+      continue;
+    }
+    if (node.type === "bulletList" || node.type === "orderedList") {
+      const ordered = node.type === "orderedList";
+      let position = 1;
+      for (const item of node.content ?? []) {
+        const text = richTextPlainText(item.content ?? []).trim();
+        if (text) lines.push(`${ordered ? `${position}.` : "-"} ${text}`);
+        position += 1;
+      }
+      lines.push("");
+      continue;
+    }
+    if (node.type === "image") {
+      const alt = richTextImageAlt(node).trim();
+      if (alt) lines.push(`[Gambar: ${alt}]`, "");
+      continue;
+    }
+    if (node.content?.length) {
+      const nested = richTextToPrompt(node.content);
+      if (nested) lines.push(nested, "");
+    }
+  }
+
+  return lines.join("\n").replace(/\n{3,}/g, "\n\n").trim();
+}
+
 /**
  * Returns the editable body for a chapter. Chapters generated before rich text
  * existed only have `intro` + `sections`, so they are converted on the fly.

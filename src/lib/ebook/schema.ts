@@ -1,11 +1,19 @@
 import { z } from "zod";
-import type { EbookRichTextNode } from "./types";
+import type { EbookRichTextNode, EbookRichTextValue } from "./types";
 
 const paragraph = z.string().trim().min(1).max(4000);
 
-const richTextAttrs = z.record(
-  z.union([z.string(), z.number(), z.boolean(), z.null()]),
+const richTextValue: z.ZodType<EbookRichTextValue> = z.lazy(() =>
+  z.union([
+    z.string(),
+    z.number(),
+    z.boolean(),
+    z.null(),
+    z.array(richTextValue),
+  ]),
 );
+
+const richTextAttrs = z.record(richTextValue);
 
 const richTextMark = z.object({
   type: z.string().trim().min(1).max(30),
@@ -60,7 +68,8 @@ export const ebookSchema = z.object({
   niche: z.string().trim().min(1).max(120),
   title: z.string().trim().min(1).max(200),
   description: z.string().trim().min(1).max(1200),
-  introduction: z.array(paragraph).min(1).max(8),
+  introduction: z.array(paragraph).min(1).max(60),
+  introductionBody: richTextBody,
   chapters: z
     .array(
       z.object({

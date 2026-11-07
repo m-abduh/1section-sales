@@ -239,6 +239,48 @@ body {
   margin: 0;
 }
 
+.ebook-rte .ProseMirror table {
+  width: 100%;
+  margin: 8px 0 16px;
+  border-collapse: collapse;
+  table-layout: fixed;
+  overflow: hidden;
+}
+
+.ebook-rte .ProseMirror th,
+.ebook-rte .ProseMirror td {
+  position: relative;
+  min-width: 1em;
+  padding: 6px 8px;
+  border: 1px solid var(--border);
+  vertical-align: top;
+  text-align: left;
+}
+
+.ebook-rte .ProseMirror th {
+  background: var(--surface-muted);
+  font-weight: 700;
+}
+
+.ebook-rte .ProseMirror th p,
+.ebook-rte .ProseMirror td p {
+  margin: 0 0 6px;
+}
+
+.ebook-rte .ProseMirror th p:last-child,
+.ebook-rte .ProseMirror td p:last-child {
+  margin-bottom: 0;
+}
+
+.ebook-rte .ProseMirror .selectedCell::after {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  background: color-mix(in srgb, var(--accent) 18%, transparent);
+  content: "";
+  pointer-events: none;
+}
+
 .ebook-rte .ProseMirror img {
   display: block;
   max-width: 100%;
