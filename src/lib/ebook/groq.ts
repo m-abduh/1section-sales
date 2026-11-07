@@ -464,8 +464,8 @@ export type GenerateEbookPartInput =
   | (PartBase & { kind: "metadata"; brief: string; currentTitle?: string });
 
 const SECTION_LABEL = {
-  introduction: "Pendahuluan",
-  conclusion: "Kesimpulan",
+  introduction: "Introduction",
+  conclusion: "Conclusion",
   about: "About",
 } as const;
 

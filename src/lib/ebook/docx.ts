@@ -462,7 +462,7 @@ async function createDocument(
 
   const contents = [
     docxParagraph("Table of Contents", "SectionHeading"),
-    new TableOfContents("Daftar Isi", {
+    new TableOfContents("Table of Contents", {
       headingStyleRange: "1-2",
       hyperlink: true,
       beginDirty: true,
