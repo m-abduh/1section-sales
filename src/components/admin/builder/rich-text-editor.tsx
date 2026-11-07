@@ -4,6 +4,7 @@ import { useEffect, useRef, useState, type ReactNode } from "react";
 import { EditorContent, useEditor, useEditorState } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
 import Image from "@tiptap/extension-image";
+import Blockquote from "@tiptap/extension-blockquote";
 import Placeholder from "@tiptap/extension-placeholder";
 import {
   Table,
@@ -21,6 +22,7 @@ import {
   List,
   ListOrdered,
   Loader2,
+  Quote,
   Redo2,
   Rows3,
   Table as TableIcon,
@@ -75,6 +77,7 @@ export function RichTextEditor({
           ]
         : []),
       Placeholder.configure({ placeholder }),
+      Blockquote.configure({}),
     ],
     content: {
       type: "doc",
@@ -114,6 +117,7 @@ export function RichTextEditor({
       heading3: instance?.isActive("heading", { level: 3 }) ?? false,
       bulletList: instance?.isActive("bulletList") ?? false,
       orderedList: instance?.isActive("orderedList") ?? false,
+      blockquote: instance?.isActive("blockquote") ?? false,
       inTable: instance?.isActive("table") ?? false,
       canUndo: instance?.can().undo() ?? false,
       canRedo: instance?.can().redo() ?? false,
@@ -125,8 +129,9 @@ export function RichTextEditor({
     italic: false,
     heading2: false,
     heading3: false,
-    bulletList: false,
-    orderedList: false,
+      bulletList: false,
+      orderedList: false,
+      blockquote: false,
     inTable: false,
     canUndo: false,
     canRedo: false,
@@ -203,6 +208,13 @@ export function RichTextEditor({
           onClick={() => editor?.chain().focus().toggleOrderedList().run()}
         >
           <ListOrdered className="size-3.5" />
+        </ToolbarButton>
+        <ToolbarButton
+          label="Quote"
+          active={state.blockquote}
+          onClick={() => editor?.chain().focus().toggleBlockquote().run()}
+        >
+          <Quote className="size-3.5" />
         </ToolbarButton>
         {allowImages ? (
           <>

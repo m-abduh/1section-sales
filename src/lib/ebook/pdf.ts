@@ -281,6 +281,10 @@ class PdfBook {
         this.richParagraph(node.content ?? []);
         continue;
       }
+      if (node.type === "blockquote") {
+        await this.richBlockquote(node);
+        continue;
+      }
       if (node.type === "heading") {
         const text = richTextPlainText(node.content ?? []).trim();
         if (!text) continue;
@@ -442,6 +446,56 @@ class PdfBook {
     });
 
     this.y = d.y + BODY_AFTER;
+  }
+
+  private async richBlockquote(node: EbookRichTextNode) {
+    const d = this.doc;
+    const runs = richTextRuns(node.content ?? []);
+    const plain = runs.map((r) => r.text).join("");
+    if (!plain.trim()) return;
+
+    const QUOTE_INDENT = 28;
+    const x = MARGIN + QUOTE_INDENT;
+    const options = {
+      width: CONTENT_WIDTH - QUOTE_INDENT,
+      align: "justify" as const,
+      lineGap: BODY_LINE_GAP,
+      indent: 0,
+    };
+
+    d.font("Body").fontSize(BODY_SIZE);
+    const height = d.heightOfString(plain, options);
+    this.ensureSpace(12 + height + 12);
+    this.y += 12;
+
+    d.save();
+    d.strokeColor(GOLD);
+    d.lineWidth(2);
+    d.lineCap("round");
+    d.moveTo(MARGIN + 12, this.y).lineTo(MARGIN + 12, this.y + height);
+    d.stroke();
+    d.restore();
+
+    runs.forEach((run, index) => {
+      const isLast = index === runs.length - 1;
+      const marks = richTextMarksOf({ type: "text", text: run.text, marks: run.marks });
+      const font =
+        marks.bold && marks.italic
+          ? "BoldItalic"
+          : marks.bold
+            ? "Bold"
+            : marks.italic
+              ? "Italic"
+              : "Body";
+      d.font(font).fontSize(BODY_SIZE).fillColor(MUTED);
+      if (index === 0) {
+        d.text(run.text, x, this.y, { ...options, continued: !isLast });
+      } else {
+        d.text(run.text, { ...options, continued: !isLast });
+      }
+    });
+
+    this.y = d.y + 12;
   }
 
   private async richList(node: EbookRichTextNode, level: number) {
