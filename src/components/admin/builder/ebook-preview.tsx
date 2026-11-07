@@ -11,6 +11,7 @@ import {
   FileText,
   Pencil,
   RefreshCw,
+  Sparkles,
   UploadCloud,
 } from "lucide-react";
 import {
@@ -18,6 +19,7 @@ import {
   downloadEbookPdf,
   fetchEbookPdf,
   useEbookProject,
+  useGenerateProductMetadata,
   usePublishEbookProject,
   useUpdateEbookProject,
   type PublishEbookInput,
@@ -358,6 +360,7 @@ export function EbookPreview({ projectId }: { projectId: string }) {
         defaultName={data.title}
         defaultSummary={data.content.description}
         defaultNicheName={data.content.niche}
+        defaultChapters={data.content.chapters}
         onPublished={(name) => {
           setPublished(name);
           setPublishOpen(false);
@@ -374,6 +377,7 @@ function PublishModal({
   defaultName,
   defaultSummary,
   defaultNicheName,
+  defaultChapters,
   onPublished,
 }: {
   open: boolean;
@@ -382,11 +386,14 @@ function PublishModal({
   defaultName: string;
   defaultSummary: string;
   defaultNicheName: string;
+  defaultChapters: { title: string }[];
   onPublished: (name: string) => void;
 }) {
   const niches = useAdminNiches();
   const publish = usePublishEbookProject();
+  const generateMetadata = useGenerateProductMetadata();
   const [error, setError] = useState<string | null>(null);
+  const [aiLoading, setAiLoading] = useState(false);
   const formRef = useRef<{
     setValue: (name: string, value: unknown, options?: any) => void;
   } | null>(null);
@@ -445,38 +452,59 @@ function PublishModal({
             {error}
           </p>
         ) : null}
-        <Button
-          type="button"
-          variant="ghost"
-          size="sm"
-          disabled={publish.isPending}
-          onClick={() => {
-            formRef.current?.setValue("name", defaultName);
-            formRef.current?.setValue("slug", slugify(defaultName));
-            formRef.current?.setValue(
-              "nicheId",
-              savedNiche?.id ?? (niches.data?.[0]?.id ?? ""),
-            );
-            formRef.current?.setValue("summary", defaultSummary ?? "");
-            formRef.current?.setValue("description", defaultSummary ?? "");
-            formRef.current?.setValue("level", "FOUNDATIONS");
-            formRef.current?.setValue("price", 10);
-            formRef.current?.setValue("active", false);
-            formRef.current?.setValue("features", "");
-          }}
-        >
-          Isi otomatis dengan AI
-        </Button>
+        <div className="flex items-center justify-between gap-3">
+          <Button
+            type="button"
+            variant="secondary"
+            size="sm"
+            disabled={publish.isPending || aiLoading}
+            onClick={async () => {
+              setAiLoading(true);
+              setError(null);
+              try {
+                const metadata = await generateMetadata.mutateAsync({
+                  id: projectId,
+                  input: {
+                    bookTitle: defaultName,
+                    description: defaultSummary,
+                    chapters: defaultChapters,
+                  },
+                });
+              formRef.current?.setValue("level", metadata.level);
+              formRef.current?.setValue("outcome", metadata.outcome);
+              formRef.current?.setValue("audience", metadata.audience);
+              formRef.current?.setValue("notFor", metadata.notFor);
+              formRef.current?.setValue("learnings", metadata.learnings.join("\n"));
+              formRef.current?.setValue("limitations", metadata.limitations);
+              formRef.current?.setValue("features", metadata.features.join("\n"));
+              formRef.current?.setValue("license", "Personal use. Do not redistribute or resell the files.");
+              if (metadata.summary) formRef.current?.setValue("summary", metadata.summary);
+              } catch (caught) {
+                setError(getApiErrorMessage(caught));
+              } finally {
+                setAiLoading(false);
+              }
+            }}
+          >
+            {aiLoading ? <Spinner /> : <Sparkles className="size-3.5" />}
+            {aiLoading ? "Generating..." : "Fill with AI"}
+          </Button>
+          <span className="text-[11px] text-fg-muted">
+            Fills: level, outcome, audience, not for, learnings, limitations, features
+          </span>
+        </div>
         <ProductForm
           ref={formRef}
           niches={niches.data ?? []}
           projectId={projectId}
           initialValues={{
             name: defaultName,
-            summary: defaultSummary ?? "",
+            summary: "",
             description: defaultSummary ?? "",
             nicheId: savedNiche?.id ?? "",
             level: "FOUNDATIONS",
+            price: 10,
+            license: "Personal use. Do not redistribute or resell the files.",
             active: false,
           }}
           onSubmit={handlePublishSubmit}
@@ -488,13 +516,4 @@ function PublishModal({
   );
 }
 
-function slugify(value: string): string {
-  return value
-    .normalize("NFKD")
-    .replace(/[\u0300-\u036f]/g, "")
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/^-+|-+$/g, "")
-    .slice(0, 80);
-}
 
