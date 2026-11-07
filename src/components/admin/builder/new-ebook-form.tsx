@@ -8,10 +8,7 @@ import {
   BookOpenText,
   Sparkles,
 } from "lucide-react";
-import {
-  useCreateSampleEbook,
-  useGenerateEbook,
-} from "@/hooks/use-builder";
+import { useGenerateEbook } from "@/hooks/use-builder";
 import { getApiErrorMessage } from "@/lib/api";
 import { richTextToPrompt } from "@/lib/ebook/rich-text";
 import type { EbookRichTextNode } from "@/lib/ebook/types";
@@ -40,7 +37,6 @@ export function NewEbookForm({
 }) {
   const router = useRouter();
   const generate = useGenerateEbook();
-  const createSample = useCreateSampleEbook();
   const [brand, setBrand] = useState("1section");
   const [niche, setNiche] = useState("");
   const [title, setTitle] = useState("");
@@ -48,11 +44,7 @@ export function NewEbookForm({
   const [error, setError] = useState<string | null>(null);
   const prompt = richTextToPrompt(brief);
 
-  const loading = generate.isPending
-    ? "ai"
-    : createSample.isPending
-      ? "sample"
-      : null;
+  const loading = generate.isPending ? "ai" : null;
 
   async function generateWithAi(event: React.FormEvent) {
     event.preventDefault();
@@ -84,14 +76,9 @@ export function NewEbookForm({
     }
   }
 
-  async function useSample() {
+  function openBlank() {
     setError(null);
-    try {
-      const project = await createSample.mutateAsync();
-      router.push(`/admin/builder/${project.id}`);
-    } catch (caught) {
-      setError(getApiErrorMessage(caught));
-    }
+    router.push("/admin/builder/blank");
   }
 
   return (
@@ -152,8 +139,8 @@ export function NewEbookForm({
             <AlertTriangle className="mt-0.5 size-4 shrink-0" />
             <p>
               <code className="font-mono">GROQ_API_KEY</code> belum diisi. Kamu
-              masih bisa memakai konten contoh untuk mencoba editor, preview,
-              dan export.
+              masih bisa mulai dari editor kosong untuk mencoba editor,
+              preview, dan export.
             </p>
           </div>
         ) : null}
@@ -176,17 +163,19 @@ export function NewEbookForm({
           <Button
             type="button"
             variant="secondary"
-            onClick={useSample}
+            onClick={openBlank}
             disabled={loading !== null}
           >
-            {loading === "sample" ? (
-              <Spinner />
-            ) : (
-              <BookOpenText className="size-4" />
-            )}
-            Pakai contoh
+            <BookOpenText className="size-4" />
+            Mulai kosong
           </Button>
         </div>
+
+        <p className="mt-3 text-[11px] text-fg-muted">
+          Mulai kosong membuka editor tanpa isi dan tanpa menyimpan apa pun.
+          Draft baru dibuat saat kamu klik{" "}
+          <span className="font-medium text-fg">Simpan</span>.
+        </p>
 
         <p className="mt-3 text-[11px] text-fg-muted">
           Model: <span className="font-mono">{groqModel}</span>

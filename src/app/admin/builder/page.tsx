@@ -67,8 +67,8 @@ export default function AdminBuilderPage() {
           </span>
           <p className="mt-4 text-sm font-medium text-fg">Belum ada ebook</p>
           <p className="mt-1 max-w-sm text-xs text-fg-muted">
-            Mulai dari brief singkat atau pakai konten contoh untuk melihat
-            struktur ebook lengkap.
+            Mulai dari brief singkat atau buka editor kosong untuk menyusun
+            ebook sendiri.
           </p>
           <Link href="/admin/builder/new" className="mt-5">
             <Button>

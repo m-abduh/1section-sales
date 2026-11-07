@@ -1,7 +1,9 @@
 import { z } from "zod";
+import { richTextIsEmpty } from "./rich-text";
 import type { EbookRichTextNode, EbookRichTextValue } from "./types";
 
 const paragraph = z.string().trim().min(1).max(4000);
+const brief = z.string().trim().max(12000).optional();
 
 const richTextValue: z.ZodType<EbookRichTextValue> = z.lazy(() =>
   z.union([
@@ -63,52 +65,59 @@ const cover = z
   })
   .optional();
 
+export const ebookReferenceSchema = z.object({
+  title: z.string().trim().min(1).max(400),
+  url: z.string().trim().min(1).max(600),
+});
+
+export const ebookChapterReferenceSchema = z.object({
+  title: z.string().trim().min(1).max(400),
+  url: z.string().trim().max(600).optional(),
+});
+
+export const ebookChapterSchema = z
+  .object({
+    title: z.string().trim().min(1).max(200),
+    brief,
+    intro: z.array(paragraph).max(8).optional(),
+    sections: z
+      .array(
+        z.object({
+          title: z.string().trim().min(1).max(200),
+          paragraphs: z.array(paragraph).min(1).max(6),
+        }),
+      )
+      .max(6),
+    body: richTextBody,
+    references: z.array(ebookChapterReferenceSchema).max(20).optional(),
+  })
+  .refine(
+    (chapter) => chapter.sections.length > 0 || !richTextIsEmpty(chapter.body),
+    {
+      message: "Bab harus punya isi teks atau sub-bagian.",
+      path: ["sections"],
+    },
+  );
+
 export const ebookSchema = z.object({
   brand: z.string().trim().min(1).max(80).default("1section"),
   niche: z.string().trim().min(1).max(120),
   title: z.string().trim().min(1).max(200),
   description: z.string().trim().min(1).max(1200),
+  metadataBrief: brief,
   introduction: z.array(paragraph).min(1).max(60),
   introductionBody: richTextBody,
+  introductionBrief: brief,
   chapters: z
-    .array(
-      z.object({
-        title: z.string().trim().min(1).max(200),
-        intro: z.array(paragraph).max(8).optional(),
-        sections: z
-          .array(
-            z.object({
-              title: z.string().trim().min(1).max(200),
-              paragraphs: z.array(paragraph).min(1).max(6),
-            }),
-          )
-          .min(1)
-          .max(6),
-        body: richTextBody,
-        references: z
-          .array(
-            z.object({
-              title: z.string().trim().min(1).max(400),
-              url: z.string().trim().max(600).optional(),
-            }),
-          )
-          .max(20)
-          .optional(),
-      }),
-    )
+    .array(ebookChapterSchema)
     .min(1, "Ebook harus berisi minimal 1 bab.")
     .max(30, "Ebook maksimal berisi 30 bab."),
   conclusion: z.array(paragraph).min(1).max(8),
-  references: z
-    .array(
-      z.object({
-        title: z.string().trim().min(1).max(400),
-        url: z.string().trim().min(1).max(600),
-      }),
-    )
-    .min(1)
-    .max(20),
+  conclusionBrief: brief,
+  references: z.array(ebookReferenceSchema).min(1).max(20),
+  referencesBrief: brief,
   about: z.array(paragraph).min(1).max(8),
+  aboutBrief: brief,
   cover,
 });
 

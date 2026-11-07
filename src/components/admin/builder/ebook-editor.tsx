@@ -11,6 +11,7 @@ import {
   Eye,
   Plus,
   Save,
+  Sparkles,
   Trash2,
   Undo2,
 } from "lucide-react";
@@ -18,6 +19,7 @@ import type { EbookChapter, EbookContent, EbookCover } from "@/lib/ebook/types";
 import {
   richTextFromChapter,
   richTextFromParagraphs,
+  richTextIsEmpty,
   richTextToParagraphs,
 } from "@/lib/ebook/rich-text";
 import {
@@ -28,6 +30,11 @@ import {
 } from "@/lib/ebook/cover";
 import { captureCoverElement } from "@/lib/ebook/capture-cover";
 import {
+  generateEbookChapterPart,
+  generateEbookMetadataPart,
+  generateEbookReferencesPart,
+  generateEbookSectionPart,
+  useCreateEbookContent,
   useUpdateEbookProject,
   useUploadBuilderImage,
   type EbookStatus,
@@ -57,25 +64,71 @@ type EditorPage = {
   shortLabel: string;
 };
 
+/**
+ * Friendly checks before the first save of a blank ebook. The API still does
+ * the authoritative validation; this only explains what is missing.
+ */
+function missingRequiredFields(content: EbookContent): string | null {
+  if (!content.niche.trim()) return "Pilih niche/kategori dulu sebelum menyimpan.";
+  if (!content.title.trim()) return "Isi judul ebook dulu sebelum menyimpan.";
+  if (!content.description.trim()) return "Isi deskripsi cover dulu sebelum menyimpan.";
+
+  const intro = content.introductionBody?.length
+    ? richTextToParagraphs(content.introductionBody)
+    : content.introduction;
+  if (!intro.some((text) => text.trim())) return "Pendahuluan masih kosong.";
+
+  for (const [index, chapter] of content.chapters.entries()) {
+    if (!chapter.title.trim()) return `Judul bab ${index + 1} masih kosong.`;
+    const hasBody = !richTextIsEmpty(chapter.body);
+    const hasSections = chapter.sections.some(
+      (section) =>
+        section.title.trim() &&
+        section.paragraphs.some((text) => text.trim()),
+    );
+    if (!hasBody && !hasSections) return `Isi bab ${index + 1} masih kosong.`;
+  }
+
+  if (!content.conclusion.some((text) => text.trim())) {
+    return "Kesimpulan masih kosong.";
+  }
+  if (
+    !content.references.some(
+      (reference) => reference.title.trim() && reference.url.trim(),
+    )
+  ) {
+    return "Isi minimal satu referensi lengkap (judul dan URL).";
+  }
+  if (!content.about.some((text) => text.trim())) {
+    return "Bagian about masih kosong.";
+  }
+  return null;
+}
+
 export function EbookEditor({
   projectId,
   initialContent,
   initialStatus,
-  updatedAt,
+  updatedAt = "",
 }: {
-  projectId: string;
+  /** Kosong berarti editor kosong: draft baru dibuat saat pengguna menyimpan. */
+  projectId?: string;
   initialContent: EbookContent;
   initialStatus: EbookStatus;
-  updatedAt: string;
+  updatedAt?: string;
 }) {
   const router = useRouter();
   const updateProject = useUpdateEbookProject();
+  const createProject = useCreateEbookContent();
   const uploadCover = useUploadBuilderImage();
   const coverNodeRef = useRef<HTMLDivElement | null>(null);
+  const [activeProjectId, setActiveProjectId] = useState<string | null>(
+    projectId ?? null,
+  );
   const [content, setContent] = useState<EbookContent>(initialContent);
   const [status, setStatus] = useState<EbookStatus>(initialStatus);
   const [pageIndex, setPageIndex] = useState(0);
-  const [dirty, setDirty] = useState(false);
+  const [dirty, setDirty] = useState(!projectId);
   const [saving, setSaving] = useState(false);
   const [statusBusy, setStatusBusy] = useState(false);
   const [coverBusy, setCoverBusy] = useState(false);
@@ -84,6 +137,11 @@ export function EbookEditor({
   const [notice, setNotice] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [savedAt, setSavedAt] = useState(updatedAt);
+  const [partBusy, setPartBusy] = useState<string | null>(null);
+  const [partError, setPartError] = useState<{
+    key: string;
+    message: string;
+  } | null>(null);
 
   const pages = useMemo<EditorPage[]>(
     () => [
@@ -114,6 +172,145 @@ export function EbookEditor({
     setCoverError(null);
   }
 
+  async function runPart<T>(
+    key: string,
+    task: () => Promise<T>,
+  ): Promise<T | null> {
+    setPartBusy(key);
+    setPartError(null);
+    setNotice(null);
+    try {
+      return await task();
+    } catch (caught) {
+      setPartError({ key, message: getApiErrorMessage(caught) });
+      return null;
+    } finally {
+      setPartBusy(null);
+    }
+  }
+
+  async function generateMetadata() {
+    const result = await runPart("metadata", () =>
+      generateEbookMetadataPart({
+        brand: content.brand,
+        niche: content.niche,
+        brief: content.metadataBrief ?? "",
+        currentTitle: content.title,
+      }),
+    );
+    if (!result) return;
+    patchContent((previous) => ({
+      ...previous,
+      title: result.title,
+      description: result.description,
+    }));
+    setNotice("AI mengisi judul dan deskripsi cover. Periksa lalu simpan.");
+  }
+
+  async function generateIntroduction() {
+    const result = await runPart("introduction", () =>
+      generateEbookSectionPart({
+        section: "introduction",
+        brand: content.brand,
+        niche: content.niche,
+        bookTitle: content.title,
+        brief: content.introductionBrief ?? "",
+      }),
+    );
+    if (!result) return;
+    patchContent((previous) => ({
+      ...previous,
+      introduction: result.paragraphs,
+      introductionBody: richTextFromParagraphs(result.paragraphs),
+    }));
+    setNotice("AI mengisi pendahuluan. Periksa lalu simpan.");
+  }
+
+  async function generateConclusion() {
+    const result = await runPart("conclusion", () =>
+      generateEbookSectionPart({
+        section: "conclusion",
+        brand: content.brand,
+        niche: content.niche,
+        bookTitle: content.title,
+        brief: content.conclusionBrief ?? "",
+      }),
+    );
+    if (!result) return;
+    patchContent((previous) => ({
+      ...previous,
+      conclusion: result.paragraphs,
+    }));
+    setNotice("AI mengisi kesimpulan. Periksa lalu simpan.");
+  }
+
+  async function generateAbout() {
+    const result = await runPart("about", () =>
+      generateEbookSectionPart({
+        section: "about",
+        brand: content.brand,
+        niche: content.niche,
+        bookTitle: content.title,
+        brief: content.aboutBrief ?? "",
+      }),
+    );
+    if (!result) return;
+    patchContent((previous) => ({ ...previous, about: result.paragraphs }));
+    setNotice("AI mengisi about. Periksa lalu simpan.");
+  }
+
+  async function generateReferences() {
+    const result = await runPart("references", () =>
+      generateEbookReferencesPart({
+        brand: content.brand,
+        niche: content.niche,
+        bookTitle: content.title,
+        brief: content.referencesBrief ?? "",
+      }),
+    );
+    if (!result) return;
+    patchContent((previous) => ({
+      ...previous,
+      references: result.references,
+    }));
+    setNotice("AI mengisi daftar referensi. Periksa lalu simpan.");
+  }
+
+  async function generateChapter(index: number) {
+    const chapter = content.chapters[index];
+    if (!chapter) return;
+    const result = await runPart(`chapter-${index}`, () =>
+      generateEbookChapterPart({
+        brand: content.brand,
+        niche: content.niche,
+        bookTitle: content.title,
+        chapterTitle: chapter.title,
+        brief: chapter.brief ?? "",
+        index,
+        total: content.chapters.length,
+      }),
+    );
+    if (!result) return;
+    patchContent((previous) => ({
+      ...previous,
+      chapters: previous.chapters.map((item, itemIndex) =>
+        itemIndex === index
+          ? {
+              ...item,
+              title: result.title || item.title,
+              intro: result.intro,
+              sections: result.sections,
+              body: richTextFromChapter(result),
+              references: result.references?.length
+                ? result.references
+                : item.references,
+            }
+          : item,
+      ),
+    }));
+    setNotice("AI mengisi bab ini. Periksa judul, isi, dan referensinya lalu simpan.");
+  }
+
   async function renderCover(next: EbookContent): Promise<EbookCover | null> {
     const node = coverNodeRef.current;
     if (!next.cover || !node) return null;
@@ -136,12 +333,20 @@ export function EbookEditor({
     }
   }
 
-  async function persistContent() {
+  async function persistContent(): Promise<string | null> {
     setSaving(true);
     setError(null);
     setNotice(null);
     let nextContent = content;
     try {
+      if (!activeProjectId) {
+        const missing = missingRequiredFields(nextContent);
+        if (missing) {
+          setError(missing);
+          return null;
+        }
+      }
+
       if (content.cover && isCoverStale(content)) {
         setNotice("Memperbarui gambar cover…");
         const rendered = await renderCover(content);
@@ -150,36 +355,57 @@ export function EbookEditor({
           setContent(nextContent);
         }
       }
+
+      if (!activeProjectId) {
+        const created = await createProject.mutateAsync({
+          content: nextContent,
+        });
+        setActiveProjectId(created.id);
+        setDirty(false);
+        setSavedAt(created.updatedAt);
+        setNotice("Draft baru dibuat dan konten tersimpan.");
+        router.replace(`/admin/builder/${created.id}`);
+        return created.id;
+      }
+
       const project = await updateProject.mutateAsync({
-        id: projectId,
+        id: activeProjectId,
         input: { content: nextContent },
       });
       setDirty(false);
       setSavedAt(project.updatedAt);
       setNotice("Perubahan tersimpan.");
-      return true;
+      return activeProjectId;
     } catch (caught) {
       setError(getApiErrorMessage(caught));
-      return false;
+      return null;
     } finally {
       setSaving(false);
     }
   }
 
   async function handlePreview() {
-    if (dirty && !(await persistContent())) return;
-    router.push(`/admin/builder/${projectId}/preview`);
+    const id =
+      activeProjectId && !dirty
+        ? activeProjectId
+        : await persistContent();
+    if (!id) return;
+    router.push(`/admin/builder/${id}/preview`);
   }
 
   async function handleStatus() {
-    if (dirty && !(await persistContent())) return;
+    const id =
+      activeProjectId && !dirty
+        ? activeProjectId
+        : await persistContent();
+    if (!id) return;
     const next: EbookStatus = status === "final" ? "draft" : "final";
     setStatusBusy(true);
     setError(null);
     setNotice(null);
     try {
       const project = await updateProject.mutateAsync({
-        id: projectId,
+        id,
         input: { status: next },
       });
       setStatus(next);
@@ -274,9 +500,15 @@ export function EbookEditor({
           {content.title}
         </h1>
         <p className="mt-1 text-xs text-fg-muted">
-          {content.niche} · {content.chapters.length} bab · terakhir diperbarui{" "}
-          {formatDate(savedAt)}
-          {dirty ? " · ada perubahan belum disimpan" : ""}
+          {[content.niche.trim(), `${content.chapters.length} bab`]
+            .filter(Boolean)
+            .join(" · ")}{" "}
+          ·{" "}
+          {activeProjectId
+            ? `terakhir diperbarui ${formatDate(savedAt)}${
+                dirty ? " · ada perubahan belum disimpan" : ""
+              }`
+            : "belum disimpan ke database"}
         </p>
       </div>
 
@@ -355,37 +587,73 @@ export function EbookEditor({
                     }
                     onRender={() => void persistContent()}
                   />
+                  <PartBrief
+                    label="Brief cover & metadata"
+                    value={content.metadataBrief ?? ""}
+                    onChange={(metadataBrief) =>
+                      patchContent((previous) => ({
+                        ...previous,
+                        metadataBrief,
+                      }))
+                    }
+                    onGenerate={() => void generateMetadata()}
+                    busy={partBusy === "metadata"}
+                    error={
+                      partError?.key === "metadata" ? partError.message : null
+                    }
+                    hint="AI akan mengisi judul dan deskripsi cover dari brief ini. Brand dan niche tetap seperti yang kamu pilih."
+                  />
                   <div className="border-t border-border pt-5">
                     <MetadataPage content={content} onChange={patchContent} />
                   </div>
                 </div>
               ) : null}
               {page.key === "introduction" ? (
-                <div>
-                  <p className="mb-2 text-[11px] text-fg-muted">
-                    Tulis pendahuluan dengan format tebal, sub-judul, daftar,
-                    tabel, atau gambar.
-                  </p>
-                  <RichTextEditor
-                    value={
-                      content.introductionBody ??
-                      richTextFromParagraphs(content.introduction)
+                <div className="space-y-4">
+                  <PartBrief
+                    label="Brief pendahuluan"
+                    value={content.introductionBrief ?? ""}
+                    onChange={(introductionBrief) =>
+                      patchContent((previous) => ({
+                        ...previous,
+                        introductionBrief,
+                      }))
                     }
-                    onChange={(introductionBody) =>
-                      patchContent((previous) => {
-                        const paragraphs =
-                          richTextToParagraphs(introductionBody);
-                        return {
-                          ...previous,
-                          introductionBody,
-                          introduction: paragraphs.length
-                            ? paragraphs
-                            : previous.introduction,
-                        };
-                      })
+                    onGenerate={() => void generateIntroduction()}
+                    busy={partBusy === "introduction"}
+                    error={
+                      partError?.key === "introduction"
+                        ? partError.message
+                        : null
                     }
-                    placeholder="Tulis pendahuluan…"
+                    hint="AI akan mengisi kolom pendahuluan di bawah dari brief ini."
                   />
+                  <div>
+                    <p className="mb-2 text-[11px] text-fg-muted">
+                      Tulis pendahuluan dengan format tebal, sub-judul, daftar,
+                      tabel, atau gambar.
+                    </p>
+                    <RichTextEditor
+                      value={
+                        content.introductionBody ??
+                        richTextFromParagraphs(content.introduction)
+                      }
+                      onChange={(introductionBody) =>
+                        patchContent((previous) => {
+                          const paragraphs =
+                            richTextToParagraphs(introductionBody);
+                          return {
+                            ...previous,
+                            introductionBody,
+                            introduction: paragraphs.length
+                              ? paragraphs
+                              : previous.introduction,
+                          };
+                        })
+                      }
+                      placeholder="Tulis pendahuluan…"
+                    />
+                  </div>
                 </div>
               ) : null}
               {page.key.startsWith("chapter-") ? (
@@ -401,6 +669,13 @@ export function EbookEditor({
                   onRequestDelete={() =>
                     setPendingDelete(Number(page.key.split("-")[1]))
                   }
+                  generating={partBusy === page.key}
+                  briefError={
+                    partError?.key === page.key ? partError.message : null
+                  }
+                  onGenerate={() =>
+                    void generateChapter(Number(page.key.split("-")[1]))
+                  }
                   onChange={(chapter) => {
                     const index = Number(page.key.split("-")[1]);
                     patchContent((previous) => ({
@@ -413,23 +688,74 @@ export function EbookEditor({
                 />
               ) : null}
               {page.key === "conclusion" ? (
-                <ParagraphList
-                  values={content.conclusion}
-                  max={8}
-                  onChange={(conclusion) =>
-                    patchContent({ ...content, conclusion })
-                  }
-                />
+                <div className="space-y-4">
+                  <PartBrief
+                    label="Brief kesimpulan"
+                    value={content.conclusionBrief ?? ""}
+                    onChange={(conclusionBrief) =>
+                      patchContent((previous) => ({
+                        ...previous,
+                        conclusionBrief,
+                      }))
+                    }
+                    onGenerate={() => void generateConclusion()}
+                    busy={partBusy === "conclusion"}
+                    error={
+                      partError?.key === "conclusion" ? partError.message : null
+                    }
+                    hint="AI akan mengisi kolom kesimpulan di bawah dari brief ini."
+                  />
+                  <ParagraphList
+                    values={content.conclusion}
+                    max={8}
+                    onChange={(conclusion) =>
+                      patchContent({ ...content, conclusion })
+                    }
+                  />
+                </div>
               ) : null}
               {page.key === "references" ? (
-                <ReferencesPage content={content} onChange={patchContent} />
+                <div className="space-y-4">
+                  <PartBrief
+                    label="Brief referensi"
+                    value={content.referencesBrief ?? ""}
+                    onChange={(referencesBrief) =>
+                      patchContent((previous) => ({
+                        ...previous,
+                        referencesBrief,
+                      }))
+                    }
+                    onGenerate={() => void generateReferences()}
+                    busy={partBusy === "references"}
+                    error={
+                      partError?.key === "references" ? partError.message : null
+                    }
+                    hint="AI akan mengisi daftar referensi di bawah dari brief ini."
+                  />
+                  <ReferencesPage content={content} onChange={patchContent} />
+                </div>
               ) : null}
               {page.key === "about" ? (
-                <ParagraphList
-                  values={content.about}
-                  max={8}
-                  onChange={(about) => patchContent({ ...content, about })}
-                />
+                <div className="space-y-4">
+                  <PartBrief
+                    label="Brief about"
+                    value={content.aboutBrief ?? ""}
+                    onChange={(aboutBrief) =>
+                      patchContent((previous) => ({ ...previous, aboutBrief }))
+                    }
+                    onGenerate={() => void generateAbout()}
+                    busy={partBusy === "about"}
+                    error={
+                      partError?.key === "about" ? partError.message : null
+                    }
+                    hint="AI akan mengisi kolom about di bawah dari brief ini."
+                  />
+                  <ParagraphList
+                    values={content.about}
+                    max={8}
+                    onChange={(about) => patchContent({ ...content, about })}
+                  />
+                </div>
               ) : null}
             </div>
           </section>
@@ -799,19 +1125,107 @@ function AddButton({ label, onClick }: { label: string; onClick: () => void }) {
   );
 }
 
+const PART_BRIEF_MIN = 20;
+const PART_BRIEF_MAX = 12000;
+
+function PartBrief({
+  label,
+  hint,
+  value,
+  onChange,
+  onGenerate,
+  busy,
+  error,
+}: {
+  label: string;
+  hint: string;
+  value: string;
+  onChange: (value: string) => void;
+  onGenerate: () => void;
+  busy: boolean;
+  error: string | null;
+}) {
+  const length = value.trim().length;
+  const tooShort = length < PART_BRIEF_MIN;
+
+  return (
+    <div className="rounded-2xl border border-border bg-card p-4">
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <div className="min-w-0">
+          <p className="text-xs font-semibold text-fg">{label}</p>
+          <p className="mt-1 max-w-xl text-[11px] leading-relaxed text-fg-muted">
+            {hint}
+          </p>
+        </div>
+        <Button
+          variant="secondary"
+          size="sm"
+          onClick={onGenerate}
+          disabled={busy || tooShort}
+        >
+          {busy ? <Spinner /> : <Sparkles className="size-3.5" />}
+          {busy ? "Mengisi…" : "Isi dengan AI"}
+        </Button>
+      </div>
+
+      <Textarea
+        value={value}
+        rows={6}
+        maxLength={PART_BRIEF_MAX}
+        onChange={(event) => onChange(event.target.value)}
+        placeholder="Tempel materi atau tulis brief bagian ini…"
+        className="mt-3"
+      />
+
+      <div className="mt-2 flex flex-wrap items-center justify-between gap-2 text-[11px]">
+        <span className="text-fg-muted">
+          {tooShort
+            ? `Minimal ${PART_BRIEF_MIN} karakter (${PART_BRIEF_MIN - length} lagi).`
+            : "Materi dianggap sudah jadi; AI hanya merapikan ke kolom di bawah."}
+        </span>
+        <span className="tabular-nums text-fg-muted">
+          {length.toLocaleString("id-ID")}/{PART_BRIEF_MAX.toLocaleString("id-ID")}
+        </span>
+      </div>
+
+      {error ? (
+        <p className="mt-2 rounded-lg bg-red-500/10 px-3 py-2 text-[11px] font-medium text-red-600 dark:text-red-400">
+          {error}
+        </p>
+      ) : null}
+    </div>
+  );
+}
+
 function ChapterEditor({
   chapter,
   canDelete,
   onRequestDelete,
   onChange,
+  onGenerate,
+  generating,
+  briefError,
 }: {
   chapter: EbookChapter;
   canDelete: boolean;
   onRequestDelete: () => void;
   onChange: (chapter: EbookChapter) => void;
+  onGenerate: () => void;
+  generating: boolean;
+  briefError: string | null;
 }) {
   return (
     <div className="space-y-5">
+      <PartBrief
+        label="Brief bab ini"
+        value={chapter.brief ?? ""}
+        onChange={(brief) => onChange({ ...chapter, brief })}
+        onGenerate={onGenerate}
+        busy={generating}
+        error={briefError}
+        hint="Tempel materi atau brief bab di sini. AI akan mengisi judul, isi bab, dan referensi bab dari brief ini."
+      />
+
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div className="min-w-0 flex-1">
           <Field label="Judul bab">
