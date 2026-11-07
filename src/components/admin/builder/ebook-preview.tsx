@@ -358,6 +358,7 @@ export function EbookPreview({ projectId }: { projectId: string }) {
         projectId={projectId}
         defaultName={data.title}
         defaultSummary={data.content.description}
+        defaultNicheName={data.content.niche}
         onPublished={(name) => {
           setPublished(name);
           setPublishOpen(false);
@@ -373,6 +374,7 @@ function PublishModal({
   projectId,
   defaultName,
   defaultSummary,
+  defaultNicheName,
   onPublished,
 }: {
   open: boolean;
@@ -380,14 +382,16 @@ function PublishModal({
   projectId: string;
   defaultName: string;
   defaultSummary: string;
+  defaultNicheName: string;
   onPublished: (name: string) => void;
 }) {
   const niches = useAdminNiches();
   const publish = usePublishEbookProject();
   const [nicheId, setNicheId] = useState("");
   const [name, setName] = useState(defaultName);
-  const [slug, setSlug] = useState("");
-  const [price, setPrice] = useState("19");
+  const [slug, setSlug] = useState(slugify(defaultName));
+  const [slugEdited, setSlugEdited] = useState(false);
+  const [price, setPrice] = useState("10");
   const [compareAt, setCompareAt] = useState("");
   const [level, setLevel] = useState<LearningLevel>("FOUNDATIONS");
   const [summary, setSummary] = useState(defaultSummary);
@@ -395,11 +399,20 @@ function PublishModal({
   const [active, setActive] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  const savedNiche = niches.data?.find(
+    (niche) =>
+      niche.name.trim().toLowerCase() === defaultNicheName.trim().toLowerCase(),
+  );
+
   useEffect(() => {
+    if (savedNiche) {
+      setNicheId(savedNiche.id);
+      return;
+    }
     if (!nicheId && niches.data?.length) {
       setNicheId(niches.data[0].id);
     }
-  }, [nicheId, niches.data]);
+  }, [nicheId, niches.data, savedNiche]);
 
   async function handleSubmit(event: React.FormEvent) {
     event.preventDefault();
@@ -451,11 +464,19 @@ function PublishModal({
         </p>
 
         <div className="grid gap-4 sm:grid-cols-2">
-          <Field label="Niche">
+          <Field
+            label="Niche"
+            hint={
+              savedNiche
+                ? "Mengikuti Niche / kategori dari metadata ebook."
+                : undefined
+            }
+          >
             <select
               value={nicheId}
               onChange={(event) => setNicheId(event.target.value)}
-              className="w-full rounded-lg border-0 bg-card px-3 py-2 text-sm text-fg shadow-sm ring-1 ring-inset ring-border focus:ring-2 focus:ring-accent"
+              disabled={Boolean(savedNiche)}
+              className="w-full rounded-lg border-0 bg-card px-3 py-2 text-sm text-fg shadow-sm ring-1 ring-inset ring-border focus:ring-2 focus:ring-accent disabled:opacity-60"
             >
               {(niches.data ?? []).map((niche) => (
                 <option key={niche.id} value={niche.id}>
@@ -485,13 +506,23 @@ function PublishModal({
           <Field label="Nama product">
             <Input
               value={name}
-              onChange={(event) => setName(event.target.value)}
+              onChange={(event) => {
+                const nextName = event.target.value;
+                setName(nextName);
+                if (!slugEdited) setSlug(slugify(nextName));
+              }}
             />
           </Field>
-          <Field label="Slug" hint="Kosongkan untuk otomatis">
+          <Field
+            label="Slug"
+            hint={`Akan menjadi /resources/${slug || "…"}`}
+          >
             <Input
               value={slug}
-              onChange={(event) => setSlug(event.target.value)}
+              onChange={(event) => {
+                setSlugEdited(true);
+                setSlug(slugify(event.target.value));
+              }}
               placeholder="personal-finance-guide"
             />
           </Field>
@@ -519,10 +550,11 @@ function PublishModal({
         </div>
 
         <Field label="Summary" hint="Maksimal 300 karakter">
-          <Input
+          <Textarea
             value={summary}
             onChange={(event) => setSummary(event.target.value)}
             maxLength={300}
+            rows={3}
           />
         </Field>
 
@@ -563,4 +595,14 @@ function PublishModal({
       </form>
     </Modal>
   );
+}
+
+function slugify(value: string): string {
+  return value
+    .normalize("NFKD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "")
+    .slice(0, 80);
 }

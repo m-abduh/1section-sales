@@ -32,6 +32,7 @@ import {
   useUploadBuilderImage,
   type EbookStatus,
 } from "@/hooks/use-builder";
+import { useAdminNiches } from "@/hooks/use-admin-niches";
 import { getApiErrorMessage } from "@/lib/api";
 import { formatDate } from "@/lib/format";
 import { Button } from "@/components/ui/button";
@@ -570,6 +571,14 @@ function MetadataPage({
   content: EbookContent;
   onChange: (content: EbookContent) => void;
 }) {
+  const niches = useAdminNiches();
+  const options = niches.data ?? [];
+  const matchedNiche = options.find(
+    (niche) =>
+      niche.name.trim().toLowerCase() === content.niche.trim().toLowerCase(),
+  );
+  const nicheValue = matchedNiche?.name ?? content.niche;
+
   return (
     <div className="space-y-4">
       <div className="grid gap-4 sm:grid-cols-2">
@@ -582,14 +591,34 @@ function MetadataPage({
             placeholder="1section"
           />
         </Field>
-        <Field label="Niche / kategori">
-          <Input
-            value={content.niche}
+        <Field
+          label="Niche / kategori"
+          hint={
+            niches.isLoading
+              ? "Memuat daftar niche…"
+              : niches.isError
+                ? "Gagal memuat niche. Coba muat ulang halaman."
+                : "Diambil dari daftar Niche di dashboard."
+          }
+        >
+          <select
+            value={nicheValue}
             onChange={(event) =>
               onChange({ ...content, niche: event.target.value })
             }
-            placeholder="Keuangan pribadi"
-          />
+            disabled={niches.isLoading}
+            className="w-full rounded-lg border-0 bg-card px-3 py-2 text-sm text-fg shadow-sm ring-1 ring-inset ring-border focus:ring-2 focus:ring-accent disabled:opacity-60"
+          >
+            {!content.niche ? <option value="">Pilih niche</option> : null}
+            {content.niche && !matchedNiche ? (
+              <option value={content.niche}>{content.niche}</option>
+            ) : null}
+            {options.map((niche) => (
+              <option key={niche.id} value={niche.name}>
+                {niche.name}
+              </option>
+            ))}
+          </select>
         </Field>
       </div>
       <Field label="Judul ebook">
