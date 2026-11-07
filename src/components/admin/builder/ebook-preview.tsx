@@ -387,6 +387,9 @@ function PublishModal({
   const niches = useAdminNiches();
   const publish = usePublishEbookProject();
   const [error, setError] = useState<string | null>(null);
+  const formRef = useRef<{
+    setValue: (name: string, value: unknown, options?: any) => void;
+  } | null>(null);
 
   const savedNiche = niches.data?.find(
     (niche) =>
@@ -442,7 +445,30 @@ function PublishModal({
             {error}
           </p>
         ) : null}
+        <Button
+          type="button"
+          variant="ghost"
+          size="sm"
+          disabled={publish.isPending}
+          onClick={() => {
+            formRef.current?.setValue("name", defaultName);
+            formRef.current?.setValue("slug", slugify(defaultName));
+            formRef.current?.setValue(
+              "nicheId",
+              savedNiche?.id ?? (niches.data?.[0]?.id ?? ""),
+            );
+            formRef.current?.setValue("summary", defaultSummary ?? "");
+            formRef.current?.setValue("description", defaultSummary ?? "");
+            formRef.current?.setValue("level", "FOUNDATIONS");
+            formRef.current?.setValue("price", 10);
+            formRef.current?.setValue("active", false);
+            formRef.current?.setValue("features", "");
+          }}
+        >
+          Isi otomatis dengan AI
+        </Button>
         <ProductForm
+          ref={formRef}
           niches={niches.data ?? []}
           projectId={projectId}
           initialValues={{
@@ -460,5 +486,15 @@ function PublishModal({
       </div>
     </Modal>
   );
+}
+
+function slugify(value: string): string {
+  return value
+    .normalize("NFKD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "")
+    .slice(0, 80);
 }
 

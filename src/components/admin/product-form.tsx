@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useImperativeHandle, forwardRef } from "react";
 import Image from "next/image";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -62,15 +62,9 @@ function stripExtension(filename: string): string {
   return filename.replace(/\.[^.]+$/, "");
 }
 
-export function ProductForm({
-  product,
-  niches,
-  onSubmit,
-  onCancel,
-  isSubmitting,
-  projectId,
-  initialValues,
-}: {
+export const ProductForm = forwardRef<{
+  setValue: (name: keyof FormValues, value: FormValues[keyof FormValues], options?: any) => void;
+}, {
   product?: Product | null;
   niches: Niche[];
   onSubmit: (input: ProductInput) => void | Promise<void>;
@@ -78,7 +72,7 @@ export function ProductForm({
   isSubmitting: boolean;
   projectId?: string;
   initialValues?: Partial<FormValues>;
-}) {
+}>(({ product, niches, onSubmit, onCancel, isSubmitting, projectId, initialValues }, ref) => {
   const uploadPdf = useUploadPdf();
   const uploadThumbnail = useUploadThumbnail();
   const [files, setFiles] = useState<ProductFileInput[]>(
@@ -153,6 +147,12 @@ export function ProductForm({
   } = useForm<FormValues>({ resolver: zodResolver(schema), defaultValues: defaults });
 
   const coverImage = watch("coverImage");
+
+  useImperativeHandle(ref, () => ({
+    setValue: (name: keyof FormValues, value: unknown, options?: any) => {
+      setValue(name, value as any, options);
+    },
+  }));
 
   const handleFiles = async (fileList: FileList | null) => {
     if (!fileList || fileList.length === 0) return;
@@ -475,4 +475,4 @@ export function ProductForm({
       </div>
     </form>
   );
-}
+});
