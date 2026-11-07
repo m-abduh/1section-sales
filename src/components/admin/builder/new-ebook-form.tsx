@@ -9,6 +9,7 @@ import {
   Sparkles,
 } from "lucide-react";
 import { useGenerateEbook } from "@/hooks/use-builder";
+import { useAdminNiches } from "@/hooks/use-admin-niches";
 import { getApiErrorMessage } from "@/lib/api";
 import { richTextToPrompt } from "@/lib/ebook/rich-text";
 import type { EbookRichTextNode } from "@/lib/ebook/types";
@@ -37,12 +38,19 @@ export function NewEbookForm({
 }) {
   const router = useRouter();
   const generate = useGenerateEbook();
+  const niches = useAdminNiches();
+  const nicheOptions = niches.data ?? [];
   const [brand, setBrand] = useState("1section");
   const [niche, setNiche] = useState("");
   const [title, setTitle] = useState("");
   const [brief, setBrief] = useState<EbookRichTextNode[]>([]);
   const [error, setError] = useState<string | null>(null);
   const prompt = richTextToPrompt(brief);
+
+  const matchedNiche = nicheOptions.find(
+    (item) => item.name.trim().toLowerCase() === niche.trim().toLowerCase(),
+  );
+  const nicheValue = matchedNiche?.name ?? niche;
 
   const loading = generate.isPending ? "ai" : null;
 
@@ -59,7 +67,7 @@ export function NewEbookForm({
       return;
     }
     if (niche.trim().length < 2) {
-      setError("Isi niche/kategori ebook dulu, misalnya “Keuangan pribadi”.");
+      setError("Pilih niche/kategori ebook dulu.");
       return;
     }
 
@@ -95,12 +103,32 @@ export function NewEbookForm({
               placeholder="1section"
             />
           </Field>
-          <Field label="Niche / kategori">
-            <Input
-              value={niche}
+          <Field
+            label="Niche / kategori"
+            hint={
+              niches.isLoading
+                ? "Memuat daftar niche…"
+                : niches.isError
+                  ? "Gagal memuat niche. Coba muat ulang halaman."
+                  : "Diambil dari daftar Niche di dashboard."
+            }
+          >
+            <select
+              value={nicheValue}
               onChange={(event) => setNiche(event.target.value)}
-              placeholder="Keuangan pribadi"
-            />
+              disabled={niches.isLoading}
+              className="w-full rounded-lg border-0 bg-card px-3 py-2 text-sm text-fg shadow-sm ring-1 ring-inset ring-border focus:ring-2 focus:ring-accent disabled:opacity-60"
+            >
+              {!niche ? <option value="">Pilih niche</option> : null}
+              {niche && !matchedNiche ? (
+                <option value={niche}>{niche}</option>
+              ) : null}
+              {nicheOptions.map((item) => (
+                <option key={item.id} value={item.name}>
+                  {item.name}
+                </option>
+              ))}
+            </select>
           </Field>
         </div>
 
