@@ -125,11 +125,11 @@ class PdfBook {
   async render(pageMap: PageMap): Promise<{ buffer: Buffer; pageMap: PageMap }> {
     await this.drawCover();
     this.drawContents(pageMap);
-    await this.drawIntroduction();
-    await this.drawChapters();
-    this.drawConclusion();
-    this.drawReferences();
-    this.drawAbout();
+      await this.drawIntroduction();
+      await this.drawChapters();
+      await this.drawConclusion();
+      this.drawReferences();
+      await this.drawAbout();
     this.doc.end();
     const buffer = await this.ended;
     return { buffer, pageMap: this.pageMap };
@@ -753,10 +753,15 @@ class PdfBook {
     }
   }
 
-  private drawConclusion() {
+  private async drawConclusion() {
     this.addPage("CONCLUSION");
     this.pageMap.conclusion = this.page;
     this.heading("Conclusion", H1_SIZE, 0, 6);
+    const body = this.ebook.conclusionBody;
+    if (body && !richTextIsEmpty(body)) {
+      await this.richBody(body);
+      return;
+    }
     this.ebook.conclusion.forEach((text) => this.paragraph(text));
   }
 
@@ -769,10 +774,15 @@ class PdfBook {
     });
   }
 
-  private drawAbout() {
+  private async drawAbout() {
     this.addPage("ABOUT");
     this.pageMap.about = this.page;
     this.heading("About", H1_SIZE, 0, 6);
+    const body = this.ebook.aboutBody;
+    if (body && !richTextIsEmpty(body)) {
+      await this.richBody(body);
+      return;
+    }
     this.ebook.about.forEach((text) => this.paragraph(text));
   }
 }

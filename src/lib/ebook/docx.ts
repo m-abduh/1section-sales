@@ -342,6 +342,29 @@ async function richDocxBlocks(
       continue;
     }
 
+    if (node.type === "blockquote") {
+      for (const child of node.content ?? []) {
+        if (child.type === "paragraph") {
+          blocks.push(
+            new Paragraph({
+              style: "Normal",
+              indent: { left: 720 },
+              spacing: {
+                before: 40,
+                after: 40,
+                line: 360,
+                lineRule: "auto",
+              },
+              children: docxRuns(child.content ?? []),
+            }),
+          );
+        } else if (child.content?.length) {
+          blocks.push(...(await richDocxBlocks(child.content, images)));
+        }
+      }
+      continue;
+    }
+
     if (node.content?.length) {
       blocks.push(...(await richDocxBlocks(node.content, images)));
     }
@@ -537,7 +560,9 @@ async function createDocument(
     docxParagraph("Conclusion", undefined, {
       heading: HeadingLevel.HEADING_1,
     }),
-    ...ebook.conclusion.map((text) => docxParagraph(text)),
+    ...(ebook.conclusionBody && !richTextIsEmpty(ebook.conclusionBody)
+      ? await richDocxBlocks(ebook.conclusionBody, images)
+      : ebook.conclusion.map((text) => docxParagraph(text))),
   ];
 
   const references = [
@@ -553,7 +578,9 @@ async function createDocument(
     docxParagraph("About", undefined, {
       heading: HeadingLevel.HEADING_1,
     }),
-    ...ebook.about.map((text) => docxParagraph(text)),
+    ...(ebook.aboutBody && !richTextIsEmpty(ebook.aboutBody)
+      ? await richDocxBlocks(ebook.aboutBody, images)
+      : ebook.about.map((text) => docxParagraph(text))),
   ];
 
   const kicker = `${ebook.brand} · ${ebook.niche}`;

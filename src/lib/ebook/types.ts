@@ -94,12 +94,16 @@ export type EbookContent = {
   introductionBrief?: string;
   chapters: EbookChapter[];
   conclusion: string[];
+  /** Rich text conclusion. Takes precedence over `conclusion` when present. */
+  conclusionBody?: EbookRichTextNode[];
   /** Brief untuk mengisi kesimpulan lewat AI. */
   conclusionBrief?: string;
   references: EbookReference[];
   /** Brief untuk mengisi daftar referensi lewat AI. */
   referencesBrief?: string;
   about: string[];
+  /** Rich text about. Takes precedence over `about` when present. */
+  aboutBody?: EbookRichTextNode[];
   /** Brief untuk mengisi about lewat AI. */
   aboutBrief?: string;
   cover?: EbookCover;
