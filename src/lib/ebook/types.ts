@@ -113,14 +113,14 @@ export type TocEntry = {
 
 export function tocEntriesOf(ebook: EbookContent): TocEntry[] {
   return [
-    { key: "intro", label: "Pendahuluan", level: 1 },
+    { key: "intro", label: "Introduction", level: 1 },
     ...ebook.chapters.map((chapter, index) => ({
       key: `chapter-${index}`,
       label: `${String(index + 1).padStart(2, "0")}. ${chapter.title}`,
       level: 2 as const,
     })),
-    { key: "conclusion", label: "Kesimpulan", level: 1 },
-    { key: "references", label: "Referensi", level: 1 },
+    { key: "conclusion", label: "Conclusion", level: 1 },
+    { key: "references", label: "References", level: 1 },
     { key: "about", label: "About", level: 1 },
   ];
 }

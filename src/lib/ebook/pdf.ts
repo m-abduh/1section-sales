@@ -565,8 +565,8 @@ class PdfBook {
   }
 
   private drawContents(pageMap: PageMap) {
-    this.addPage("DAFTAR ISI");
-    this.heading("Daftar Isi", H1_SIZE, 0, 12);
+    this.addPage("TABLE OF CONTENTS");
+    this.heading("Table of Contents", H1_SIZE, 0, 12);
 
     tocEntriesOf(this.ebook).forEach((entry) => {
       this.tocEntry(entry, pageMap);
@@ -639,9 +639,9 @@ class PdfBook {
   }
 
   private async drawIntroduction() {
-    this.addPage("PENDAHULUAN");
+    this.addPage("INTRODUCTION");
     this.pageMap.intro = this.page;
-    this.heading("Pendahuluan", H1_SIZE, 0, 6);
+    this.heading("Introduction", H1_SIZE, 0, 6);
 
     const body = this.ebook.introductionBody;
     if (body && !richTextIsEmpty(body)) {
@@ -700,16 +700,16 @@ class PdfBook {
   }
 
   private drawConclusion() {
-    this.addPage("KESIMPULAN");
+    this.addPage("CONCLUSION");
     this.pageMap.conclusion = this.page;
-    this.heading("Kesimpulan", H1_SIZE, 0, 6);
+    this.heading("Conclusion", H1_SIZE, 0, 6);
     this.ebook.conclusion.forEach((text) => this.paragraph(text));
   }
 
   private drawReferences() {
-    this.addPage("REFERENSI");
+    this.addPage("REFERENCES");
     this.pageMap.references = this.page;
-    this.heading("Referensi", H1_SIZE, 0, 6);
+    this.heading("References", H1_SIZE, 0, 6);
     this.ebook.references.forEach((reference, index) => {
       this.paragraph(`[${index + 1}] ${reference.title} ${reference.url}`);
     });
