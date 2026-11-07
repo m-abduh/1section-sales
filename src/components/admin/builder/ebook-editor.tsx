@@ -15,7 +15,11 @@ import {
   Undo2,
 } from "lucide-react";
 import type { EbookChapter, EbookContent, EbookCover } from "@/lib/ebook/types";
-import { richTextFromChapter } from "@/lib/ebook/rich-text";
+import {
+  richTextFromChapter,
+  richTextFromParagraphs,
+  richTextToParagraphs,
+} from "@/lib/ebook/rich-text";
 import {
   COVER_HEIGHT,
   COVER_WIDTH,
@@ -356,13 +360,32 @@ export function EbookEditor({
                 </div>
               ) : null}
               {page.key === "introduction" ? (
-                <ParagraphList
-                  values={content.introduction}
-                  max={8}
-                  onChange={(introduction) =>
-                    patchContent({ ...content, introduction })
-                  }
-                />
+                <div>
+                  <p className="mb-2 text-[11px] text-fg-muted">
+                    Tulis pendahuluan dengan format tebal, sub-judul, daftar,
+                    tabel, atau gambar.
+                  </p>
+                  <RichTextEditor
+                    value={
+                      content.introductionBody ??
+                      richTextFromParagraphs(content.introduction)
+                    }
+                    onChange={(introductionBody) =>
+                      patchContent((previous) => {
+                        const paragraphs =
+                          richTextToParagraphs(introductionBody);
+                        return {
+                          ...previous,
+                          introductionBody,
+                          introduction: paragraphs.length
+                            ? paragraphs
+                            : previous.introduction,
+                        };
+                      })
+                    }
+                    placeholder="Tulis pendahuluan…"
+                  />
+                </div>
               ) : null}
               {page.key.startsWith("chapter-") ? (
                 <ChapterEditor
@@ -788,8 +811,8 @@ function ChapterEditor({
           Isi bab
         </p>
         <p className="mt-1 text-[11px] text-fg-muted">
-          Tulis beberapa paragraf, pakai sub-judul bila perlu, dan sisipkan
-          gambar untuk memperjelas pembahasan.
+          Tulis beberapa paragraf, pakai sub-judul, daftar, atau tabel bila
+          perlu, dan sisipkan gambar untuk memperjelas pembahasan.
         </p>
         <div className="mt-2">
           <RichTextEditor

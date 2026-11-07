@@ -13,8 +13,11 @@ import {
   useGenerateEbook,
 } from "@/hooks/use-builder";
 import { getApiErrorMessage } from "@/lib/api";
+import { richTextToPrompt } from "@/lib/ebook/rich-text";
+import type { EbookRichTextNode } from "@/lib/ebook/types";
 import { Button } from "@/components/ui/button";
-import { Field, Input, Textarea } from "@/components/ui/input";
+import { Field, Input } from "@/components/ui/input";
+import { RichTextEditor } from "@/components/admin/builder/rich-text-editor";
 import { Spinner } from "@/components/ui/spinner";
 
 const structure = [
@@ -41,8 +44,9 @@ export function NewEbookForm({
   const [brand, setBrand] = useState("1section");
   const [niche, setNiche] = useState("");
   const [title, setTitle] = useState("");
-  const [prompt, setPrompt] = useState("");
+  const [brief, setBrief] = useState<EbookRichTextNode[]>([]);
   const [error, setError] = useState<string | null>(null);
+  const prompt = richTextToPrompt(brief);
 
   const loading = generate.isPending
     ? "ai"
@@ -56,6 +60,10 @@ export function NewEbookForm({
 
     if (prompt.trim().length < 20) {
       setError("Brief minimal 20 karakter agar AI punya konteks cukup.");
+      return;
+    }
+    if (prompt.length > 10000) {
+      setError("Brief maksimal 10.000 karakter.");
       return;
     }
     if (niche.trim().length < 2) {
@@ -119,20 +127,23 @@ export function NewEbookForm({
           </Field>
         </div>
 
-        <div className="mt-4">
-          <Field
-            label="Brief konten"
-            hint="Semakin spesifik brief, semakin konsisten hasilnya."
-          >
-            <Textarea
-              value={prompt}
-              onChange={(event) => setPrompt(event.target.value)}
-              rows={10}
-              placeholder="Contoh: Ebook panduan mengelola uang untuk pekerja muda Indonesia. Bahas mencatat pengeluaran, utang, dana darurat, investasi pemula, dan rencana jangka panjang. Gaya bahasa santai tapi serius, berisi langkah praktis."
-            />
-          </Field>
-          <p className="mt-1.5 text-right text-[11px] text-fg-muted">
-            {prompt.length} karakter
+        <div className="mt-4 space-y-1.5">
+          <span className="block text-sm font-medium text-fg">
+            Brief konten
+          </span>
+          <RichTextEditor
+            value={brief}
+            onChange={setBrief}
+            allowImages={false}
+            allowTables={false}
+            placeholder="Contoh: Ebook panduan mengelola uang untuk pekerja muda Indonesia. Bahas mencatat pengeluaran, utang, dana darurat, investasi pemula, dan rencana jangka panjang. Gaya bahasa santai tapi serius, berisi langkah praktis."
+          />
+          <span className="block text-xs text-fg-muted">
+            Semakin spesifik brief, semakin konsisten hasilnya. Pakai sub-judul
+            dan daftar untuk menyusun outline bab.
+          </span>
+          <p className="text-right text-[11px] text-fg-muted">
+            {prompt.length} / 10.000 karakter
           </p>
         </div>
 

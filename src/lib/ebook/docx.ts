@@ -11,17 +11,24 @@ import {
   Packer,
   Paragraph,
   SectionType,
+  ShadingType,
   Tab,
   TabStopType,
+  Table,
+  TableCell,
+  TableLayoutType,
   TableOfContents,
+  TableRow,
   TextRun,
   TextWrappingType,
   VerticalPositionRelativeFrom,
+  WidthType,
 } from "docx";
 import { estimatePageNumbersWith } from "docx/layout";
 import { imageInfoOf } from "./image";
 import {
   richTextImageSrc,
+  richTextIsEmpty,
   richTextPlainText,
   richTextRuns,
 } from "./rich-text";
@@ -134,7 +141,7 @@ function createRunningFooter() {
 }
 
 function createSection(
-  children: (Paragraph | TableOfContents)[],
+  children: (Paragraph | Table | TableOfContents)[],
   sectionTitle: string | undefined,
   kicker: string,
   options: { startsPageNumber?: boolean; bleed?: boolean } = {},
@@ -270,8 +277,8 @@ async function docxImageParagraph(
 async function richDocxBlocks(
   nodes: EbookRichTextNode[],
   images: DocxImageCache,
-): Promise<Paragraph[]> {
-  const blocks: Paragraph[] = [];
+): Promise<(Paragraph | Table)[]> {
+  const blocks: (Paragraph | Table)[] = [];
 
   for (const node of nodes) {
     if (node.type === "paragraph") {
@@ -324,6 +331,11 @@ async function richDocxBlocks(
       continue;
     }
 
+    if (node.type === "table") {
+      blocks.push(await richDocxTable(node, images));
+      continue;
+    }
+
     if (node.type === "image") {
       const paragraph = await docxImageParagraph(node, images);
       if (paragraph) blocks.push(paragraph);
@@ -336,6 +348,62 @@ async function richDocxBlocks(
   }
 
   return blocks;
+}
+
+async function richDocxTable(
+  node: EbookRichTextNode,
+  images: DocxImageCache,
+): Promise<Table> {
+  const rows = (node.content ?? []).filter(
+    (child) => child.type === "tableRow",
+  );
+  const tableRows: TableRow[] = [];
+
+  for (const row of rows) {
+    const cells = (row.content ?? []).filter(
+      (child) => child.type === "tableCell" || child.type === "tableHeader",
+    );
+    const isHeader = cells.some((cell) => cell.type === "tableHeader");
+    const tableCells: TableCell[] = [];
+
+    for (const cell of cells) {
+      const children = cell.content?.length
+        ? await richDocxBlocks(cell.content, images)
+        : [];
+
+      if (isHeader) {
+        const text = richTextPlainText(cell.content ?? []).trim();
+        children.length = 0;
+        children.push(
+          new Paragraph({
+            children: [
+              new TextRun({ text, bold: true, font: "Montserrat" }),
+            ],
+          }),
+        );
+      }
+
+      if (children.length === 0) children.push(new Paragraph(""));
+
+      tableCells.push(
+        new TableCell({
+          children,
+          shading: isHeader
+            ? { type: ShadingType.CLEAR, color: "auto", fill: "F4F4F5" }
+            : undefined,
+          margins: { top: 80, bottom: 80, left: 100, right: 100 },
+        }),
+      );
+    }
+
+    tableRows.push(new TableRow({ children: tableCells, tableHeader: isHeader }));
+  }
+
+  return new Table({
+    rows: tableRows,
+    width: { size: 100, type: WidthType.PERCENTAGE },
+    layout: TableLayoutType.AUTOFIT,
+  });
 }
 
 async function createDocument(
@@ -401,16 +469,19 @@ async function createDocument(
     }),
   ];
 
+  const introductionBody = ebook.introductionBody;
   const introduction = [
     docxParagraph("Pendahuluan", undefined, {
       heading: HeadingLevel.HEADING_1,
     }),
-    ...ebook.introduction.map((text) => docxParagraph(text)),
+    ...(introductionBody && !richTextIsEmpty(introductionBody)
+      ? await richDocxBlocks(introductionBody, images)
+      : ebook.introduction.map((text) => docxParagraph(text))),
   ];
 
-  const chapters: { title: string; children: Paragraph[] }[] = [];
+  const chapters: { title: string; children: (Paragraph | Table)[] }[] = [];
   for (const [index, chapter] of ebook.chapters.entries()) {
-    const children: Paragraph[] = [
+    const children: (Paragraph | Table)[] = [
       new Paragraph(""),
       new Paragraph({
         heading: HeadingLevel.HEADING_2,

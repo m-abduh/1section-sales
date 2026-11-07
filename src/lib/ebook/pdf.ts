@@ -3,6 +3,7 @@ import PDFDocument from "pdfkit";
 import { imageInfoOf } from "./image";
 import {
   richTextImageSrc,
+  richTextIsEmpty,
   richTextMarksOf,
   richTextPlainText,
   richTextRuns,
@@ -124,7 +125,7 @@ class PdfBook {
   async render(pageMap: PageMap): Promise<{ buffer: Buffer; pageMap: PageMap }> {
     await this.drawCover();
     this.drawContents(pageMap);
-    this.drawIntroduction();
+    await this.drawIntroduction();
     await this.drawChapters();
     this.drawConclusion();
     this.drawReferences();
@@ -291,6 +292,10 @@ class PdfBook {
         await this.richList(node, 0);
         continue;
       }
+      if (node.type === "table") {
+        await this.richTable(node);
+        continue;
+      }
       if (node.type === "image") {
         await this.richImage(node);
         continue;
@@ -299,6 +304,103 @@ class PdfBook {
         await this.richBody(node.content);
       }
     }
+  }
+
+  private async richTable(node: EbookRichTextNode) {
+    const rows = (node.content ?? []).filter(
+      (child) => child.type === "tableRow",
+    );
+    if (rows.length === 0) return;
+
+    const cellsOf = (row: EbookRichTextNode) =>
+      (row.content ?? []).filter(
+        (cell) => cell.type === "tableCell" || cell.type === "tableHeader",
+      );
+
+    const texts = rows.map((row) => cellsOf(row).map(tableCellText));
+    const columns = Math.max(...texts.map((row) => row.length));
+    if (columns === 0) return;
+
+    const headerRow = cellsOf(rows[0]).some(
+      (cell) => cell.type === "tableHeader",
+    );
+
+    const padding = 5;
+    const size = 9.5;
+    const lineGap = 2;
+
+    this.doc.font("Body").fontSize(size);
+    const desired = Array.from({ length: columns }, (_, column) => {
+      let width = 64;
+      for (const row of texts) {
+        const text = row[column] ?? "";
+        for (const line of text.split("\n")) {
+          width = Math.max(width, this.doc.widthOfString(line) + padding * 2);
+        }
+      }
+      return Math.min(width, 200);
+    });
+    const desiredTotal = desired.reduce((total, width) => total + width, 0);
+    const widths = desired.map((width) => (width / desiredTotal) * CONTENT_WIDTH);
+
+    const rowHeights = texts.map((row) => {
+      let height = 26;
+      for (let column = 0; column < columns; column += 1) {
+        this.doc.font("Body").fontSize(size);
+        height = Math.max(
+          height,
+          this.doc.heightOfString(row[column] || " ", {
+            width: Math.max(12, widths[column] - padding * 2),
+            lineGap,
+          }) +
+            padding * 2,
+        );
+      }
+      return height;
+    });
+
+    const drawRow = (rowIndex: number) => {
+      const height = rowHeights[rowIndex];
+      const top = this.y;
+      const isHeader = headerRow && rowIndex === 0;
+
+      if (isHeader) {
+        this.doc
+          .save()
+          .rect(MARGIN, top, CONTENT_WIDTH, height)
+          .fill("#F4F4F5")
+          .restore();
+      }
+
+      let x = MARGIN;
+      for (let column = 0; column < columns; column += 1) {
+        this.doc
+          .rect(x, top, widths[column], height)
+          .lineWidth(0.5)
+          .strokeColor("#D4D4D8")
+          .stroke();
+        this.doc
+          .font(isHeader ? "Bold" : "Body")
+          .fontSize(size)
+          .fillColor(INK)
+          .text(texts[rowIndex]?.[column] ?? "", x + padding, top + padding, {
+            width: Math.max(12, widths[column] - padding * 2),
+            lineGap,
+          });
+        x += widths[column];
+      }
+      this.y = top + height;
+    };
+
+    this.y += BODY_BEFORE;
+    for (let row = 0; row < rows.length; row += 1) {
+      if (this.y + rowHeights[row] > BOTTOM) {
+        this.addPage(this.section);
+        if (headerRow && row > 0) drawRow(0);
+      }
+      drawRow(row);
+    }
+    this.y += BODY_AFTER;
   }
 
   private richParagraph(nodes: EbookRichTextNode[], left = 0) {
@@ -536,10 +638,16 @@ class PdfBook {
     this.y = startY + textHeight + TOC_AFTER;
   }
 
-  private drawIntroduction() {
+  private async drawIntroduction() {
     this.addPage("PENDAHULUAN");
     this.pageMap.intro = this.page;
     this.heading("Pendahuluan", H1_SIZE, 0, 6);
+
+    const body = this.ebook.introductionBody;
+    if (body && !richTextIsEmpty(body)) {
+      await this.richBody(body);
+      return;
+    }
     this.ebook.introduction.forEach((text) => this.paragraph(text));
   }
 
@@ -613,6 +721,27 @@ class PdfBook {
     this.heading("About", H1_SIZE, 0, 6);
     this.ebook.about.forEach((text) => this.paragraph(text));
   }
+}
+
+/** Flattens a table cell into plain text, keeping list markers and breaks. */
+function tableCellText(cell: EbookRichTextNode): string {
+  return (cell.content ?? [])
+    .map((block) => {
+      if (block.type === "bulletList" || block.type === "orderedList") {
+        const ordered = block.type === "orderedList";
+        return (block.content ?? [])
+          .map((item, index) => {
+            const text = richTextPlainText(item.content ?? []).trim();
+            if (!text) return "";
+            return `${ordered ? `${index + 1}.` : "•"} ${text}`;
+          })
+          .filter(Boolean)
+          .join("\n");
+      }
+      return richTextPlainText([block]).trim();
+    })
+    .filter(Boolean)
+    .join("\n");
 }
 
 async function renderOnce(

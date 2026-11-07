@@ -6,7 +6,14 @@ import StarterKit from "@tiptap/starter-kit";
 import Image from "@tiptap/extension-image";
 import Placeholder from "@tiptap/extension-placeholder";
 import {
+  Table,
+  TableCell,
+  TableHeader,
+  TableRow,
+} from "@tiptap/extension-table";
+import {
   Bold,
+  Columns3,
   Heading2,
   Heading3,
   ImagePlus,
@@ -15,6 +22,9 @@ import {
   ListOrdered,
   Loader2,
   Redo2,
+  Rows3,
+  Table as TableIcon,
+  Trash2,
   Undo2,
 } from "lucide-react";
 import type { EbookRichTextNode } from "@/lib/ebook/types";
@@ -27,10 +37,14 @@ export function RichTextEditor({
   value,
   onChange,
   placeholder = "Tulis isi bab…",
+  allowImages = true,
+  allowTables = true,
 }: {
   value: EbookRichTextNode[];
   onChange: (nodes: EbookRichTextNode[]) => void;
   placeholder?: string;
+  allowImages?: boolean;
+  allowTables?: boolean;
 }) {
   const uploadImage = useUploadBuilderImage();
   const fileInput = useRef<HTMLInputElement | null>(null);
@@ -50,6 +64,14 @@ export function RichTextEditor({
         horizontalRule: false,
       }),
       Image.configure({ inline: false, allowBase64: false }),
+      ...(allowTables
+        ? [
+            Table.configure({ resizable: false }),
+            TableRow,
+            TableHeader,
+            TableCell,
+          ]
+        : []),
       Placeholder.configure({ placeholder }),
     ],
     content: {
@@ -74,6 +96,7 @@ export function RichTextEditor({
       heading3: instance?.isActive("heading", { level: 3 }) ?? false,
       bulletList: instance?.isActive("bulletList") ?? false,
       orderedList: instance?.isActive("orderedList") ?? false,
+      inTable: instance?.isActive("table") ?? false,
       canUndo: instance?.can().undo() ?? false,
       canRedo: instance?.can().redo() ?? false,
     }),
@@ -86,6 +109,7 @@ export function RichTextEditor({
     heading3: false,
     bulletList: false,
     orderedList: false,
+    inTable: false,
     canUndo: false,
     canRedo: false,
   };
@@ -162,19 +186,42 @@ export function RichTextEditor({
         >
           <ListOrdered className="size-3.5" />
         </ToolbarButton>
-        <Divider />
-        <ToolbarButton
-          label="Sisipkan gambar"
-          active={false}
-          disabled={uploadImage.isPending}
-          onClick={() => fileInput.current?.click()}
-        >
-          {uploadImage.isPending ? (
-            <Loader2 className="size-3.5 animate-spin" />
-          ) : (
-            <ImagePlus className="size-3.5" />
-          )}
-        </ToolbarButton>
+        {allowImages ? (
+          <>
+            <Divider />
+            <ToolbarButton
+              label="Sisipkan gambar"
+              active={false}
+              disabled={uploadImage.isPending}
+              onClick={() => fileInput.current?.click()}
+            >
+              {uploadImage.isPending ? (
+                <Loader2 className="size-3.5 animate-spin" />
+              ) : (
+                <ImagePlus className="size-3.5" />
+              )}
+            </ToolbarButton>
+          </>
+        ) : null}
+        {allowTables ? (
+          <>
+            <Divider />
+            <ToolbarButton
+              label="Sisipkan tabel"
+              active={state.inTable}
+              disabled={state.inTable}
+              onClick={() =>
+                editor
+                  ?.chain()
+                  .focus()
+                  .insertTable({ rows: 3, cols: 3, withHeaderRow: true })
+                  .run()
+              }
+            >
+              <TableIcon className="size-3.5" />
+            </ToolbarButton>
+          </>
+        ) : null}
         <div className="ml-auto flex items-center gap-0.5">
           <ToolbarButton
             label="Undo"
@@ -195,19 +242,57 @@ export function RichTextEditor({
         </div>
       </div>
 
+      {allowTables && state.inTable ? (
+        <div className="flex flex-wrap items-center gap-1 border-b border-border bg-surface-muted/30 px-2 py-1.5 text-[10px] font-semibold text-fg-muted">
+          <span className="mr-1 uppercase tracking-wide">Tabel</span>
+          <TableAction
+            label="Tambah baris"
+            onClick={() => editor?.chain().focus().addRowAfter().run()}
+          >
+            <Rows3 className="size-3" />+ Baris
+          </TableAction>
+          <TableAction
+            label="Tambah kolom"
+            onClick={() => editor?.chain().focus().addColumnAfter().run()}
+          >
+            <Columns3 className="size-3" />+ Kolom
+          </TableAction>
+          <TableAction
+            label="Hapus baris"
+            onClick={() => editor?.chain().focus().deleteRow().run()}
+          >
+            <Trash2 className="size-3" />Hapus baris
+          </TableAction>
+          <TableAction
+            label="Hapus kolom"
+            onClick={() => editor?.chain().focus().deleteColumn().run()}
+          >
+            <Trash2 className="size-3" />Hapus kolom
+          </TableAction>
+          <TableAction
+            label="Hapus tabel"
+            onClick={() => editor?.chain().focus().deleteTable().run()}
+          >
+            <Trash2 className="size-3" />Hapus tabel
+          </TableAction>
+        </div>
+      ) : null}
+
       <EditorContent editor={editor} className="ebook-rte" />
 
-      <input
-        ref={fileInput}
-        type="file"
-        accept="image/png,image/jpeg"
-        className="hidden"
-        onChange={(event) => {
-          const file = event.target.files?.[0];
-          event.target.value = "";
-          if (file) void handleFile(file);
-        }}
-      />
+      {allowImages ? (
+        <input
+          ref={fileInput}
+          type="file"
+          accept="image/png,image/jpeg"
+          className="hidden"
+          onChange={(event) => {
+            const file = event.target.files?.[0];
+            event.target.value = "";
+            if (file) void handleFile(file);
+          }}
+        />
+      ) : null}
 
       {error ? (
         <p className="border-t border-border px-3 py-2 text-[11px] text-red-600 dark:text-red-400">
@@ -244,6 +329,28 @@ function ToolbarButton({
           ? "bg-fg text-surface"
           : "text-fg-muted hover:bg-surface-muted hover:text-fg"
       }`}
+    >
+      {children}
+    </button>
+  );
+}
+
+function TableAction({
+  label,
+  onClick,
+  children,
+}: {
+  label: string;
+  onClick: () => void;
+  children: ReactNode;
+}) {
+  return (
+    <button
+      type="button"
+      title={label}
+      aria-label={label}
+      onClick={onClick}
+      className="inline-flex items-center gap-1 rounded px-1.5 py-1 transition hover:bg-surface-muted hover:text-fg"
     >
       {children}
     </button>

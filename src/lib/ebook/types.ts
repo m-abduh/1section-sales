@@ -18,10 +18,14 @@ export type EbookSection = {
  * block nodes (paragraph, heading, image, list) so both DOCX and PDF exports
  * can render the exact same structure the editor shows.
  */
-export type EbookRichTextAttrs = Record<
-  string,
-  string | number | boolean | null
->;
+export type EbookRichTextValue =
+  | string
+  | number
+  | boolean
+  | null
+  | EbookRichTextValue[];
+
+export type EbookRichTextAttrs = Record<string, EbookRichTextValue>;
 
 export type EbookRichTextMark = {
   type: string;
@@ -80,6 +84,8 @@ export type EbookContent = {
   title: string;
   description: string;
   introduction: string[];
+  /** Rich text introduction. Takes precedence over `introduction` when present. */
+  introductionBody?: EbookRichTextNode[];
   chapters: EbookChapter[];
   conclusion: string[];
   references: EbookReference[];
