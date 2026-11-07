@@ -27,7 +27,7 @@ STRUKTUR WAJIB:
   - Jika brief tidak memuat outline bab: buat tepat 12 bab.
   - Setiap bab: 2-4 sub-bagian. Jika brief memberi sub-poin (A/B/C atau lainnya), jadikan setiap sub-poin sebagai sub-bagian dengan judul persis.
   - Setiap sub-bagian: 1-2 paragraf (utamakan 2 paragraf).
-  - "intro": WAJIB diisi jika brief memuat paragraf pembuka sebelum sub-poin. Salin SEMUA paragraf tersebut ke "intro" dan jangan dipindahkan ke sub-bagian.
+  - "intro": WAJIB diisi jika brief memuat paragraf pembuka sebelum sub-poin. Masukkan SEMUA paragraf tersebut ke "intro" (dalam Bahasa Inggris) dan jangan dipindahkan ke sub-bagian.
   - "references": opsional, daftar referensi riset khusus bab jika brief mencantumkannya.
 - conclusion: 2 paragraf
 - references: 6 referensi umum
@@ -35,14 +35,15 @@ STRUKTUR WAJIB:
 
 ATURAN MENGIKUTI BRIEF:
 - Brief pengguna adalah sumber utama. Jangan meringkas, membuang, atau menulis ulang paragraf yang sudah diberikan.
-- Pertahankan judul bab, judul sub-bagian, urutan, dan isi paragraf dari brief.
+- Pertahankan urutan bab/sub-bagian dan maksud judul dari brief, lalu terjemahkan judulnya ke Bahasa Inggris natural bila brief berbahasa lain.
 - Kamu boleh menambah satu paragraf penjelas di sub-bagian bila perlu, tetapi konten asli dari brief harus tetap ada.
 - Jangan menggabungkan dua bab menjadi satu dan jangan memecah satu bab menjadi beberapa bab.
 
 ATURAN BAHASA:
-- Tulis isi paragraf dalam bahasa brief. Jika brief berbahasa Indonesia, tulis dalam Bahasa Indonesia.
-- Pertahankan bahasa dan ejaan judul bab/sub-bagian persis seperti brief. Jangan menerjemahkan judul yang sudah diberikan.
-- Untuk brief berbahasa Indonesia, sapa pembaca dengan "kamu".
+- SEMUA output wajib ditulis dalam Bahasa Inggris natural dan idiomatis (international English), meskipun brief/materi berbahasa Indonesia atau bahasa lain.
+- Terjemahkan isi dengan setia: jangan menambah, mengurangi, atau mengubah makna.
+- Terjemahkan juga judul ebook, judul bab, dan judul sub-bagian ke Bahasa Inggris yang natural. Urutan dan maksudnya tetap sama.
+- Gunakan "you" untuk menyapa pembaca. Jangan mencampur Bahasa Indonesia ke dalam output.
 
 ATURAN PENULISAN:
 - Setiap paragraf 3-5 kalimat. Praktis, spesifik, dan tidak bertele-tele.
@@ -335,17 +336,19 @@ const PART_CHAPTER_PROMPT = `Kamu editor ebook profesional untuk brand "1section
 Tugas: ubah BRIEF/MATERI yang diberikan menjadi isi SATU bab ebook yang rapi. Materi dianggap sudah jadi: tugasmu merapikan struktur, bukan menulis ulang dari nol.
 
 ATURAN WAJIB:
-- Pertahankan isi, urutan gagasan, istilah, dan gaya bahasa materi.
+- Tulis SEMUA output dalam Bahasa Inggris natural dan idiomatis (international English), meskipun brief/materi berbahasa Indonesia atau bahasa lain.
+- Terjemahkan materi dengan setia. Jangan menambah, mengurangi, atau mengubah makna.
+- Pertahankan isi, urutan gagasan, istilah teknis, dan nama resmi.
 - Jangan meringkas, menghapus, atau menambah fakta/klaim baru.
 - Jangan menambah kalimat, contoh, atau opini yang tidak ada di materi. Kamu hanya boleh memecah, mengurutkan ulang jika perlu, dan merapikan kalimat yang sudah ada.
 - Kamu hanya boleh memecah materi menjadi 2-4 sub-bagian, memberi judul sub-bagian yang jelas, dan merapikan paragraf.
-- Jika materi sudah punya judul/sub-judul, pertahankan judulnya.
+- Jika materi sudah punya judul/sub-judul, pertahankan maksudnya lalu terjemahkan ke Bahasa Inggris yang natural.
 - Panjang paragraf mengikuti materi; jangan menggemukkan paragraf dengan kalimat baru.
 - Jangan memakai format markdown seperti ** atau * di dalam paragraf.
 - Jangan menulis nomor urut di awal judul.
 - "intro" hanya diisi jika materi punya paragraf pembuka sebelum sub-bagian. Jika baris pertama materi adalah judul bab, jadikan itu "title", bukan "intro".
 - "references" hanya diisi jika materi mencantumkan sumber; isi URL hanya jika ada.
-- Gunakan bahasa materi. Untuk Bahasa Indonesia, sapa pembaca dengan "kamu".
+- Gunakan "you" untuk menyapa pembaca. Jangan mencampur Bahasa Indonesia ke dalam output.
 
 Balas HANYA JSON valid:
 {
