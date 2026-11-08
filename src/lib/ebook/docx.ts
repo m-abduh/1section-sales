@@ -277,6 +277,7 @@ async function docxImageParagraph(
 async function richDocxBlocks(
   nodes: EbookRichTextNode[],
   images: DocxImageCache,
+  level = 0,
 ): Promise<(Paragraph | Table)[]> {
   const blocks: (Paragraph | Table)[] = [];
 
@@ -313,18 +314,21 @@ async function richDocxBlocks(
           }
         }
         const marker = ordered ? `${position}.` : "•";
+        const indent = 720 + level * 360;
         blocks.push(
           new Paragraph({
             style: "Normal",
-            indent: { left: 360, firstLine: 0 },
-            children: docxRuns([
-              { type: "text", text: `${marker} ` },
-              ...inline,
-            ]),
+            indent: { left: indent, hanging: 360 },
+            tabStops: [{ type: TabStopType.LEFT, position: indent }],
+            spacing: { before: 0, after: 0, line: 360, lineRule: "auto" },
+            children: [
+              new TextRun({ text: `${marker}\t` }),
+              ...docxRuns(inline),
+            ],
           }),
         );
         if (nested.length > 0) {
-          blocks.push(...(await richDocxBlocks(nested, images)));
+          blocks.push(...(await richDocxBlocks(nested, images, level + 1)));
         }
         position += 1;
       }

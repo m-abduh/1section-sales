@@ -220,7 +220,8 @@ body {
 .ebook-rte .ProseMirror ul,
 .ebook-rte .ProseMirror ol {
   margin: 0 0 12px;
-  padding-left: 20px;
+  padding-left: 1.6em;
+  line-height: 1.5;
 }
 
 .ebook-rte .ProseMirror ul {
@@ -232,7 +233,8 @@ body {
 }
 
 .ebook-rte .ProseMirror li {
-  margin-bottom: 4px;
+  margin: 0;
+  padding-left: 0.15em;
 }
 
 .ebook-rte .ProseMirror li p {

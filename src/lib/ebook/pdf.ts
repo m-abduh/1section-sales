@@ -516,16 +516,70 @@ class PdfBook {
       }
 
       const marker = ordered ? `${position}.` : "•";
-      this.richParagraph(
-        [{ type: "text", text: `${marker} ` }, ...inline],
-        16 + level * 16,
-      );
+      this.richListItem(marker, inline, 16 + level * 16);
 
       for (const child of nested) {
         await this.richList(child, level + 1);
       }
       position += 1;
     }
+  }
+
+  /**
+   * List items use a hanging indent (marker sits left, wrapped lines align
+   * under the item text) and skip the paragraph before/after spacing so
+   * consecutive items stay tight, like a Word list.
+   */
+  private richListItem(
+    marker: string,
+    nodes: EbookRichTextNode[],
+    left: number,
+  ) {
+    const runs = richTextRuns(nodes).filter((run) => run.text.length > 0);
+    const plain = runs.map((run) => run.text).join("");
+    if (!plain.trim()) return;
+
+    const d = this.doc;
+    d.font("Body").fontSize(BODY_SIZE);
+    const hang = Math.max(14, d.widthOfString(`${marker} `) + 2);
+    const x = MARGIN + left;
+    const textX = x + hang;
+    const options = {
+      width: CONTENT_WIDTH - left - hang,
+      align: "justify" as const,
+      lineGap: BODY_LINE_GAP,
+      indent: 0,
+    };
+
+    const height = d.heightOfString(plain, options);
+    this.ensureSpace(height);
+    d.font("Body").fontSize(BODY_SIZE).fillColor(INK);
+    d.text(marker, x, this.y, { lineBreak: false });
+
+    runs.forEach((run, index) => {
+      const isLast = index === runs.length - 1;
+      const marks = richTextMarksOf({
+        type: "text",
+        text: run.text,
+        marks: run.marks,
+      });
+      const font =
+        marks.bold && marks.italic
+          ? "BoldItalic"
+          : marks.bold
+            ? "Bold"
+            : marks.italic
+              ? "Italic"
+              : "Body";
+      d.font(font).fontSize(BODY_SIZE).fillColor(INK);
+      if (index === 0) {
+        d.text(run.text, textX, this.y, { ...options, continued: !isLast });
+      } else {
+        d.text(run.text, { ...options, continued: !isLast });
+      }
+    });
+
+    this.y = d.y;
   }
 
   private async richImage(node: EbookRichTextNode) {
