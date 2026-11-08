@@ -22,9 +22,11 @@ const MUTED = "#7A8589";
 const GOLD = "#B68A42";
 
 const BODY_SIZE = 12;
-const BODY_LINE_GAP = 5;
-const BODY_BEFORE = 12;
-const BODY_AFTER = 12;
+// 14.628pt (single line for Montserrat 12pt) + 7.3pt ≈ 1.5 line spacing,
+// matching the DOCX "line: 360, lineRule: auto" setting.
+const BODY_LINE_GAP = 7.3;
+const BODY_BEFORE = 0;
+const BODY_AFTER = 6;
 
 const H1_SIZE = 20;
 const H2_SIZE = 18;

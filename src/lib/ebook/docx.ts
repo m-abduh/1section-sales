@@ -664,7 +664,7 @@ async function createDocument(
           run: { font: "Montserrat", size: 24 },
           paragraph: {
             indent: { firstLine: 360 },
-            spacing: { before: 240, after: 240, line: 360, lineRule: "auto" },
+            spacing: { before: 0, after: 120, line: 360, lineRule: "auto" },
           },
         },
         {
