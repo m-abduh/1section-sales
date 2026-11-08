@@ -9,7 +9,7 @@ import type {
  * Bump this when a template's visual output changes so every existing cover
  * is marked stale and gets re-rendered on the next save.
  */
-const COVER_VERSION = 1;
+const COVER_VERSION = 2;
 
 export const COVER_WIDTH = 874;
 export const COVER_HEIGHT = 1240;
@@ -43,15 +43,15 @@ export const TEMPLATE_DEFAULTS: Record<
 > = {
   minimal: {
     accent: "#B68A42",
-    background: { type: "solid", color: "#F7F4EE" },
+    background: { type: "gradient", from: "#F7F4EE", to: "#EBE3D5", angle: 135 },
   },
   editorial: {
     accent: "#1F2421",
-    background: { type: "solid", color: "#FFFFFF" },
+    background: { type: "gradient", from: "#FFFFFF", to: "#EDEDEB", angle: 135 },
   },
   bold: {
     accent: "#F2C879",
-    background: { type: "solid", color: "#101010" },
+    background: { type: "gradient", from: "#101010", to: "#1C1C1C", angle: 135 },
   },
   gradient: {
     accent: "#F2C879",
@@ -85,6 +85,33 @@ export function coverWithTemplate(
     accent: defaults.accent,
     background: keepImage ? cover.background : defaults.background,
   };
+}
+
+/**
+ * Legacy covers used a solid colour. Turn it into a subtle gradient of the
+ * same colour so only gradient and photo backgrounds remain.
+ */
+export function normalizeCoverBackground(
+  background: EbookCoverBackground,
+): EbookCoverBackground {
+  if (background.type !== "solid") return background;
+  return {
+    type: "gradient",
+    from: background.color,
+    to: mixHex(background.color, "#000000", 0.16),
+    angle: 135,
+  };
+}
+
+export function normalizeCover(cover: EbookCover): EbookCover {
+  const background = normalizeCoverBackground(cover.background);
+  return background === cover.background ? cover : { ...cover, background };
+}
+
+export function normalizeEbookCover(content: EbookContent): EbookContent {
+  if (!content.cover) return content;
+  const cover = normalizeCover(content.cover);
+  return cover === content.cover ? content : { ...content, cover };
 }
 
 export function coverBackgroundCss(background: EbookCoverBackground): string {

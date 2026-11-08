@@ -2,11 +2,20 @@
 
 import { useRef, useState } from "react";
 import {
+  ArrowDown,
+  ArrowDownLeft,
+  ArrowDownRight,
+  ArrowLeft,
+  ArrowRight,
+  ArrowUp,
+  ArrowUpLeft,
+  ArrowUpRight,
   ExternalLink,
   Eye,
   ImagePlus,
   Loader2,
   RefreshCw,
+  Shuffle,
   Sparkles,
   Trash2,
 } from "lucide-react";
@@ -31,6 +40,17 @@ import {
   EbookCoverDesign,
   ScaledCover,
 } from "@/components/admin/builder/ebook-cover";
+
+const GRADIENT_DIRECTIONS = [
+  { angle: 0, label: "Bawah ke atas", Icon: ArrowUp },
+  { angle: 45, label: "Kiri bawah ke kanan atas", Icon: ArrowUpRight },
+  { angle: 90, label: "Kiri ke kanan", Icon: ArrowRight },
+  { angle: 135, label: "Kiri atas ke kanan bawah", Icon: ArrowDownRight },
+  { angle: 180, label: "Atas ke bawah", Icon: ArrowDown },
+  { angle: 225, label: "Kanan atas ke kiri bawah", Icon: ArrowDownLeft },
+  { angle: 270, label: "Kanan ke kiri", Icon: ArrowLeft },
+  { angle: 315, label: "Kanan bawah ke kiri atas", Icon: ArrowUpLeft },
+] as const;
 
 export function CoverBuilder({
   content,
@@ -104,40 +124,23 @@ export function CoverBuilder({
     imageInput.current?.click();
   }
 
-  function selectBackground(type: "solid" | "gradient" | "image") {
+  function selectBackground(type: "gradient" | "image") {
     if (type === "image") {
       pickImage();
       return;
     }
-    if (type === "solid") {
-      onChange({
-        ...cover,
-        background: {
-          type: "solid",
-          color:
-            background.type === "gradient"
-              ? background.from
-              : background.type === "image"
-                ? "#F7F4EE"
-                : background.color,
-        },
-      });
-      return;
-    }
+    if (background.type === "gradient") return;
     onChange({
       ...cover,
       background:
-        background.type === "image"
-          ? { type: "gradient", from: "#0B1220", to: "#1D4ED8", angle: 135 }
-          : {
+        background.type === "solid"
+          ? {
               type: "gradient",
-              from: background.type === "solid" ? background.color : background.from,
-              to:
-                background.type === "solid"
-                  ? "#1D4ED8"
-                  : background.to,
+              from: background.color,
+              to: background.color,
               angle: 135,
-            },
+            }
+          : { type: "gradient", from: "#0B1220", to: "#1D4ED8", angle: 135 },
     });
   }
 
@@ -298,7 +301,6 @@ export function CoverBuilder({
             <div className="mt-2 inline-flex rounded-lg border border-border bg-card p-0.5">
               {(
                 [
-                  { id: "solid", label: "Warna" },
                   { id: "gradient", label: "Gradasi" },
                   { id: "image", label: "Gambar" },
                 ] as const
@@ -320,35 +322,77 @@ export function CoverBuilder({
             </div>
 
             <div className="mt-3">
-              {background.type === "solid" ? (
-                <ColorControl
-                  label="Warna latar"
-                  value={background.color}
-                  onChange={(color) =>
-                    onChange({ ...cover, background: { type: "solid", color } })
-                  }
-                />
-              ) : null}
-
               {background.type === "gradient" ? (
-                <div className="grid gap-3 sm:grid-cols-2">
-                  <ColorControl
-                    label="Dari"
-                    value={background.from}
-                    onChange={(from) =>
-                      onChange({
-                        ...cover,
-                        background: { ...background, from },
-                      })
-                    }
-                  />
-                  <ColorControl
-                    label="Ke"
-                    value={background.to}
-                    onChange={(to) =>
-                      onChange({ ...cover, background: { ...background, to } })
-                    }
-                  />
+                <div className="space-y-3">
+                  <div className="grid gap-3 sm:grid-cols-2">
+                    <ColorControl
+                      label="Dari"
+                      value={background.from}
+                      onChange={(from) =>
+                        onChange({
+                          ...cover,
+                          background: { ...background, from },
+                        })
+                      }
+                    />
+                    <ColorControl
+                      label="Ke"
+                      value={background.to}
+                      onChange={(to) =>
+                        onChange({
+                          ...cover,
+                          background: { ...background, to },
+                        })
+                      }
+                    />
+                  </div>
+                  <div className="flex flex-wrap items-center gap-2">
+                    <span className="text-[10px] font-semibold uppercase tracking-wide text-fg-muted">
+                      Arah
+                    </span>
+                    <div className="flex flex-wrap items-center gap-1">
+                      {GRADIENT_DIRECTIONS.map(({ angle, label, Icon }) => {
+                        const current =
+                          (((background.angle ?? 135) % 360) + 360) % 360;
+                        const active = current === angle;
+                        return (
+                          <button
+                            key={angle}
+                            type="button"
+                            title={label}
+                            aria-label={`Arah gradasi: ${label}`}
+                            aria-pressed={active}
+                            onClick={() =>
+                              onChange({
+                                ...cover,
+                                background: { ...background, angle },
+                              })
+                            }
+                            className={`grid size-7 place-items-center rounded-md border transition ${
+                              active
+                                ? "border-fg bg-fg text-surface"
+                                : "border-border bg-card text-fg-muted hover:border-fg-muted hover:text-fg"
+                            }`}
+                          >
+                            <Icon className="size-3.5" />
+                          </button>
+                        );
+                      })}
+                    </div>
+                    <Button
+                      size="sm"
+                      variant="secondary"
+                      onClick={() =>
+                        onChange({
+                          ...cover,
+                          background: { ...background, ...randomGradient() },
+                        })
+                      }
+                    >
+                      <Shuffle className="size-3.5" />
+                      Acak warna
+                    </Button>
+                  </div>
                 </div>
               ) : null}
 
@@ -381,7 +425,12 @@ export function CoverBuilder({
                       onClick={() =>
                         onChange({
                           ...cover,
-                          background: { type: "solid", color: "#111827" },
+                          background: {
+                            type: "gradient",
+                            from: "#111827",
+                            to: "#334155",
+                            angle: 160,
+                          },
                         })
                       }
                     >
@@ -520,4 +569,44 @@ function Toggle({
       {label}
     </label>
   );
+}
+
+function randomBetween(min: number, max: number) {
+  return Math.random() * (max - min) + min;
+}
+
+function hslToHex(hue: number, saturation: number, lightness: number) {
+  const h = ((hue % 360) + 360) % 360;
+  const s = saturation / 100;
+  const l = lightness / 100;
+  const a = s * Math.min(l, 1 - l);
+  const channel = (n: number) => {
+    const k = (n + h / 30) % 12;
+    const value = l - a * Math.max(-1, Math.min(k - 3, Math.min(9 - k, 1)));
+    return Math.round(value * 255)
+      .toString(16)
+      .padStart(2, "0");
+  };
+  return `#${channel(0)}${channel(8)}${channel(4)}`.toUpperCase();
+}
+
+/** Random two-tone gradient in a related hue family, with a random direction. */
+function randomGradient() {
+  const hue = randomBetween(0, 360);
+  const spread = randomBetween(25, 90);
+  const direction =
+    GRADIENT_DIRECTIONS[Math.floor(Math.random() * GRADIENT_DIRECTIONS.length)];
+  return {
+    from: hslToHex(
+      hue,
+      randomBetween(55, 78),
+      randomBetween(18, 32),
+    ),
+    to: hslToHex(
+      hue + spread,
+      randomBetween(55, 82),
+      randomBetween(38, 58),
+    ),
+    angle: direction.angle,
+  };
 }
