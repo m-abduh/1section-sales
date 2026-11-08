@@ -67,7 +67,6 @@ export const DEFAULT_COVER: EbookCover = {
   template: "minimal",
   ...TEMPLATE_DEFAULTS.minimal,
   showDescription: true,
-  showBadge: true,
 };
 
 /**
@@ -175,7 +174,6 @@ export function coverFingerprint(content: EbookContent): string {
       accent: cover.accent,
       background: cover.background,
       showDescription: cover.showDescription,
-      showBadge: cover.showBadge,
       brand: content.brand,
       niche: content.niche,
       title: content.title,

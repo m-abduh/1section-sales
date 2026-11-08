@@ -59,7 +59,6 @@ const cover = z
     accent: hexColor,
     background: coverBackground,
     showDescription: z.boolean(),
-    showBadge: z.boolean(),
     renderedUrl: z.string().url().max(600).optional(),
     renderedHash: z.string().max(80).optional(),
   })

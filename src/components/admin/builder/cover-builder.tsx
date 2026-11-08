@@ -409,11 +409,6 @@ export function CoverBuilder({
                 onChange({ ...cover, showDescription })
               }
             />
-            <Toggle
-              label="Tampilkan badge jumlah bab"
-              checked={cover.showBadge}
-              onChange={(showBadge) => onChange({ ...cover, showBadge })}
-            />
           </div>
         </div>
       </div>

@@ -73,7 +73,6 @@ export type EbookCover = {
   accent: string;
   background: EbookCoverBackground;
   showDescription: boolean;
-  showBadge: boolean;
   /** Cloudinary URL of the last rendered A5 JPEG. */
   renderedUrl?: string;
   /** Fingerprint of the inputs used for the last render. */
