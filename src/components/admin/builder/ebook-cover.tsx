@@ -208,13 +208,6 @@ function MinimalCover({
             {description}
           </p>
         ) : null}
-        <div
-          className="mt-8 flex items-center justify-between text-[13px] font-semibold uppercase tracking-[0.2em]"
-          style={{ color: ink.muted }}
-        >
-          <span>{brand}</span>
-          <span>{niche}</span>
-        </div>
       </div>
     </div>
   );
@@ -270,17 +263,6 @@ function EditorialCover({
           {description}
         </p>
       ) : null}
-
-      <div
-        className="mt-10 flex items-center gap-3 text-[12px] font-semibold uppercase tracking-[0.22em]"
-        style={{ color: ink.muted }}
-      >
-        <span className="h-px w-12" style={{ background: accent }} />
-        <span>
-          {brand}
-          {niche ? ` · ${niche}` : ""}
-        </span>
-      </div>
     </div>
   );
 }
