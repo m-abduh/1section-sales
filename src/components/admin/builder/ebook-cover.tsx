@@ -27,7 +27,6 @@ export function EbookCoverDesign({
   const niche = content.niche.trim();
   const title = content.title.trim() || "Judul ebook";
   const description = content.description.trim();
-  const badge = cover.showBadge ? `${content.chapters.length} LANGKAH` : null;
   const imageUrl =
     cover.background.type === "image" ? cover.background.url : null;
 
@@ -66,7 +65,6 @@ export function EbookCoverDesign({
             niche={niche}
             title={title}
             description={description}
-            badge={badge}
             accent={cover.accent}
             ink={ink}
             showDescription={cover.showDescription}
@@ -78,7 +76,6 @@ export function EbookCoverDesign({
             niche={niche}
             title={title}
             description={description}
-            badge={badge}
             accent={cover.accent}
             ink={ink}
             showDescription={cover.showDescription}
@@ -90,7 +87,6 @@ export function EbookCoverDesign({
             niche={niche}
             title={title}
             description={description}
-            badge={badge}
             accent={cover.accent}
             ink={ink}
             showDescription={cover.showDescription}
@@ -102,7 +98,6 @@ export function EbookCoverDesign({
             niche={niche}
             title={title}
             description={description}
-            badge={badge}
             accent={cover.accent}
             ink={ink}
             showDescription={cover.showDescription}
@@ -114,7 +109,6 @@ export function EbookCoverDesign({
             niche={niche}
             title={title}
             description={description}
-            badge={badge}
             accent={cover.accent}
             showDescription={cover.showDescription}
           />
@@ -170,7 +164,6 @@ type LayoutProps = {
   niche: string;
   title: string;
   description: string;
-  badge: string | null;
   accent: string;
   ink: CoverInk;
   showDescription: boolean;
@@ -181,8 +174,6 @@ function MinimalCover({
   niche,
   title,
   description,
-  badge,
-  accent,
   ink,
   showDescription,
 }: LayoutProps) {
@@ -195,14 +186,6 @@ function MinimalCover({
       <div className="mt-7 h-px w-full" style={{ background: ink.line }} />
 
       <div className="flex flex-1 flex-col justify-center py-10">
-        {badge ? (
-          <div
-            className="mb-7 inline-flex w-fit items-center rounded-full border px-5 py-2 text-[13px] font-bold uppercase tracking-[0.18em]"
-            style={{ borderColor: accent, color: accent }}
-          >
-            {badge}
-          </div>
-        ) : null}
         <h1
           className="font-bold tracking-[-0.03em]"
           style={{
@@ -225,13 +208,6 @@ function MinimalCover({
             {description}
           </p>
         ) : null}
-        <div
-          className="mt-8 flex items-center justify-between text-[13px] font-semibold uppercase tracking-[0.2em]"
-          style={{ color: ink.muted }}
-        >
-          <span>{brand}</span>
-          <span>{niche}</span>
-        </div>
       </div>
     </div>
   );
@@ -242,7 +218,6 @@ function EditorialCover({
   niche,
   title,
   description,
-  badge,
   accent,
   ink,
   showDescription,
@@ -264,14 +239,6 @@ function EditorialCover({
             {niche}
           </p>
         </div>
-        {badge ? (
-          <div
-            className="rounded-full px-4 py-1.5 text-[12px] font-bold uppercase tracking-[0.16em] text-white"
-            style={{ background: accent }}
-          >
-            {badge}
-          </div>
-        ) : null}
       </div>
 
       <div className="my-auto py-12">
@@ -296,17 +263,6 @@ function EditorialCover({
           {description}
         </p>
       ) : null}
-
-      <div
-        className="mt-10 flex items-center gap-3 text-[12px] font-semibold uppercase tracking-[0.22em]"
-        style={{ color: ink.muted }}
-      >
-        <span className="h-px w-12" style={{ background: accent }} />
-        <span>
-          {brand}
-          {niche ? ` · ${niche}` : ""}
-        </span>
-      </div>
     </div>
   );
 }
@@ -316,7 +272,6 @@ function BoldCover({
   niche,
   title,
   description,
-  badge,
   accent,
   ink,
   showDescription,
@@ -329,15 +284,6 @@ function BoldCover({
       >
         {brand}
       </div>
-
-      {badge ? (
-        <div
-          className="mt-6 rounded-full px-5 py-2 text-[13px] font-bold uppercase tracking-[0.18em]"
-          style={{ border: `1px solid ${accent}`, color: accent }}
-        >
-          {badge}
-        </div>
-      ) : null}
 
       <h1
         className="my-auto font-bold uppercase tracking-[-0.02em]"
@@ -374,7 +320,6 @@ function GradientCover({
   niche,
   title,
   description,
-  badge,
   accent,
   ink,
   showDescription,
@@ -394,14 +339,6 @@ function GradientCover({
       </div>
 
       <div className="my-auto">
-        {badge ? (
-          <div
-            className="mb-7 inline-flex rounded-full px-5 py-2 text-[12px] font-bold uppercase tracking-[0.18em]"
-            style={{ background: accent, color: "#1F2421" }}
-          >
-            {badge}
-          </div>
-        ) : null}
         <h1
           className="font-bold tracking-[-0.03em]"
           style={{
@@ -432,7 +369,6 @@ function PhotoCover({
   niche,
   title,
   description,
-  badge,
   accent,
   showDescription,
 }: Omit<LayoutProps, "ink">) {
@@ -442,11 +378,6 @@ function PhotoCover({
         <span className="text-[13px] font-bold uppercase tracking-[0.26em]">
           {brand}
         </span>
-        {badge ? (
-          <span className="rounded-full border border-white/40 px-4 py-1.5 text-[12px] font-bold uppercase tracking-[0.16em]">
-            {badge}
-          </span>
-        ) : null}
       </div>
 
       <div className="mt-auto">

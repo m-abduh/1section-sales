@@ -3,6 +3,7 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { api } from "@/lib/api";
 import type { EbookChapter, EbookContent, EbookReference } from "@/lib/ebook/types";
+import type { ProductMetadata } from "@/lib/ebook/groq";
 import type { LearningLevel, Product } from "@/lib/types";
 
 export type EbookStatus = "draft" | "final";
@@ -40,6 +41,13 @@ export interface PublishEbookInput {
   slug?: string;
   summary?: string | null;
   description?: string | null;
+  audience?: string | null;
+  notFor?: string | null;
+  outcome?: string | null;
+  learnings?: string[];
+  limitations?: string | null;
+  license?: string | null;
+  sampleUrl?: string | null;
   priceAmount: number;
   compareAtAmount?: number | null;
   level?: LearningLevel;
@@ -209,6 +217,30 @@ export function useDeleteEbookProject() {
     },
     onSuccess: () =>
       queryClient.invalidateQueries({ queryKey: builderKeys.all }),
+  });
+}
+
+export function useGenerateProductMetadata() {
+  return useMutation({
+    mutationFn: async ({
+      id,
+      input,
+    }: {
+      id: string;
+      input: {
+        brand?: string;
+        niche?: string;
+        bookTitle?: string;
+        description?: string;
+        chapters?: { title: string }[];
+      };
+    }) => {
+      const response = await api.post<{ data: ProductMetadata }>(
+        `/admin/builder/${id}/product-metadata`,
+        input,
+      );
+      return response.data.data;
+    },
   });
 }
 

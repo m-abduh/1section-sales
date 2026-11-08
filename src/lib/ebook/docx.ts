@@ -277,6 +277,7 @@ async function docxImageParagraph(
 async function richDocxBlocks(
   nodes: EbookRichTextNode[],
   images: DocxImageCache,
+  level = 0,
 ): Promise<(Paragraph | Table)[]> {
   const blocks: (Paragraph | Table)[] = [];
 
@@ -292,8 +293,12 @@ async function richDocxBlocks(
     if (node.type === "heading") {
       const text = richTextPlainText(node.content ?? []).trim();
       if (text) {
+        const level = Number(node.attrs?.level ?? 3);
         blocks.push(
-          docxParagraph(text, undefined, { heading: HeadingLevel.HEADING_3 }),
+          docxParagraph(text, undefined, {
+            heading:
+              level <= 2 ? HeadingLevel.HEADING_2 : HeadingLevel.HEADING_3,
+          }),
         );
       }
       continue;
@@ -313,18 +318,21 @@ async function richDocxBlocks(
           }
         }
         const marker = ordered ? `${position}.` : "•";
+        const indent = 720 + level * 360;
         blocks.push(
           new Paragraph({
             style: "Normal",
-            indent: { left: 360, firstLine: 0 },
-            children: docxRuns([
-              { type: "text", text: `${marker} ` },
-              ...inline,
-            ]),
+            indent: { left: indent, hanging: 360 },
+            tabStops: [{ type: TabStopType.LEFT, position: indent }],
+            spacing: { before: 0, after: 0, line: 360, lineRule: "auto" },
+            children: [
+              new TextRun({ text: `${marker}\t` }),
+              ...docxRuns(inline),
+            ],
           }),
         );
         if (nested.length > 0) {
-          blocks.push(...(await richDocxBlocks(nested, images)));
+          blocks.push(...(await richDocxBlocks(nested, images, level + 1)));
         }
         position += 1;
       }
@@ -509,6 +517,7 @@ async function createDocument(
       new Paragraph({
         heading: HeadingLevel.HEADING_2,
         indent: { firstLine: 0 },
+        spacing: { before: 0, after: 120, line: 360, lineRule: "auto" },
         children: [
           new TextRun({
             text: `${String(index + 1).padStart(2, "0")}.`,
@@ -619,7 +628,7 @@ async function createDocument(
           paragraph: {
             indent: { firstLine: 0 },
             keepNext: true,
-            spacing: { before: 0, after: 120, line: 360, lineRule: "auto" },
+            spacing: { before: 640, after: 640, line: 360, lineRule: "auto" },
           },
         },
         heading2: {
@@ -627,15 +636,15 @@ async function createDocument(
           paragraph: {
             indent: { firstLine: 0 },
             keepNext: true,
-            spacing: { before: 0, after: 120, line: 360, lineRule: "auto" },
+            spacing: { before: 280, after: 400, line: 360, lineRule: "auto" },
           },
         },
         heading3: {
-          run: { font: "Montserrat", size: 32, bold: true },
+          run: { font: "Montserrat", size: 28, bold: true },
           paragraph: {
             indent: { firstLine: 0 },
             keepNext: true,
-            spacing: { before: 0, after: 120, line: 360, lineRule: "auto" },
+            spacing: { before: 200, after: 240, line: 360, lineRule: "auto" },
           },
         },
       },
@@ -660,7 +669,7 @@ async function createDocument(
           run: { font: "Montserrat", size: 24 },
           paragraph: {
             indent: { firstLine: 360 },
-            spacing: { before: 240, after: 240, line: 360, lineRule: "auto" },
+            spacing: { before: 0, after: 120, line: 360, lineRule: "auto" },
           },
         },
         {
@@ -721,7 +730,7 @@ async function createDocument(
           paragraph: {
             indent: { firstLine: 0 },
             keepNext: true,
-            spacing: { before: 0, after: 120, line: 360, lineRule: "auto" },
+            spacing: { before: 640, after: 640, line: 360, lineRule: "auto" },
           },
         },
         {
@@ -740,7 +749,7 @@ async function createDocument(
           basedOn: "Normal",
           run: { font: "Montserrat", size: 24 },
           paragraph: {
-            indent: { left: 360, firstLine: 0 },
+            indent: { left: 760, hanging: 400 },
             spacing: { before: 0, after: 120, line: 360, lineRule: "auto" },
           },
         },

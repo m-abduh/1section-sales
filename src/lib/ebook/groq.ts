@@ -743,3 +743,84 @@ export async function generateEbookWithGroq({
     `Struktur ebook dari AI belum sesuai setelah ${MAX_ATTEMPTS} percobaan: ${lastError}`,
   );
 }
+
+export type ProductMetadata = {
+  level: "FOUNDATIONS" | "PRACTICAL" | "ADVANCED";
+  summary: string;
+  outcome: string;
+  audience: string;
+  notFor: string;
+  learnings: string[];
+  limitations: string;
+  features: string[];
+};
+
+const PRODUCT_METADATA_PROMPT = `You are a professional digital product editor for the "1section" brand.
+
+Task: From the finished ebook content, create product metadata for the catalog (one-time purchase). All output must be in native, idiomatic English.
+
+RULES:
+- "level": one of FOUNDATIONS, PRACTICAL, or ADVANCED. Choose FOUNDATIONS for beginners, PRACTICAL for practitioners, ADVANCED for advanced readers.
+- "summary": a short, compelling product summary (max 300 characters) for the catalog. REQUIRED.
+- "outcome": what the buyer walks away with after purchasing this ebook (1 sentence, short and specific). REQUIRED.
+- "audience": who the target buyer is (1 sentence).
+- "notFor": who should NOT buy this ebook (1 sentence).
+- "learnings": list of what the buyer will learn, 6-12 items.
+- "limitations": material limitations (1-2 sentences, e.g. educational content, not personalized professional advice).
+- "features": list of ebook features/focus areas, 5-10 items, derived from chapter titles.
+
+Reply with ONLY valid JSON (no markdown, no explanation):
+{
+  "level": "FOUNDATIONS",
+  "summary": "...",
+  "outcome": "...",
+  "audience": "...",
+  "notFor": "...",
+  "learnings": ["...", "..."],
+  "limitations": "...",
+  "features": ["...", "..."]}
+`;
+
+const productMetadataSchema = z.object({
+  level: z.enum(["FOUNDATIONS", "PRACTICAL", "ADVANCED"]),
+  summary: z.string().trim().min(1).max(300).catch(""),
+  outcome: z.string().trim().min(1).max(1000).catch(""),
+  audience: z.string().trim().min(1).max(1000).catch(""),
+  notFor: z.string().trim().min(1).max(1000).catch(""),
+  learnings: z.array(z.string().trim().min(1).max(500)).min(1).max(12).catch([]),
+  limitations: z.string().trim().min(1).max(1000).catch(""),
+  features: z.array(z.string().trim().min(1).max(500)).min(1).max(10).catch([]),
+});
+
+export type ProductMetadataInput = {
+  brand: string;
+  niche: string;
+  bookTitle: string;
+  description: string;
+  chapters: { title: string }[];
+};
+
+export async function generateProductMetadata(
+  input: ProductMetadataInput,
+): Promise<ProductMetadata> {
+  const apiKey = requireApiKey();
+  const chapterList = input.chapters.map((c, i) => `${i + 1}. ${c.title}`).join("\n");
+  const user = [
+    `Ebook title: ${input.bookTitle}`,
+    `Niche/category: ${input.niche}`,
+    `Description: ${input.description}`,
+    `Chapter titles:\n${chapterList}`,
+    "",
+    "Return JSON with all keys: level, summary, outcome, audience, notFor, learnings, limitations, features. summary is required (max 300 chars).",
+  ].join("\n");
+
+  const result = await runGroqJson(apiKey, {
+    system: PRODUCT_METADATA_PROMPT,
+    user,
+    maxTokens: 2500,
+    temperature: 0.4,
+    schema: productMetadataSchema,
+  });
+
+  return result as ProductMetadata;
+}

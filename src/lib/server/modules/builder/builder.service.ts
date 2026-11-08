@@ -142,14 +142,16 @@ export async function publishEbookProject(
     name,
     summary: input.summary ?? summarize(content.description, 300),
     description: input.description ?? content.description,
-    outcome: null,
-    audience: null,
-    notFor: null,
-    learnings: [] as string[],
+    outcome: input.outcome ?? null,
+    audience: input.audience ?? null,
+    notFor: input.notFor ?? null,
+    learnings: input.learnings ?? [],
     limitations:
-      "Materi edukasi umum. Bukan nasihat keuangan, investasi, pajak, atau hukum yang dipersonalisasi.",
-    license: "Penggunaan pribadi. Dilarang mendistribusikan ulang.",
-    sampleUrl: null,
+      input.limitations ??
+      "This material is for educational purposes only and does not constitute personalized professional advice.",
+    license:
+      input.license ?? "Personal use only. Do not redistribute or resell the files.",
+    sampleUrl: input.sampleUrl ?? null,
     level: input.level ?? "FOUNDATIONS",
     coverImage: content.cover?.renderedUrl ?? null,
     priceAmount: input.priceAmount,

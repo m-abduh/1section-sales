@@ -11,6 +11,7 @@ import {
   FileText,
   Pencil,
   RefreshCw,
+  Sparkles,
   UploadCloud,
 } from "lucide-react";
 import {
@@ -18,18 +19,19 @@ import {
   downloadEbookPdf,
   fetchEbookPdf,
   useEbookProject,
+  useGenerateProductMetadata,
   usePublishEbookProject,
   useUpdateEbookProject,
   type PublishEbookInput,
 } from "@/hooks/use-builder";
 import { useAdminNiches } from "@/hooks/use-admin-niches";
+import type { ProductInput } from "@/hooks/use-admin-products";
+import { useAdminProducts } from "@/hooks/use-admin-products";
 import { getApiErrorMessage } from "@/lib/api";
 import { formatDate } from "@/lib/format";
-import type { LearningLevel } from "@/lib/types";
-import { LEARNING_LEVELS, LEARNING_LEVEL_LABEL } from "@/lib/types";
 import { Button } from "@/components/ui/button";
-import { Field, Input, Textarea } from "@/components/ui/input";
 import { Modal } from "@/components/admin/modal";
+import { ProductForm } from "@/components/admin/product-form";
 import { Spinner } from "@/components/ui/spinner";
 
 export function EbookPreview({ projectId }: { projectId: string }) {
@@ -174,7 +176,7 @@ export function EbookPreview({ projectId }: { projectId: string }) {
             onClick={() => setPublishOpen(true)}
           >
             <UploadCloud className="size-3.5" />
-            Publish
+            {data.productId ? "Update product" : "Publish"}
           </Button>
         </div>
       </div>
@@ -199,10 +201,16 @@ export function EbookPreview({ projectId }: { projectId: string }) {
 
       {published ? (
         <div className="rounded-xl border border-emerald-500/30 bg-emerald-500/10 px-4 py-3 text-xs leading-relaxed text-emerald-700 dark:text-emerald-400">
-          Product berhasil dibuat: <strong>{published}</strong>.{" "}
+          {data.productId ? "Product berhasil diperbarui" : "Product berhasil dibuat"}:{" "}
+          <strong>{published}</strong>.{" "}
           <Link href="/admin/products" className="font-semibold underline">
             Buka katalog
           </Link>
+        </div>
+      ) : data.productId ? (
+        <div className="rounded-xl border border-border bg-surface-muted px-4 py-3 text-xs leading-relaxed text-fg-muted">
+          Ebook ini sudah terhubung ke product di katalog. Klik <strong>Update product</strong>{" "}
+          untuk memperbarui product yang sama (PDF, cover, dan metadata) tanpa membuat duplikat.
         </div>
       ) : null}
 
@@ -356,9 +364,11 @@ export function EbookPreview({ projectId }: { projectId: string }) {
         open={publishOpen}
         onClose={() => setPublishOpen(false)}
         projectId={projectId}
+        existingProductId={data.productId}
         defaultName={data.title}
         defaultSummary={data.content.description}
         defaultNicheName={data.content.niche}
+        defaultChapters={data.content.chapters}
         onPublished={(name) => {
           setPublished(name);
           setPublishOpen(false);
@@ -372,82 +382,79 @@ function PublishModal({
   open,
   onClose,
   projectId,
+  existingProductId,
   defaultName,
   defaultSummary,
   defaultNicheName,
+  defaultChapters,
   onPublished,
 }: {
   open: boolean;
   onClose: () => void;
   projectId: string;
+  existingProductId: string | null;
   defaultName: string;
   defaultSummary: string;
   defaultNicheName: string;
+  defaultChapters: { title: string }[];
   onPublished: (name: string) => void;
 }) {
   const niches = useAdminNiches();
+  const products = useAdminProducts();
   const publish = usePublishEbookProject();
-  const [nicheId, setNicheId] = useState("");
-  const [name, setName] = useState(defaultName);
-  const [slug, setSlug] = useState(slugify(defaultName));
-  const [slugEdited, setSlugEdited] = useState(false);
-  const [price, setPrice] = useState("10");
-  const [compareAt, setCompareAt] = useState("");
-  const [level, setLevel] = useState<LearningLevel>("FOUNDATIONS");
-  const [summary, setSummary] = useState(defaultSummary);
-  const [features, setFeatures] = useState("");
-  const [active, setActive] = useState(false);
+  const generateMetadata = useGenerateProductMetadata();
   const [error, setError] = useState<string | null>(null);
+  const [aiLoading, setAiLoading] = useState(false);
+  const formRef = useRef<{
+    setValue: (name: string, value: unknown, options?: any) => void;
+  } | null>(null);
+
+  const existingProduct = existingProductId
+    ? products.data?.find((p) => p.id === existingProductId) ?? null
+    : null;
 
   const savedNiche = niches.data?.find(
     (niche) =>
       niche.name.trim().toLowerCase() === defaultNicheName.trim().toLowerCase(),
   );
 
-  useEffect(() => {
-    if (savedNiche) {
-      setNicheId(savedNiche.id);
-      return;
-    }
-    if (!nicheId && niches.data?.length) {
-      setNicheId(niches.data[0].id);
-    }
-  }, [nicheId, niches.data, savedNiche]);
-
-  async function handleSubmit(event: React.FormEvent) {
-    event.preventDefault();
+  async function handlePublishSubmit(input: ProductInput) {
     setError(null);
-    if (!nicheId) {
+    if (!input.nicheId) {
       setError("Pilih niche terlebih dahulu.");
       return;
     }
-    const priceAmount = Math.round(Number(price) * 100);
+    const priceAmount = input.priceAmount ?? 0;
     if (!Number.isFinite(priceAmount) || priceAmount < 0) {
       setError("Harga tidak valid.");
       return;
     }
 
-    const input: PublishEbookInput = {
-      nicheId,
-      name: name.trim() || undefined,
-      slug: slug.trim() || undefined,
-      summary: summary.trim() || null,
-      description: defaultSummary || null,
+    const publishInput: PublishEbookInput = {
+      nicheId: input.nicheId,
+      name: input.name.trim() || undefined,
+      slug: input.slug?.trim() || undefined,
+      summary: input.summary?.trim() || null,
+      description: input.description?.trim() || null,
+      audience: input.audience?.trim() || null,
+      notFor: input.notFor?.trim() || null,
+      outcome: input.outcome?.trim() || null,
+      learnings: input.learnings,
+      limitations: input.limitations?.trim() || null,
+      license: input.license?.trim() || null,
+      sampleUrl: input.sampleUrl?.trim() || null,
       priceAmount,
-      compareAtAmount:
-        compareAt && Number(compareAt) > 0
-          ? Math.round(Number(compareAt) * 100)
-          : null,
-      level,
-      features: features
-        .split("\n")
-        .map((line) => line.trim())
-        .filter(Boolean),
-      active,
+      compareAtAmount: input.compareAtAmount,
+      level: input.level,
+      features: input.features,
+      active: input.active,
     };
 
     try {
-      const product = await publish.mutateAsync({ id: projectId, input });
+      const product = await publish.mutateAsync({
+        id: projectId,
+        input: publishInput,
+      });
       onPublished(product.name);
     } catch (caught) {
       setError(getApiErrorMessage(caught));
@@ -455,154 +462,91 @@ function PublishModal({
   }
 
   return (
-    <Modal open={open} onClose={onClose} title="Publish ebook ke katalog" wide>
-      <form onSubmit={handleSubmit} className="space-y-4">
+    <Modal
+      open={open}
+      onClose={onClose}
+      title={existingProductId ? "Update product dari ebook" : "Publish ebook ke katalog"}
+      wide
+    >
+      <div className="space-y-4">
         <p className="rounded-lg bg-surface-muted p-3 text-xs leading-relaxed text-fg-muted">
-          PDF akan dibuat ulang dari konten terbaru, diunggah ke penyimpanan
-          privat, lalu ditautkan ke product baru. Product juga otomatis
-          disinkronkan ke Paddle.
+          {existingProductId
+            ? "PDF akan dibuat ulang dari konten terbaru dan diunggah, lalu product yang sama di katalog akan diperbarui (tanpa membuat duplikat). Metadata yang kamu isi di form ini akan disimpan ke product tersebut."
+            : "PDF akan dibuat ulang dari konten terbaru, diunggah ke penyimpanan privat, lalu ditautkan ke product baru. Product juga otomatis disinkronkan ke Paddle."}
         </p>
-
-        <div className="grid gap-4 sm:grid-cols-2">
-          <Field
-            label="Niche"
-            hint={
-              savedNiche
-                ? "Mengikuti Niche / kategori dari metadata ebook."
-                : undefined
-            }
-          >
-            <select
-              value={nicheId}
-              onChange={(event) => setNicheId(event.target.value)}
-              disabled={Boolean(savedNiche)}
-              className="w-full rounded-lg border-0 bg-card px-3 py-2 text-sm text-fg shadow-sm ring-1 ring-inset ring-border focus:ring-2 focus:ring-accent disabled:opacity-60"
-            >
-              {(niches.data ?? []).map((niche) => (
-                <option key={niche.id} value={niche.id}>
-                  {niche.name}
-                </option>
-              ))}
-            </select>
-          </Field>
-          <Field label="Level">
-            <select
-              value={level}
-              onChange={(event) =>
-                setLevel(event.target.value as LearningLevel)
-              }
-              className="w-full rounded-lg border-0 bg-card px-3 py-2 text-sm text-fg shadow-sm ring-1 ring-inset ring-border focus:ring-2 focus:ring-accent"
-            >
-              {LEARNING_LEVELS.map((item) => (
-                <option key={item} value={item}>
-                  {LEARNING_LEVEL_LABEL[item]}
-                </option>
-              ))}
-            </select>
-          </Field>
-        </div>
-
-        <div className="grid gap-4 sm:grid-cols-2">
-          <Field label="Nama product">
-            <Input
-              value={name}
-              onChange={(event) => {
-                const nextName = event.target.value;
-                setName(nextName);
-                if (!slugEdited) setSlug(slugify(nextName));
-              }}
-            />
-          </Field>
-          <Field
-            label="Slug"
-            hint={`Akan menjadi /resources/${slug || "…"}`}
-          >
-            <Input
-              value={slug}
-              onChange={(event) => {
-                setSlugEdited(true);
-                setSlug(slugify(event.target.value));
-              }}
-              placeholder="personal-finance-guide"
-            />
-          </Field>
-        </div>
-
-        <div className="grid gap-4 sm:grid-cols-2">
-          <Field label="Harga (USD)">
-            <Input
-              type="number"
-              min="0"
-              step="0.01"
-              value={price}
-              onChange={(event) => setPrice(event.target.value)}
-            />
-          </Field>
-          <Field label="Compare-at (USD)">
-            <Input
-              type="number"
-              min="0"
-              step="0.01"
-              value={compareAt}
-              onChange={(event) => setCompareAt(event.target.value)}
-            />
-          </Field>
-        </div>
-
-        <Field label="Summary" hint="Maksimal 300 karakter">
-          <Textarea
-            value={summary}
-            onChange={(event) => setSummary(event.target.value)}
-            maxLength={300}
-            rows={3}
-          />
-        </Field>
-
-        <Field label="Features" hint="Satu fitur per baris">
-          <Textarea
-            value={features}
-            onChange={(event) => setFeatures(event.target.value)}
-            rows={3}
-            placeholder={"12 bab praktis\nLembar kerja\nReferensi tepercaya"}
-          />
-        </Field>
-
-        <label className="flex items-center gap-2 text-sm text-fg">
-          <input
-            type="checkbox"
-            className="size-4"
-            checked={active}
-            onChange={(event) => setActive(event.target.checked)}
-          />
-          Langsung aktif dan terlihat di landing page
-        </label>
-
         {error ? (
           <p className="rounded-lg bg-red-500/10 px-3 py-2 text-xs text-red-700 dark:text-red-400">
             {error}
           </p>
         ) : null}
-
-        <div className="flex justify-end gap-2 pt-2">
-          <Button type="button" variant="secondary" onClick={onClose}>
-            Cancel
+        <div className="flex items-center justify-between gap-3">
+          <Button
+            type="button"
+            variant="secondary"
+            size="sm"
+            disabled={publish.isPending || aiLoading}
+            onClick={async () => {
+              setAiLoading(true);
+              setError(null);
+              try {
+                const metadata = await generateMetadata.mutateAsync({
+                  id: projectId,
+                  input: {
+                    bookTitle: defaultName,
+                    description: defaultSummary,
+                    chapters: defaultChapters,
+                  },
+                });
+              formRef.current?.setValue("level", metadata.level);
+              formRef.current?.setValue("outcome", metadata.outcome);
+              formRef.current?.setValue("audience", metadata.audience);
+              formRef.current?.setValue("notFor", metadata.notFor);
+              formRef.current?.setValue("learnings", metadata.learnings.join("\n"));
+              formRef.current?.setValue("limitations", metadata.limitations);
+              formRef.current?.setValue("features", metadata.features.join("\n"));
+              formRef.current?.setValue("license", "Personal use. Do not redistribute or resell the files.");
+              if (metadata.summary) formRef.current?.setValue("summary", metadata.summary);
+              } catch (caught) {
+                setError(getApiErrorMessage(caught));
+              } finally {
+                setAiLoading(false);
+              }
+            }}
+          >
+            {aiLoading ? <Spinner /> : <Sparkles className="size-3.5" />}
+            {aiLoading ? "Generating..." : "Fill with AI"}
           </Button>
-          <Button type="submit" disabled={publish.isPending}>
-            {publish.isPending ? <Spinner /> : <UploadCloud className="size-4" />}
-            {publish.isPending ? "Menerbitkan…" : "Publish product"}
-          </Button>
+          <span className="text-[11px] text-fg-muted">
+            Fills: level, outcome, audience, not for, learnings, limitations, features, summary
+          </span>
         </div>
-      </form>
+        <ProductForm
+          ref={formRef}
+          key={existingProduct?.id ?? "new"}
+          niches={niches.data ?? []}
+          projectId={projectId}
+          product={existingProduct}
+          initialValues={
+            existingProduct
+              ? undefined
+              : {
+                  name: defaultName,
+                  summary: "",
+                  description: defaultSummary ?? "",
+                  nicheId: savedNiche?.id ?? "",
+                  level: "FOUNDATIONS",
+                  price: 10,
+                  license: "Personal use. Do not redistribute or resell the files.",
+                  active: false,
+                }
+          }
+          onSubmit={handlePublishSubmit}
+          onCancel={onClose}
+          isSubmitting={publish.isPending}
+        />
+      </div>
     </Modal>
   );
 }
 
-function slugify(value: string): string {
-  return value
-    .normalize("NFKD")
-    .replace(/[\u0300-\u036f]/g, "")
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/^-+|-+$/g, "")
-    .slice(0, 80);
-}
+

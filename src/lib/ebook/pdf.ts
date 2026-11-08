@@ -22,13 +22,24 @@ const MUTED = "#7A8589";
 const GOLD = "#B68A42";
 
 const BODY_SIZE = 12;
-const BODY_LINE_GAP = 5;
-const BODY_BEFORE = 12;
-const BODY_AFTER = 12;
+// 14.628pt (single line for Montserrat 12pt) + 7.3pt ≈ 1.5 line spacing,
+// matching the DOCX "line: 360, lineRule: auto" setting.
+const BODY_LINE_GAP = 7.3;
+const BODY_BEFORE = 0;
+const BODY_AFTER = 6;
 
 const H1_SIZE = 20;
 const H2_SIZE = 18;
-const H3_SIZE = 16;
+const H3_SIZE = 14;
+// Generous breathing room around level 1/2 headings so sections read clearly.
+const H1_BEFORE = 32;
+const H1_AFTER = 32;
+// A preceding paragraph already leaves BODY_AFTER (6pt), so 14 + 6 = 20.
+const H2_BEFORE = 14;
+const H2_AFTER = 20;
+// Chapter openers are not preceded by a paragraph, so pad them directly.
+const CHAPTER_TITLE_BEFORE = 32;
+const CHAPTER_TITLE_AFTER = 32;
 const COVER_TITLE_SIZE = 26;
 const COVER_DESCRIPTION_SIZE = 12;
 const CHAPTER_NUMBER_SIZE = 24;
@@ -289,7 +300,11 @@ class PdfBook {
         const text = richTextPlainText(node.content ?? []).trim();
         if (!text) continue;
         const level = Number(node.attrs?.level ?? 3);
-        this.heading(text, level <= 2 ? H3_SIZE : 14, 12, 6);
+        if (level <= 2) {
+          this.heading(text, H2_SIZE, H2_BEFORE, H2_AFTER);
+        } else {
+          this.heading(text, H3_SIZE, 10, 12);
+        }
         continue;
       }
       if (node.type === "bulletList" || node.type === "orderedList") {
@@ -516,16 +531,70 @@ class PdfBook {
       }
 
       const marker = ordered ? `${position}.` : "•";
-      this.richParagraph(
-        [{ type: "text", text: `${marker} ` }, ...inline],
-        16 + level * 16,
-      );
+      this.richListItem(marker, inline, 16 + level * 16);
 
       for (const child of nested) {
         await this.richList(child, level + 1);
       }
       position += 1;
     }
+  }
+
+  /**
+   * List items use a hanging indent (marker sits left, wrapped lines align
+   * under the item text) and skip the paragraph before/after spacing so
+   * consecutive items stay tight, like a Word list.
+   */
+  private richListItem(
+    marker: string,
+    nodes: EbookRichTextNode[],
+    left: number,
+  ) {
+    const runs = richTextRuns(nodes).filter((run) => run.text.length > 0);
+    const plain = runs.map((run) => run.text).join("");
+    if (!plain.trim()) return;
+
+    const d = this.doc;
+    d.font("Body").fontSize(BODY_SIZE);
+    const hang = Math.max(14, d.widthOfString(`${marker} `) + 2);
+    const x = MARGIN + left;
+    const textX = x + hang;
+    const options = {
+      width: CONTENT_WIDTH - left - hang,
+      align: "justify" as const,
+      lineGap: BODY_LINE_GAP,
+      indent: 0,
+    };
+
+    const height = d.heightOfString(plain, options);
+    this.ensureSpace(height);
+    d.font("Body").fontSize(BODY_SIZE).fillColor(INK);
+    d.text(marker, x, this.y, { lineBreak: false });
+
+    runs.forEach((run, index) => {
+      const isLast = index === runs.length - 1;
+      const marks = richTextMarksOf({
+        type: "text",
+        text: run.text,
+        marks: run.marks,
+      });
+      const font =
+        marks.bold && marks.italic
+          ? "BoldItalic"
+          : marks.bold
+            ? "Bold"
+            : marks.italic
+              ? "Italic"
+              : "Body";
+      d.font(font).fontSize(BODY_SIZE).fillColor(INK);
+      if (index === 0) {
+        d.text(run.text, textX, this.y, { ...options, continued: !isLast });
+      } else {
+        d.text(run.text, { ...options, continued: !isLast });
+      }
+    });
+
+    this.y = d.y;
   }
 
   private async richImage(node: EbookRichTextNode) {
@@ -620,7 +689,7 @@ class PdfBook {
 
   private drawContents(pageMap: PageMap) {
     this.addPage("TABLE OF CONTENTS");
-    this.heading("Table of Contents", H1_SIZE, 0, 12);
+    this.heading("Table of Contents", H1_SIZE, H1_BEFORE, H1_AFTER);
 
     tocEntriesOf(this.ebook).forEach((entry) => {
       this.tocEntry(entry, pageMap);
@@ -629,60 +698,83 @@ class PdfBook {
 
   private tocEntry(entry: TocEntry, pageMap: PageMap) {
     const d = this.doc;
-    const indent = entry.level === 2 ? 18 : 0;
+    const levelIndent = entry.level === 2 ? 18 : 0;
     const numberArea = 34;
-    const maxTextWidth = CONTENT_WIDTH - indent - numberArea;
     const pageNumber = pageMap[entry.key];
     const numberText = pageNumber === undefined ? "" : String(pageNumber);
 
-    d.font("Body").fontSize(TOC_SIZE).fillColor(INK);
-    const textHeight = d.heightOfString(entry.label, {
-      width: maxTextWidth,
-      lineGap: TOC_LINE_GAP,
-    });
-    const singleLineHeight = d.heightOfString(entry.label, {
-      width: maxTextWidth,
-      lineGap: 0,
-    });
-    const lineHeight = d.currentLineHeight(true);
-    const lines = Math.max(1, Math.round(singleLineHeight / lineHeight));
+    // Split "01. Title" so wrapped lines line up with the title, not the number.
+    const labelMatch = /^(\d+\.)\s+(.+)$/s.exec(entry.label);
+    const prefix = labelMatch ? labelMatch[1] : "";
+    const title = labelMatch ? labelMatch[2] : entry.label;
 
+    d.font("Body").fontSize(TOC_SIZE).fillColor(INK);
+    const startX = MARGIN + levelIndent;
+    // Fixed number column so every title lines up on the same x position.
+    const prefixWidth = prefix ? d.widthOfString("00.") + 6 : 0;
+    const titleX = startX + prefixWidth;
+    const titleWidth = PAGE_WIDTH - MARGIN - numberArea - 6 - titleX;
+
+    const lineHeight = d.currentLineHeight(true);
+    const step = lineHeight + TOC_LINE_GAP;
+
+    // Wrap manually so we always know the last line (where the leaders go).
+    const lines: string[] = [];
+    let currentLine = "";
+    for (const word of title.split(/\s+/).filter(Boolean)) {
+      const candidate = currentLine ? `${currentLine} ${word}` : word;
+      if (currentLine && d.widthOfString(candidate) > titleWidth) {
+        lines.push(currentLine);
+        currentLine = word;
+      } else {
+        currentLine = candidate;
+      }
+    }
+    if (currentLine) lines.push(currentLine);
+    if (lines.length === 0) lines.push("");
+
+    const textHeight = lineHeight + (lines.length - 1) * step;
     this.ensureSpace(textHeight + TOC_AFTER);
 
     const startY = this.y;
-    d.font("Body").fontSize(TOC_SIZE).fillColor(INK);
-    d.text(entry.label, MARGIN + indent, startY, {
-      width: maxTextWidth,
-      lineGap: TOC_LINE_GAP,
-    });
-
-    if (lines === 1) {
-      const textWidth = d.widthOfString(entry.label);
-      const numberWidth = numberText ? d.widthOfString(numberText) : 0;
-      const startX = MARGIN + indent + textWidth + 4;
-      const endX = PAGE_WIDTH - MARGIN - numberWidth - 4;
-      if (endX > startX) {
-        d.save();
-        d.dash(0.6, { space: 2 });
-        d.moveTo(startX, startY + 10)
-          .lineTo(endX, startY + 10)
-          .lineWidth(0.5)
-          .strokeColor("#9AA3A6")
-          .stroke();
-        d.undash();
-        d.restore();
-      }
-    }
-
-    if (numberText) {
-      const numberY =
-        lines === 1
-          ? startY
-          : startY + (lineHeight + TOC_LINE_GAP) * (lines - 1);
+    if (prefix) {
       d.font("Body")
         .fontSize(TOC_SIZE)
         .fillColor(INK)
-        .text(numberText, PAGE_WIDTH - MARGIN - numberArea, numberY, {
+        .text(prefix, startX, startY, { lineBreak: false });
+    }
+    lines.forEach((line, index) => {
+      d.font("Body")
+        .fontSize(TOC_SIZE)
+        .fillColor(INK)
+        .text(line, titleX, startY + index * step, { lineBreak: false });
+    });
+
+    // Dotted leader on the final line, so wrapped titles still reach the page
+    // number instead of losing their dots.
+    const lastY = startY + (lines.length - 1) * step;
+    const lastLine = lines[lines.length - 1] ?? "";
+    const lastLineWidth = d.widthOfString(lastLine);
+    const numberWidth = numberText ? d.widthOfString(numberText) : 0;
+    const dotStartX = titleX + lastLineWidth + 4;
+    const dotEndX = PAGE_WIDTH - MARGIN - numberWidth - 4;
+    if (numberText && dotEndX > dotStartX) {
+      d.save();
+      d.dash(0.6, { space: 2 });
+      d.moveTo(dotStartX, lastY + 10)
+        .lineTo(dotEndX, lastY + 10)
+        .lineWidth(0.5)
+        .strokeColor("#9AA3A6")
+        .stroke();
+      d.undash();
+      d.restore();
+    }
+
+    if (numberText) {
+      d.font("Body")
+        .fontSize(TOC_SIZE)
+        .fillColor(INK)
+        .text(numberText, PAGE_WIDTH - MARGIN - numberArea, lastY, {
           width: numberArea,
           align: "right",
           lineBreak: false,
@@ -695,7 +787,7 @@ class PdfBook {
   private async drawIntroduction() {
     this.addPage("INTRODUCTION");
     this.pageMap.intro = this.page;
-    this.heading("Introduction", H1_SIZE, 0, 6);
+    this.heading("Introduction", H1_SIZE, H1_BEFORE, H1_AFTER);
 
     const body = this.ebook.introductionBody;
     if (body && !richTextIsEmpty(body)) {
@@ -710,7 +802,7 @@ class PdfBook {
       this.addPage(`${index + 1}. ${chapter.title}`);
       this.pageMap[`chapter-${index}`] = this.page;
 
-      this.y += 12;
+      this.y += CHAPTER_TITLE_BEFORE;
       this.doc
         .font("Bold")
         .fontSize(CHAPTER_NUMBER_SIZE)
@@ -728,7 +820,7 @@ class PdfBook {
           width: CONTENT_WIDTH,
           lineGap: 2,
         });
-      this.y = this.doc.y + 12;
+      this.y = this.doc.y + CHAPTER_TITLE_AFTER;
 
       if (chapter.body !== undefined) {
         await this.richBody(chapter.body);
@@ -739,7 +831,7 @@ class PdfBook {
           const keepWith = section.paragraphs[0]
             ? this.paragraphHeight(section.paragraphs[0])
             : 0;
-          this.heading(section.title, H3_SIZE, 6, 6, INK, keepWith);
+          this.heading(section.title, H3_SIZE, 10, 12, INK, keepWith);
           section.paragraphs.forEach((text) => this.paragraph(text));
         });
       }
@@ -756,7 +848,7 @@ class PdfBook {
   private async drawConclusion() {
     this.addPage("CONCLUSION");
     this.pageMap.conclusion = this.page;
-    this.heading("Conclusion", H1_SIZE, 0, 6);
+    this.heading("Conclusion", H1_SIZE, H1_BEFORE, H1_AFTER);
     const body = this.ebook.conclusionBody;
     if (body && !richTextIsEmpty(body)) {
       await this.richBody(body);
@@ -768,7 +860,7 @@ class PdfBook {
   private drawReferences() {
     this.addPage("REFERENCES");
     this.pageMap.references = this.page;
-    this.heading("References", H1_SIZE, 0, 6);
+    this.heading("References", H1_SIZE, H1_BEFORE, H1_AFTER);
     this.ebook.references.forEach((reference, index) => {
       this.paragraph(`[${index + 1}] ${reference.title} ${reference.url}`);
     });
@@ -777,7 +869,7 @@ class PdfBook {
   private async drawAbout() {
     this.addPage("ABOUT");
     this.pageMap.about = this.page;
-    this.heading("About", H1_SIZE, 0, 6);
+    this.heading("About", H1_SIZE, H1_BEFORE, H1_AFTER);
     const body = this.ebook.aboutBody;
     if (body && !richTextIsEmpty(body)) {
       await this.richBody(body);
