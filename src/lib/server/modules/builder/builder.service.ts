@@ -1,6 +1,7 @@
 import { prisma } from "../../lib/prisma";
 import { ApiError } from "../../utils/api-error";
 import { slugify } from "../../utils/slug";
+import { normalizeEbookCover } from "../../../ebook/cover";
 import { generateEbookPdf } from "../../../ebook/pdf";
 import { ebookSchema } from "../../../ebook/schema";
 import type { EbookContent } from "../../../ebook/types";
@@ -33,7 +34,11 @@ export async function getEbookProject(id: string) {
   if (!project) {
     throw ApiError.notFound("Ebook project not found");
   }
-  return project;
+  if (!project.content) return project;
+  return {
+    ...project,
+    content: normalizeEbookCover(project.content as unknown as EbookContent),
+  };
 }
 
 export function parseProjectContent(raw: unknown): EbookContent {
