@@ -749,7 +749,7 @@ async function createDocument(
           basedOn: "Normal",
           run: { font: "Montserrat", size: 24 },
           paragraph: {
-            indent: { left: 360, firstLine: 0 },
+            indent: { left: 760, hanging: 400 },
             spacing: { before: 0, after: 120, line: 360, lineRule: "auto" },
           },
         },

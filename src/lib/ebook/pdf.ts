@@ -698,60 +698,83 @@ class PdfBook {
 
   private tocEntry(entry: TocEntry, pageMap: PageMap) {
     const d = this.doc;
-    const indent = entry.level === 2 ? 18 : 0;
+    const levelIndent = entry.level === 2 ? 18 : 0;
     const numberArea = 34;
-    const maxTextWidth = CONTENT_WIDTH - indent - numberArea;
     const pageNumber = pageMap[entry.key];
     const numberText = pageNumber === undefined ? "" : String(pageNumber);
 
-    d.font("Body").fontSize(TOC_SIZE).fillColor(INK);
-    const textHeight = d.heightOfString(entry.label, {
-      width: maxTextWidth,
-      lineGap: TOC_LINE_GAP,
-    });
-    const singleLineHeight = d.heightOfString(entry.label, {
-      width: maxTextWidth,
-      lineGap: 0,
-    });
-    const lineHeight = d.currentLineHeight(true);
-    const lines = Math.max(1, Math.round(singleLineHeight / lineHeight));
+    // Split "01. Title" so wrapped lines line up with the title, not the number.
+    const labelMatch = /^(\d+\.)\s+(.+)$/s.exec(entry.label);
+    const prefix = labelMatch ? labelMatch[1] : "";
+    const title = labelMatch ? labelMatch[2] : entry.label;
 
+    d.font("Body").fontSize(TOC_SIZE).fillColor(INK);
+    const startX = MARGIN + levelIndent;
+    // Fixed number column so every title lines up on the same x position.
+    const prefixWidth = prefix ? d.widthOfString("00.") + 6 : 0;
+    const titleX = startX + prefixWidth;
+    const titleWidth = PAGE_WIDTH - MARGIN - numberArea - 6 - titleX;
+
+    const lineHeight = d.currentLineHeight(true);
+    const step = lineHeight + TOC_LINE_GAP;
+
+    // Wrap manually so we always know the last line (where the leaders go).
+    const lines: string[] = [];
+    let currentLine = "";
+    for (const word of title.split(/\s+/).filter(Boolean)) {
+      const candidate = currentLine ? `${currentLine} ${word}` : word;
+      if (currentLine && d.widthOfString(candidate) > titleWidth) {
+        lines.push(currentLine);
+        currentLine = word;
+      } else {
+        currentLine = candidate;
+      }
+    }
+    if (currentLine) lines.push(currentLine);
+    if (lines.length === 0) lines.push("");
+
+    const textHeight = lineHeight + (lines.length - 1) * step;
     this.ensureSpace(textHeight + TOC_AFTER);
 
     const startY = this.y;
-    d.font("Body").fontSize(TOC_SIZE).fillColor(INK);
-    d.text(entry.label, MARGIN + indent, startY, {
-      width: maxTextWidth,
-      lineGap: TOC_LINE_GAP,
-    });
-
-    if (lines === 1) {
-      const textWidth = d.widthOfString(entry.label);
-      const numberWidth = numberText ? d.widthOfString(numberText) : 0;
-      const startX = MARGIN + indent + textWidth + 4;
-      const endX = PAGE_WIDTH - MARGIN - numberWidth - 4;
-      if (endX > startX) {
-        d.save();
-        d.dash(0.6, { space: 2 });
-        d.moveTo(startX, startY + 10)
-          .lineTo(endX, startY + 10)
-          .lineWidth(0.5)
-          .strokeColor("#9AA3A6")
-          .stroke();
-        d.undash();
-        d.restore();
-      }
-    }
-
-    if (numberText) {
-      const numberY =
-        lines === 1
-          ? startY
-          : startY + (lineHeight + TOC_LINE_GAP) * (lines - 1);
+    if (prefix) {
       d.font("Body")
         .fontSize(TOC_SIZE)
         .fillColor(INK)
-        .text(numberText, PAGE_WIDTH - MARGIN - numberArea, numberY, {
+        .text(prefix, startX, startY, { lineBreak: false });
+    }
+    lines.forEach((line, index) => {
+      d.font("Body")
+        .fontSize(TOC_SIZE)
+        .fillColor(INK)
+        .text(line, titleX, startY + index * step, { lineBreak: false });
+    });
+
+    // Dotted leader on the final line, so wrapped titles still reach the page
+    // number instead of losing their dots.
+    const lastY = startY + (lines.length - 1) * step;
+    const lastLine = lines[lines.length - 1] ?? "";
+    const lastLineWidth = d.widthOfString(lastLine);
+    const numberWidth = numberText ? d.widthOfString(numberText) : 0;
+    const dotStartX = titleX + lastLineWidth + 4;
+    const dotEndX = PAGE_WIDTH - MARGIN - numberWidth - 4;
+    if (numberText && dotEndX > dotStartX) {
+      d.save();
+      d.dash(0.6, { space: 2 });
+      d.moveTo(dotStartX, lastY + 10)
+        .lineTo(dotEndX, lastY + 10)
+        .lineWidth(0.5)
+        .strokeColor("#9AA3A6")
+        .stroke();
+      d.undash();
+      d.restore();
+    }
+
+    if (numberText) {
+      d.font("Body")
+        .fontSize(TOC_SIZE)
+        .fillColor(INK)
+        .text(numberText, PAGE_WIDTH - MARGIN - numberArea, lastY, {
           width: numberArea,
           align: "right",
           lineBreak: false,
