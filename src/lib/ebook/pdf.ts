@@ -18,6 +18,7 @@ const TOP = MARGIN;
 const BOTTOM = PAGE_HEIGHT - MARGIN;
 
 const INK = "#1F2421";
+const HEADING_COLOR = "#303030";
 const MUTED = "#7A8589";
 const GOLD = "#B68A42";
 
@@ -339,7 +340,7 @@ class PdfBook {
     size: number,
     before: number,
     after: number,
-    color = INK,
+    color = HEADING_COLOR,
     keepWith = 0,
     variant?: "h1" | "h2" | "h3",
   ) {
@@ -410,9 +411,9 @@ class PdfBook {
         if (!text) continue;
         const level = Number(node.attrs?.level ?? 3);
         if (level <= 2) {
-          this.heading(text, H2_SIZE, H2_BEFORE, H2_AFTER, INK, 0, "h2");
+          this.heading(text, H2_SIZE, H2_BEFORE, H2_AFTER, HEADING_COLOR, 0, "h2");
         } else {
-          this.heading(text, H3_SIZE, 10, 12);
+          this.heading(text, H3_SIZE, 10, 12, HEADING_COLOR);
         }
         continue;
       }
@@ -871,7 +872,7 @@ class PdfBook {
     // Title
     d.font("Bold")
       .fontSize(COVER_TITLE_SIZE)
-      .fillColor(INK)
+      .fillColor(HEADING_COLOR)
       .text(this.ebook.title, MARGIN, this.y, {
         width: CONTENT_WIDTH,
         align: "left",
@@ -1028,7 +1029,7 @@ class PdfBook {
       this.doc
         .font("Bold")
         .fontSize(H2_SIZE)
-        .fillColor(INK)
+        .fillColor(HEADING_COLOR)
         .text(chapter.title, MARGIN, this.y, {
           width: CONTENT_WIDTH,
           lineGap: 2,
@@ -1051,7 +1052,7 @@ class PdfBook {
           const keepWith = section.paragraphs[0]
             ? this.paragraphHeight(section.paragraphs[0])
             : 0;
-          this.heading(section.title, H3_SIZE, 10, 12, INK, keepWith);
+          this.heading(section.title, H3_SIZE, 10, 12, HEADING_COLOR, keepWith);
           section.paragraphs.forEach((text) => this.paragraph(text));
         });
       }

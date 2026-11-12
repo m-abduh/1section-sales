@@ -637,7 +637,7 @@ async function createDocument(
           font: "Montserrat",
           size: 56,
           bold: true,
-          color: "1F2421",
+          color: "303030",
         }),
       ],
     }),
@@ -753,6 +753,7 @@ async function createDocument(
             font: "Montserrat",
             size: 44,
             bold: true,
+            color: "303030",
           }),
         ],
       }),
@@ -848,7 +849,7 @@ async function createDocument(
           paragraph: { spacing: { after: 0, line: 360, lineRule: "auto" } },
         },
         heading1: {
-          run: { font: "Montserrat", size: 44, bold: true, color: "1F2421" },
+          run: { font: "Montserrat", size: 44, bold: true, color: "303030" },
           paragraph: {
             indent: { firstLine: 0 },
             keepNext: true,
@@ -864,7 +865,7 @@ async function createDocument(
           },
         },
         heading2: {
-          run: { font: "Montserrat", size: 44, bold: true, color: "1F2421" },
+          run: { font: "Montserrat", size: 44, bold: true, color: "303030" },
           paragraph: {
             indent: { firstLine: 0 },
             keepNext: true,
@@ -880,7 +881,7 @@ async function createDocument(
           },
         },
         heading3: {
-          run: { font: "Montserrat", size: 28, bold: true },
+          run: { font: "Montserrat", size: 28, bold: true, color: "303030" },
           paragraph: {
             indent: { firstLine: 0 },
             keepNext: true,
