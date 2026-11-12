@@ -42,8 +42,8 @@ export const TEMPLATE_DEFAULTS: Record<
   Pick<EbookCover, "accent" | "background">
 > = {
   signature: {
-    accent: "#B68A42",
-    background: { type: "gradient", from: "#F8F6F1", to: "#ECE3D3", angle: 135 },
+    accent: "#F2C879",
+    background: { type: "gradient", from: "#0F172A", to: "#1E293B", angle: 135 },
   },
   minimal: {
     accent: "#B68A42",
@@ -65,7 +65,8 @@ export const TEMPLATE_DEFAULTS: Record<
 
 export const DEFAULT_COVER: EbookCover = {
   template: "signature",
-  ...TEMPLATE_DEFAULTS.signature,
+  accent: "#F2C879",
+  background: { type: "gradient", from: "#0F172A", to: "#1E293B", angle: 135 },
   showDescription: true,
 };
 
