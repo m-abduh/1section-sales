@@ -43,8 +43,16 @@ export function useCheckout() {
             displayMode: "overlay",
             successUrl,
           },
-        });
+          eventCallback: (event: { name?: string }) => {
+            if (event?.name === "checkout.completed") {
+              window.location.href = successUrl;
+            }
+          },
+        } as Record<string, unknown>);
       } catch {
+        // Hosted checkout fallback: Paddle will redirect to its dashboard
+        // default success URL after payment. Configure that default to
+        // /checkout/success so Paddle can append _ptxn automatically.
         window.location.href = data.checkoutUrl || successUrl;
       }
     },
