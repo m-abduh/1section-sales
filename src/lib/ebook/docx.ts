@@ -624,29 +624,41 @@ async function createDocument(
   const chapters: { title: string; children: (Paragraph | Table)[] }[] = [];
   for (const [index, chapter] of ebook.chapters.entries()) {
     const children: (Paragraph | Table)[] = [
-      new Paragraph(""),
       new Paragraph({
-        heading: HeadingLevel.HEADING_2,
+        style: "Normal",
         indent: { firstLine: 0 },
-        spacing: { before: 0, after: 120, line: 360, lineRule: "auto" },
+        spacing: { before: 240, after: 0, line: 240, lineRule: "auto" },
         children: [
           new TextRun({
-            text: `${String(index + 1).padStart(2, "0")}.`,
+            text: `${String(index + 1).padStart(2, "0")}`,
             font: "Montserrat",
-            size: 48,
+            size: 40,
             bold: true,
             color: CHAPTER_NUMBER_COLOR,
           }),
+        ],
+      }),
+      new Paragraph({
+        heading: HeadingLevel.HEADING_2,
+        indent: { firstLine: 0 },
+        spacing: { before: 40, after: 120, line: 360, lineRule: "auto" },
+        border: {
+          bottom: {
+            style: BorderStyle.SINGLE,
+            size: 8,
+            color: CHAPTER_NUMBER_COLOR,
+            space: 6,
+          },
+        },
+        children: [
           new TextRun({
             text: chapter.title,
-            break: 1,
             font: "Montserrat",
             size: 36,
             bold: true,
           }),
         ],
       }),
-      new Paragraph(""),
     ];
 
     if (chapter.body !== undefined) {
@@ -739,19 +751,35 @@ async function createDocument(
           paragraph: { spacing: { after: 0, line: 360, lineRule: "auto" } },
         },
         heading1: {
-          run: { font: "Montserrat", size: 40, bold: true },
+          run: { font: "Montserrat", size: 44, bold: true, color: "1F2421" },
           paragraph: {
             indent: { firstLine: 0 },
             keepNext: true,
-            spacing: { before: 640, after: 640, line: 360, lineRule: "auto" },
+            spacing: { before: 480, after: 360, line: 360, lineRule: "auto" },
+            border: {
+              bottom: {
+                style: BorderStyle.SINGLE,
+                size: 10,
+                color: CHAPTER_NUMBER_COLOR,
+                space: 8,
+              },
+            },
           },
         },
         heading2: {
-          run: { font: "Montserrat", size: 36, bold: true },
+          run: { font: "Montserrat", size: 34, bold: true, color: "1F2421" },
           paragraph: {
             indent: { firstLine: 0 },
             keepNext: true,
-            spacing: { before: 280, after: 400, line: 360, lineRule: "auto" },
+            spacing: { before: 320, after: 240, line: 360, lineRule: "auto" },
+            border: {
+              bottom: {
+                style: BorderStyle.SINGLE,
+                size: 6,
+                color: CHAPTER_NUMBER_COLOR,
+                space: 6,
+              },
+            },
           },
         },
         heading3: {
