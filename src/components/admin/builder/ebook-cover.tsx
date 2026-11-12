@@ -10,11 +10,6 @@ import {
   type CoverInk,
 } from "@/lib/ebook/cover";
 
-/**
- * Reusable A5 cover. The same component is used for the builder preview, the
- * template thumbnails, and the off-screen node that is rasterised into a
- * Cloudinary image for PDF/DOCX exports.
- */
 export function EbookCoverDesign({
   content,
   cover,
@@ -23,7 +18,7 @@ export function EbookCoverDesign({
   cover: EbookCover;
 }) {
   const ink = readableInk(cover.background);
-  const brand = content.brand.trim() || "1section";
+  const brand = content.brand.trim();
   const niche = content.niche.trim();
   const title = content.title.trim() || "Judul ebook";
   const description = content.description.trim();
@@ -52,13 +47,26 @@ export function EbookCoverDesign({
             className="absolute inset-0"
             style={{
               background:
-                "linear-gradient(180deg, rgba(0,0,0,0.42) 0%, rgba(0,0,0,0.12) 38%, rgba(0,0,0,0.82) 100%)",
+                "linear-gradient(180deg, rgba(0,0,0,0.25) 0%, rgba(0,0,0,0.16) 28%, rgba(0,0,0,0.78) 100%)",
             }}
           />
         </>
       ) : null}
 
+      <CoverTexture dark={ink.fg === "#FFFFFF"} />
+
       <div className="relative flex h-full flex-col">
+        {cover.template === "signature" ? (
+          <SignatureCover
+            brand={brand}
+            niche={niche}
+            title={title}
+            description={description}
+            accent={cover.accent}
+            ink={ink}
+            showDescription={cover.showDescription}
+          />
+        ) : null}
         {cover.template === "minimal" ? (
           <MinimalCover
             brand={brand}
@@ -103,22 +111,11 @@ export function EbookCoverDesign({
             showDescription={cover.showDescription}
           />
         ) : null}
-        {cover.template === "photo" ? (
-          <PhotoCover
-            brand={brand}
-            niche={niche}
-            title={title}
-            description={description}
-            accent={cover.accent}
-            showDescription={cover.showDescription}
-          />
-        ) : null}
       </div>
     </div>
   );
 }
 
-/** Scales the fixed-size cover down to whatever width the wrapper has. */
 export function ScaledCover({
   children,
   className,
@@ -169,41 +166,144 @@ type LayoutProps = {
   showDescription: boolean;
 };
 
+function CoverTexture({ dark }: { dark: boolean }) {
+  const noise =
+    "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.5'/%3E%3C/svg%3E\")";
+
+  return (
+    <>
+      <div
+        className="pointer-events-none absolute inset-0"
+        style={{
+          backgroundImage: dark
+            ? `radial-gradient(ellipse at 18% 0%, rgba(255,255,255,0.10), transparent 55%), radial-gradient(ellipse at 100% 100%, rgba(255,255,255,0.06), transparent 45%), ${noise}`
+            : `radial-gradient(ellipse at 18% 0%, rgba(255,255,255,0.55), transparent 55%), radial-gradient(ellipse at 100% 100%, rgba(0,0,0,0.05), transparent 45%), ${noise}`,
+          backgroundSize: "100% 100%, 100% 100%, 140px 140px",
+          mixBlendMode: dark ? "soft-light" : "multiply",
+          opacity: dark ? 0.55 : 0.16,
+        }}
+      />
+      <div
+        className="pointer-events-none absolute inset-0"
+        style={{
+          boxShadow: dark
+            ? "inset 0 0 180px rgba(0,0,0,0.35)"
+            : "inset 0 0 160px rgba(31,36,33,0.07)",
+        }}
+      />
+    </>
+  );
+}
+
+function Eyebrow({
+  brand,
+  niche,
+  accent,
+  color,
+}: {
+  brand: string;
+  niche: string;
+  accent: string;
+  color?: string;
+}) {
+  if (!brand && !niche) return null;
+  const textColor = color ?? "currentColor";
+  return (
+    <div className="flex flex-wrap items-center gap-3">
+      {brand ? (
+        <span
+          className="text-[18px] font-semibold uppercase tracking-[0.28em]"
+          style={{ color: textColor }}
+        >
+          {brand}
+        </span>
+      ) : null}
+      {brand && niche ? (
+        <span
+          className="h-1.5 w-1.5 rounded-full"
+          style={{ background: accent, opacity: 0.9 }}
+        />
+      ) : null}
+      {niche ? (
+        <span
+          className="text-[16px] font-medium uppercase tracking-[0.22em]"
+          style={{ color: textColor, opacity: 0.78 }}
+        >
+          {niche}
+        </span>
+      ) : null}
+    </div>
+  );
+}
+
+function SignatureCover({
+  brand,
+  niche,
+  title,
+  description,
+  accent,
+  ink,
+  showDescription,
+}: LayoutProps) {
+  return (
+    <div className="flex h-full flex-col px-[88px] py-[92px]">
+      <Eyebrow brand={brand} niche={niche} accent={accent} color={ink.fg} />
+      <div className="my-auto">
+        <div className="mb-8 h-[3px] w-16 rounded-full" style={{ background: accent }} />
+        <h1
+          className="font-semibold tracking-[-0.04em]"
+          style={{
+            fontSize: titleSize(title, 88),
+            lineHeight: 1.0,
+            ...clampLines(5),
+          }}
+        >
+          {title}
+        </h1>
+        {showDescription && description ? (
+          <p
+            className="mt-8 max-w-[640px] text-[23px] leading-[1.6]"
+            style={{ color: ink.muted, ...clampLines(3) }}
+          >
+            {description}
+          </p>
+        ) : null}
+      </div>
+    </div>
+  );
+}
+
 function MinimalCover({
   brand,
   niche,
   title,
   description,
+  accent,
   ink,
   showDescription,
 }: LayoutProps) {
   return (
-    <div className="flex h-full flex-col px-[76px] py-[78px]">
-      <div className="text-center text-[19px] font-bold uppercase tracking-[0.24em]">
-        {brand}
-        {niche ? ` · ${niche}` : ""}
-      </div>
-      <div className="mt-7 h-px w-full" style={{ background: ink.line }} />
-
-      <div className="flex flex-1 flex-col justify-center py-10">
+    <div className="flex h-full flex-col px-[84px] py-[90px]">
+      <Eyebrow brand={brand} niche={niche} accent={accent} color={ink.fg} />
+      <div className="mt-10 h-px w-full" style={{ background: ink.line }} />
+      <div className="flex flex-1 flex-col justify-center">
         <h1
-          className="font-bold tracking-[-0.03em]"
+          className="font-semibold tracking-[-0.035em]"
           style={{
-            fontSize: titleSize(title, 74),
-            lineHeight: 1.03,
+            fontSize: titleSize(title, 82),
+            lineHeight: 1.02,
             ...clampLines(6),
           }}
         >
           {title}
         </h1>
       </div>
-
       <div className="mt-auto pt-10">
         <div className="h-px w-full" style={{ background: ink.line }} />
         {showDescription && description ? (
           <p
-            className="mt-7 text-[23px] leading-[1.55]"
-            style={{ color: ink.muted, ...clampLines(4) }}
+            className="mt-7 max-w-[660px] text-[22px] leading-[1.58]"
+            style={{ color: ink.muted, ...clampLines(3) }}
           >
             {description}
           </p>
@@ -223,46 +323,34 @@ function EditorialCover({
   showDescription,
 }: LayoutProps) {
   return (
-    <div className="flex h-full flex-col px-[76px] py-[78px]">
-      <div className="flex items-start justify-between gap-6">
-        <div>
-          <p
-            className="text-[13px] font-bold uppercase tracking-[0.24em]"
-            style={{ color: accent }}
+    <div className="flex h-full">
+      <div
+        className="h-full w-[10px] shrink-0"
+        style={{ background: accent }}
+      />
+      <div className="flex flex-1 flex-col px-[76px] py-[88px]">
+        <Eyebrow brand={brand} niche={niche} accent={accent} color={ink.fg} />
+        <div className="my-auto">
+          <h1
+            className="font-semibold tracking-[-0.04em]"
+            style={{
+              fontSize: titleSize(title, 92),
+              lineHeight: 0.98,
+              ...clampLines(5),
+            }}
           >
-            {brand}
-          </p>
-          <p
-            className="mt-2 text-[13px] uppercase tracking-[0.18em]"
-            style={{ color: ink.muted }}
-          >
-            {niche}
-          </p>
+            {title}
+          </h1>
+          {showDescription && description ? (
+            <p
+              className="mt-8 max-w-[620px] text-[22px] leading-[1.58]"
+              style={{ color: ink.muted, ...clampLines(3) }}
+            >
+              {description}
+            </p>
+          ) : null}
         </div>
       </div>
-
-      <div className="my-auto py-12">
-        <div className="mb-8 h-[6px] w-24" style={{ background: accent }} />
-        <h1
-          className="font-bold tracking-[-0.035em]"
-          style={{
-            fontSize: titleSize(title, 84),
-            lineHeight: 1.02,
-            ...clampLines(5),
-          }}
-        >
-          {title}
-        </h1>
-      </div>
-
-      {showDescription && description ? (
-        <p
-          className="max-w-[640px] text-[22px] leading-[1.55]"
-          style={{ color: ink.muted, ...clampLines(3) }}
-        >
-          {description}
-        </p>
-      ) : null}
     </div>
   );
 }
@@ -277,39 +365,31 @@ function BoldCover({
   showDescription,
 }: LayoutProps) {
   return (
-    <div className="flex h-full flex-col items-center px-[70px] py-[84px] text-center">
-      <div
-        className="text-[14px] font-bold uppercase tracking-[0.3em]"
-        style={{ color: accent }}
-      >
-        {brand}
-      </div>
-
-      <h1
-        className="my-auto font-bold uppercase tracking-[-0.02em]"
-        style={{
-          fontSize: titleSize(title, 92),
-          lineHeight: 0.98,
-          ...clampLines(6),
-        }}
-      >
-        {title}
-      </h1>
-
-      {showDescription && description ? (
-        <p
-          className="max-w-[620px] text-[21px] leading-[1.55]"
-          style={{ color: ink.muted, ...clampLines(3) }}
+    <div className="flex h-full flex-col px-[88px] py-[92px]">
+      <Eyebrow brand={brand} niche={niche} accent={accent} color={ink.fg} />
+      <div className="flex flex-1 flex-col justify-center">
+        <h1
+          className="font-bold uppercase tracking-[-0.03em]"
+          style={{
+            fontSize: titleSize(title, 96),
+            lineHeight: 0.96,
+            ...clampLines(6),
+          }}
         >
-          {description}
-        </p>
-      ) : null}
-
-      <div
-        className="mt-8 text-[12px] font-semibold uppercase tracking-[0.24em]"
-        style={{ color: ink.muted }}
-      >
-        {niche}
+          {title}
+        </h1>
+        <div
+          className="mt-10 h-[4px] w-20 rounded-full"
+          style={{ background: accent }}
+        />
+        {showDescription && description ? (
+          <p
+            className="mt-8 max-w-[620px] text-[21px] leading-[1.58]"
+            style={{ color: ink.muted, ...clampLines(3) }}
+          >
+            {description}
+          </p>
+        ) : null}
       </div>
     </div>
   );
@@ -325,71 +405,15 @@ function GradientCover({
   showDescription,
 }: LayoutProps) {
   return (
-    <div className="flex h-full flex-col px-[76px] py-[78px]">
-      <div className="flex items-center justify-between gap-6">
-        <span className="text-[13px] font-bold uppercase tracking-[0.26em]">
-          {brand}
-        </span>
-        <span
-          className="text-[12px] uppercase tracking-[0.2em]"
-          style={{ color: ink.muted }}
-        >
-          {niche}
-        </span>
-      </div>
-
+    <div className="flex h-full flex-col px-[88px] py-[92px]">
+      <Eyebrow brand={brand} niche={niche} accent={accent} color={ink.fg} />
       <div className="my-auto">
+        <div className="mb-8 h-[3px] w-16 rounded-full" style={{ background: accent }} />
         <h1
-          className="font-bold tracking-[-0.03em]"
+          className="font-semibold tracking-[-0.04em]"
           style={{
-            fontSize: titleSize(title, 80),
-            lineHeight: 1.03,
-            ...clampLines(6),
-          }}
-        >
-          {title}
-        </h1>
-        {showDescription && description ? (
-          <p
-            className="mt-8 max-w-[620px] text-[22px] leading-[1.55]"
-            style={{ color: ink.muted, ...clampLines(3) }}
-          >
-            {description}
-          </p>
-        ) : null}
-      </div>
-
-      <div className="h-[5px] w-28 rounded-full" style={{ background: accent }} />
-    </div>
-  );
-}
-
-function PhotoCover({
-  brand,
-  niche,
-  title,
-  description,
-  accent,
-  showDescription,
-}: Omit<LayoutProps, "ink">) {
-  return (
-    <div className="flex h-full flex-col px-[76px] py-[78px] text-white">
-      <div className="flex items-center justify-between gap-6">
-        <span className="text-[13px] font-bold uppercase tracking-[0.26em]">
-          {brand}
-        </span>
-      </div>
-
-      <div className="mt-auto">
-        <div
-          className="mb-6 h-[5px] w-24 rounded-full"
-          style={{ background: accent }}
-        />
-        <h1
-          className="font-bold tracking-[-0.03em]"
-          style={{
-            fontSize: titleSize(title, 82),
-            lineHeight: 1.02,
+            fontSize: titleSize(title, 88),
+            lineHeight: 1.0,
             ...clampLines(5),
           }}
         >
@@ -397,25 +421,23 @@ function PhotoCover({
         </h1>
         {showDescription && description ? (
           <p
-            className="mt-7 max-w-[640px] text-[21px] leading-[1.55] text-white/80"
-            style={clampLines(3)}
+            className="mt-8 max-w-[640px] text-[23px] leading-[1.6]"
+            style={{ color: ink.muted, ...clampLines(3) }}
           >
             {description}
           </p>
         ) : null}
-        <div className="mt-8 text-[12px] font-semibold uppercase tracking-[0.24em] text-white/70">
-          {niche}
-        </div>
       </div>
     </div>
   );
 }
 
 function titleSize(title: string, base: number): number {
-  if (title.length > 110) return Math.round(base * 0.58);
-  if (title.length > 80) return Math.round(base * 0.68);
-  if (title.length > 55) return Math.round(base * 0.8);
-  if (title.length > 36) return Math.round(base * 0.9);
+  if (title.length > 130) return Math.round(base * 0.56);
+  if (title.length > 100) return Math.round(base * 0.64);
+  if (title.length > 80) return Math.round(base * 0.74);
+  if (title.length > 60) return Math.round(base * 0.82);
+  if (title.length > 40) return Math.round(base * 0.9);
   return base;
 }
 

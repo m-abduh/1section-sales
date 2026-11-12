@@ -22,13 +22,11 @@ import {
 import type {
   EbookContent,
   EbookCover,
-  EbookCoverTemplate,
 } from "@/lib/ebook/types";
 import {
   COVER_ACCENTS,
   COVER_TEMPLATES,
   DEFAULT_COVER,
-  TEMPLATE_DEFAULTS,
   coverWithTemplate,
 } from "@/lib/ebook/cover";
 import { useUploadBuilderImage } from "@/hooks/use-builder";
@@ -247,7 +245,7 @@ export function CoverBuilder({
                       <ScaledCover>
                         <EbookCoverDesign
                           content={content}
-                          cover={templatePreview(cover, template.id)}
+                          cover={active ? cover : coverWithTemplate(cover, template.id)}
                         />
                       </ScaledCover>
                     </div>
@@ -507,21 +505,6 @@ export function CoverBuilder({
       </Modal>
     </div>
   );
-}
-
-function templatePreview(
-  cover: EbookCover,
-  template: EbookCoverTemplate,
-): EbookCover {
-  if (cover.background.type === "image") {
-    return { ...cover, template };
-  }
-  return {
-    ...cover,
-    template,
-    accent: TEMPLATE_DEFAULTS[template].accent,
-    background: TEMPLATE_DEFAULTS[template].background,
-  };
 }
 
 function ColorControl({
