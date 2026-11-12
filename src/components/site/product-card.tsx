@@ -70,15 +70,6 @@ export function ProductCard({
               </span>
             </div>
           )}
-
-          <span className="absolute left-5 top-5 z-10 inline-flex items-center gap-2 rounded-full border border-border/70 bg-surface/85 px-3 py-1.5 text-[10px] font-semibold uppercase tracking-[0.18em] text-fg-muted backdrop-blur">
-            <span
-              aria-hidden
-              className="size-1.5 rounded-full"
-              style={{ backgroundColor: accentColor }}
-            />
-            {LEARNING_LEVEL_LABEL[product.level]}
-          </span>
         </div>
 
         {/* 2. Info */}
@@ -86,6 +77,12 @@ export function ProductCard({
           <div className="flex flex-wrap items-center gap-3">
             <span className="text-[10px] font-semibold uppercase tracking-[0.2em] text-fg-muted">
               Guide {number}
+            </span>
+            <span className="text-[10px] font-semibold uppercase tracking-[0.18em] text-fg-muted">
+              {LEARNING_LEVEL_LABEL[product.level]}
+            </span>
+            <span className="text-[10px] font-semibold uppercase tracking-[0.18em] text-fg-muted">
+              {LEARNING_LEVEL_LABEL[product.level]}
             </span>
             {isFree ? (
               <span
