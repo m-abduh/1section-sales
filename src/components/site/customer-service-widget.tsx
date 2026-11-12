@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { usePathname } from "next/navigation";
@@ -14,7 +14,7 @@ interface ChatMessage {
   local?: boolean;
 }
 
-const GREETING = "Hi, how can I help? 👋";
+const GREETING = "Hi, how can I help? ðŸ‘‹";
 const OPENER_KEY = "1section:customer-service-opened-v2";
 
 function createSessionKey(): string {
@@ -423,13 +423,9 @@ export function CustomerServiceWidget() {
             </span>
             <div className="min-w-0 flex-1">
               <p className="truncate text-sm font-semibold tracking-tight text-fg">
-                1section support
+                Customer Service
               </p>
-              <p className="mt-0.5 flex items-center gap-1.5 truncate text-[11px] text-fg-muted">
-                <span className="relative flex size-1.5 shrink-0">
-                  <span className="absolute inline-flex size-full animate-ping rounded-full bg-emerald-500 opacity-60" />
-                  <span className="relative inline-flex size-1.5 rounded-full bg-emerald-500" />
-                </span>
+              <p className="mt-0.5 truncate text-[11px] text-fg-muted">
                 AI assistant · online
               </p>
             </div>
@@ -535,7 +531,7 @@ export function CustomerServiceWidget() {
               </button>
             </div>
             <p className="mt-2 flex items-center justify-center gap-1 text-center text-[10px] text-fg-muted">
-              <span>AI assistant can make mistakes ·</span>
+              <span>AI assistant can make mistakes Â·</span>
               <a
                 href="mailto:support@1section.com"
                 className="font-medium text-fg underline decoration-fg/40 underline-offset-2 transition hover:decoration-fg"
