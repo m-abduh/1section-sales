@@ -230,9 +230,9 @@ class PdfBook {
   }
 
   /**
-   * Renders a plain justified paragraph, splitting it across pages when it does
-   * not fit. The first-line indent is applied only to the first fragment; any
-   * continuation on a new page starts without it.
+   * Renders a plain left-aligned paragraph, splitting it across pages when it
+   * does not fit. The first-line indent is applied only to the first fragment;
+   * any continuation on a new page starts without it.
    */
   private paragraph(text: string) {
     if (!text.trim()) return;
@@ -244,7 +244,7 @@ class PdfBook {
       const indent = first ? 18 : 0;
       const options = {
         width: CONTENT_WIDTH,
-        align: "justify" as const,
+        align: "left" as const,
         lineGap: BODY_LINE_GAP,
         indent,
       };
@@ -361,7 +361,7 @@ class PdfBook {
     d.font("Body").fontSize(BODY_SIZE);
     const height = d.heightOfString(text, {
       width: CONTENT_WIDTH,
-      align: "justify",
+      align: "left",
       lineGap: BODY_LINE_GAP,
       indent: 18,
     });
@@ -524,7 +524,7 @@ class PdfBook {
       const x = MARGIN + left;
       const options = {
         width: CONTENT_WIDTH - left,
-        align: "justify" as const,
+        align: "left" as const,
         lineGap: BODY_LINE_GAP,
         indent,
       };
@@ -636,7 +636,7 @@ class PdfBook {
     const x = MARGIN + QUOTE_INDENT;
     const options = {
       width: CONTENT_WIDTH - QUOTE_INDENT,
-      align: "justify" as const,
+      align: "left" as const,
       lineGap: BODY_LINE_GAP,
       indent: 0,
     };
@@ -724,7 +724,7 @@ class PdfBook {
     const textX = x + hang;
     const options = {
       width: CONTENT_WIDTH - left - hang,
-      align: "justify" as const,
+      align: "left" as const,
       lineGap: BODY_LINE_GAP,
       indent: 0,
     };
