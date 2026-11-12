@@ -1,9 +1,12 @@
 import { Prisma, type Order } from "@prisma/client";
 import { prisma } from "../../lib/prisma";
 import { paddle } from "../../lib/paddle";
+import { generateOrderNumber } from "../../utils/ids";
 import { fulfillOrder, revokeOrderEntitlements } from "../downloads/download.service";
 import {
   decideRefund,
+  itemPriceId,
+  readItems,
   readNumber,
   readRecord,
   readString,
@@ -56,14 +59,128 @@ async function resolveCustomerEmail(customerId: string | undefined): Promise<str
   }
 }
 
+async function createOrderFromTransaction(
+  transactionId: string,
+  data: Record<string, unknown>,
+  customData: Record<string, unknown>,
+): Promise<OrderWithItems | null> {
+  const items = readItems(data);
+  const firstItem = items[0];
+  const priceId = firstItem ? itemPriceId(firstItem) : undefined;
+  const customProductId =
+    typeof customData.productId === "string" ? customData.productId : undefined;
+
+  let product = null as null | {
+    id: string;
+    name: string;
+    priceAmount: number;
+    currency: string;
+    paddlePriceId: string | null;
+  };
+
+  if (customProductId) {
+    product = await prisma.product.findUnique({
+      where: { id: customProductId },
+      select: { id: true, name: true, priceAmount: true, currency: true, paddlePriceId: true },
+    });
+  }
+  if (!product && priceId) {
+    product = await prisma.product.findFirst({
+      where: { paddlePriceId: priceId },
+      select: { id: true, name: true, priceAmount: true, currency: true, paddlePriceId: true },
+    });
+  }
+
+  if (!product) {
+    console.warn(`[webhook] cannot create order for ${transactionId}: product not resolved`);
+    return null;
+  }
+
+  const currency =
+    (readString(data, "currencyCode") ?? readString(data, "currency") ?? product.currency).toUpperCase();
+  const totals = readRecord(readRecord(data, "details"), "totals");
+  const amountPaid = readNumber(totals, "total") ?? readNumber(totals, "grandTotal") ?? product.priceAmount;
+  const quantity = Math.max(1, firstItem?.quantity ?? 1);
+  const unitAmount = quantity > 0 ? Math.round(amountPaid / quantity) : amountPaid;
+  const customerId = readString(data, "customerId");
+  const email = (await resolveCustomerEmail(customerId)) ?? null;
+  const paddlePriceId = priceId ?? product.paddlePriceId ?? null;
+
+  for (let attempt = 0; attempt < 3; attempt++) {
+    try {
+      return await prisma.order.create({
+        data: {
+          orderNumber: generateOrderNumber(),
+          email,
+          status: "PAID",
+          currency,
+          subtotal: amountPaid,
+          total: amountPaid,
+          amountRefunded: 0,
+          paddleTransactionId: transactionId,
+          paddleCustomerId: customerId ?? null,
+          paidAt: new Date(),
+          items: {
+            create: [
+              {
+                productId: product.id,
+                productName: product.name,
+                productTitle: product.name,
+                unitAmount,
+                quantity,
+                lineTotal: amountPaid,
+                paddlePriceId,
+              },
+            ],
+          },
+          payments: {
+            create: [
+              {
+                provider: "PADDLE",
+                providerTransactionId: transactionId,
+                status: "COMPLETED",
+                amount: amountPaid,
+                currency,
+              },
+            ],
+          },
+        },
+        include: { items: true },
+      });
+    } catch (error) {
+      const isUnique =
+        error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2002";
+      if (!isUnique) throw error;
+      const existing = await prisma.order.findUnique({
+        where: { paddleTransactionId: transactionId },
+        include: { items: true },
+      });
+      if (existing) return existing;
+    }
+  }
+  return null;
+}
+
 async function markOrderPaid(event: PaddleEvent): Promise<void> {
   const data = event.data;
   const transactionId = readString(data, "id");
   const customData = readRecord(data, "customData");
-  const order = await resolveOrder(transactionId, customData);
+  let order = await resolveOrder(transactionId, customData);
+
+  if (!order && transactionId) {
+    order = await createOrderFromTransaction(transactionId, data, customData);
+  }
 
   if (!order) {
     console.warn(`[webhook] order not found for transaction ${transactionId}`);
+    return;
+  }
+
+  if (order.status === "PAID") {
+    const created = await fulfillOrder(order.id);
+    if (created === 0) {
+      console.warn(`[webhook] order ${order.id} produced no download tokens`);
+    }
     return;
   }
 

@@ -5,13 +5,7 @@ import { api } from "@/lib/api";
 import { getPaddle } from "@/lib/paddle";
 
 export const LAST_ORDER_KEY = "section_last_order";
-export const LAST_ACCESS_KEY = "section_last_access";
-
-export interface StoredCheckoutAccess {
-  orderNumber: string;
-  transactionId: string;
-  accessToken: string;
-}
+export const LAST_TXN_KEY = "section_last_txn";
 
 export interface CheckoutPayload {
   productId: string;
@@ -19,10 +13,8 @@ export interface CheckoutPayload {
 }
 
 export interface CheckoutResult {
-  orderNumber: string;
   transactionId: string;
   checkoutUrl: string;
-  accessToken: string;
 }
 
 export function useCheckout() {
@@ -33,22 +25,15 @@ export function useCheckout() {
     },
     onSuccess: async (data) => {
       try {
-        window.localStorage.setItem(LAST_ORDER_KEY, data.orderNumber);
-        window.localStorage.setItem(
-          LAST_ACCESS_KEY,
-          JSON.stringify({
-            orderNumber: data.orderNumber,
-            transactionId: data.transactionId,
-            accessToken: data.accessToken,
-          } satisfies StoredCheckoutAccess),
-        );
+        window.localStorage.setItem(LAST_TXN_KEY, data.transactionId);
+        window.localStorage.removeItem(LAST_ORDER_KEY);
       } catch {
         /* storage might be unavailable */
       }
 
-      const successUrl = `${window.location.origin}/checkout/success?order=${encodeURIComponent(
-        data.orderNumber,
-      )}&access=${encodeURIComponent(data.accessToken)}`;
+      const successUrl = `${window.location.origin}/checkout/success?_ptxn=${encodeURIComponent(
+        data.transactionId,
+      )}`;
 
       try {
         const paddle = await getPaddle();

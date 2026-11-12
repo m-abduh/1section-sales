@@ -7,11 +7,7 @@ import { useQuery } from "@tanstack/react-query";
 import { api, getApiErrorMessage } from "@/lib/api";
 import { apiUrl } from "@/lib/site";
 import { formatCurrency, formatDate } from "@/lib/format";
-import {
-  LAST_ACCESS_KEY,
-  LAST_ORDER_KEY,
-  type StoredCheckoutAccess,
-} from "@/hooks/use-checkout";
+import { LAST_ORDER_KEY, LAST_TXN_KEY } from "@/hooks/use-checkout";
 import type { PublicOrder } from "@/lib/types";
 import { StatusBadge } from "@/components/ui/badge";
 import { Spinner } from "@/components/ui/spinner";
@@ -29,39 +25,9 @@ function startDownload(url: string) {
   window.setTimeout(() => frame.remove(), 60_000);
 }
 
-function getStoredCheckoutAccess(): StoredCheckoutAccess | null {
-  try {
-    const raw = window.localStorage.getItem(LAST_ACCESS_KEY);
-    if (!raw) return null;
-
-    const stored: unknown = JSON.parse(raw);
-    if (
-      typeof stored === "object" &&
-      stored !== null &&
-      "orderNumber" in stored &&
-      typeof stored.orderNumber === "string" &&
-      "transactionId" in stored &&
-      typeof stored.transactionId === "string" &&
-      "accessToken" in stored &&
-      typeof stored.accessToken === "string"
-    ) {
-      return {
-        orderNumber: stored.orderNumber,
-        transactionId: stored.transactionId,
-        accessToken: stored.accessToken,
-      };
-    }
-  } catch {
-    return null;
-  }
-
-  return null;
-}
-
 function SuccessContent() {
   const searchParams = useSearchParams();
-  const [orderNumber, setOrderNumber] = useState<string | null>(null);
-  const [accessToken, setAccessToken] = useState<string | null>(null);
+  const [orderRef, setOrderRef] = useState<string | null>(null);
   const [manual, setManual] = useState("");
   const [email, setEmail] = useState("");
   const [proofEmail, setProofEmail] = useState("");
@@ -69,42 +35,29 @@ function SuccessContent() {
   useEffect(() => {
     const fromQuery = searchParams.get("order");
     const txn = searchParams.get("_ptxn") ?? searchParams.get("txn");
-    const access = searchParams.get("access");
-    const storedAccess = getStoredCheckoutAccess();
     const ref = fromQuery || txn;
     if (ref) {
-      setOrderNumber(ref);
-      setAccessToken(
-        access ||
-          (storedAccess &&
-          (storedAccess.orderNumber === ref ||
-            storedAccess.transactionId === ref)
-            ? storedAccess.accessToken
-            : null),
-      );
+      setOrderRef(ref);
       return;
     }
-    const stored = window.localStorage.getItem(LAST_ORDER_KEY);
-    if (stored) {
-      setOrderNumber(stored);
-      setAccessToken(
-        access ||
-          (storedAccess?.orderNumber === stored
-            ? storedAccess.accessToken
-            : null),
-      );
+    try {
+      const storedTxn = window.localStorage.getItem(LAST_TXN_KEY);
+      const storedOrder = window.localStorage.getItem(LAST_ORDER_KEY);
+      const stored = storedTxn || storedOrder;
+      if (stored) setOrderRef(stored);
+    } catch {
+      /* ignore */
     }
   }, [searchParams]);
 
   const orderQuery = useQuery({
-    queryKey: ["order-status", orderNumber, accessToken, proofEmail],
-    enabled: Boolean(orderNumber),
+    queryKey: ["order-status", orderRef, proofEmail],
+    enabled: Boolean(orderRef),
     queryFn: async () => {
       const params: Record<string, string> = {};
-      if (accessToken) params.access = accessToken;
       if (proofEmail) params.email = proofEmail;
       const response = await api.get<{ data: PublicOrder }>(
-        `/orders/${orderNumber}/status`,
+        `/orders/${orderRef}/status`,
         { params },
       );
       return response.data.data;
@@ -133,7 +86,7 @@ function SuccessContent() {
 
       <main className="flex-1">
         <div className="mx-auto max-w-4xl px-4 py-10 sm:px-6">
-          {!orderNumber ? (
+          {!orderRef ? (
             <div className="rounded-3xl border border-border bg-card p-8 shadow-sm">
               <p className="text-sm font-medium text-fg">
                 Enter your Paddle transaction ID or order number to retrieve a
@@ -144,17 +97,7 @@ function SuccessContent() {
                 onSubmit={(event) => {
                   event.preventDefault();
                   const ref = manual.trim();
-                  if (ref) {
-                    const storedAccess = getStoredCheckoutAccess();
-                    setOrderNumber(ref);
-                    setAccessToken(
-                      storedAccess &&
-                        (storedAccess.orderNumber === ref ||
-                          storedAccess.transactionId === ref)
-                        ? storedAccess.accessToken
-                        : null,
-                    );
-                  }
+                  if (ref) setOrderRef(ref);
                 }}
               >
                 <Input
@@ -168,13 +111,13 @@ function SuccessContent() {
             </div>
           ) : null}
 
-          {orderNumber && orderQuery.isLoading ? (
+          {orderRef && orderQuery.isLoading ? (
             <div className="flex items-center gap-3 rounded-3xl border border-border bg-card p-8 text-sm text-fg-muted">
               <Spinner /> Loading your purchase...
             </div>
           ) : null}
 
-          {orderNumber && orderQuery.isError ? (
+          {orderRef && orderQuery.isError ? (
             <div className="rounded-3xl border border-red-200 bg-red-50 p-6 text-sm text-red-700 dark:border-red-900/50 dark:bg-red-950/40 dark:text-red-300">
               {getApiErrorMessage(orderQuery.error)}
             </div>
@@ -187,15 +130,19 @@ function SuccessContent() {
                 <div className="flex flex-wrap items-start justify-between gap-4">
                   <div>
                     <p className="text-xs font-semibold uppercase tracking-[0.18em] text-fg-muted">
-                      Order
+                      {orderQuery.data.orderNumber.startsWith("txn_")
+                        ? "Transaction"
+                        : "Order"}
                     </p>
                     <p className="mt-1 text-xl font-bold tracking-tight text-fg">
                       {orderQuery.data.orderNumber}
                     </p>
-                    <p className="mt-1 text-xs text-fg-muted">
-                      {formatCurrency(orderQuery.data.total, orderQuery.data.currency)}{" "}
-                      · {formatDate(orderQuery.data.paidAt ?? new Date())}
-                    </p>
+                    {orderQuery.data.total > 0 || orderQuery.data.paidAt ? (
+                      <p className="mt-1 text-xs text-fg-muted">
+                        {formatCurrency(orderQuery.data.total, orderQuery.data.currency)}{" "}
+                        · {formatDate(orderQuery.data.paidAt ?? new Date())}
+                      </p>
+                    ) : null}
                   </div>
                   <StatusBadge status={orderQuery.data.status} />
                 </div>

@@ -1,15 +1,11 @@
 import { prisma } from "../../lib/prisma";
 import { paddle } from "../../lib/paddle";
 import { ApiError } from "../../utils/api-error";
-import { generateOrderNumber } from "../../utils/ids";
-import { createOrderAccessLink } from "../orders/order.service";
 import type { CreateCheckoutInput } from "./checkout.schema";
 
 export interface CheckoutResult {
-  orderNumber: string;
   transactionId: string;
   checkoutUrl: string;
-  accessToken: string;
 }
 
 export async function createCheckout(
@@ -17,7 +13,6 @@ export async function createCheckout(
 ): Promise<CheckoutResult> {
   const product = await prisma.product.findUnique({
     where: { id: input.productId },
-    include: { niche: { select: { slug: true, name: true } } },
   });
 
   if (!product || !product.active) {
@@ -30,30 +25,6 @@ export async function createCheckout(
     );
   }
 
-  const order = await prisma.order.create({
-    data: {
-      orderNumber: generateOrderNumber(),
-      email: input.email?.toLowerCase() ?? null,
-      status: "PENDING",
-      currency: product.currency,
-      subtotal: product.priceAmount,
-      total: product.priceAmount,
-      items: {
-        create: [
-          {
-            productId: product.id,
-            productName: product.name,
-            productTitle: product.name,
-            unitAmount: product.priceAmount,
-            quantity: 1,
-            lineTotal: product.priceAmount,
-            paddlePriceId: product.paddlePriceId,
-          },
-        ],
-      },
-    },
-  });
-
   try {
     const transaction = await paddle.transactions.create({
       items: [
@@ -63,8 +34,6 @@ export async function createCheckout(
         },
       ],
       customData: {
-        orderId: order.id,
-        orderNumber: order.orderNumber,
         productId: product.id,
       },
     });
@@ -76,37 +45,11 @@ export async function createCheckout(
       );
     }
 
-    await prisma.$transaction([
-      prisma.order.update({
-        where: { id: order.id },
-        data: { paddleTransactionId: transaction.id },
-      }),
-      prisma.payment.create({
-        data: {
-          orderId: order.id,
-          provider: "PADDLE",
-          providerTransactionId: transaction.id,
-          status: "PENDING",
-          amount: order.total,
-          currency: order.currency,
-        },
-      }),
-    ]);
-
-    const accessToken = await createOrderAccessLink(order.id, order.email);
-
     return {
-      orderNumber: order.orderNumber,
       transactionId: transaction.id,
       checkoutUrl,
-      accessToken,
     };
   } catch (error) {
-    await prisma.order.update({
-      where: { id: order.id },
-      data: { status: "FAILED" },
-    });
-
     if (error instanceof ApiError) {
       throw error;
     }

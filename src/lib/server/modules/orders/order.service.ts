@@ -66,7 +66,7 @@ async function isAuthorized(orderId: string, orderEmail: string | null, proof: A
 export async function getOrderStatus(
   orderNumber: string,
   proof: AccessProof,
-): Promise<PublicOrder> {
+): Promise<PublicOrder | null> {
   // `orderNumber` may be the store order number (ORD-...) or the Paddle
   // transaction ID (txn_...) coming from Paddle's success redirect.
   const order = await prisma.order.findFirst({
@@ -84,7 +84,19 @@ export async function getOrderStatus(
   });
 
   if (!order) {
-    throw ApiError.notFound("Order not found");
+    if (orderNumber.startsWith("txn_")) {
+      return {
+        orderNumber,
+        status: "PENDING",
+        total: 0,
+        currency: "USD",
+        paidAt: null,
+        authorized: false,
+        hasEmail: false,
+        items: [],
+      };
+    }
+    return null;
   }
 
   const authorized = await isAuthorized(order.id, order.email, proof);
