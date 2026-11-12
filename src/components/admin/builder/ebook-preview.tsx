@@ -378,6 +378,16 @@ export function EbookPreview({ projectId }: { projectId: string }) {
   );
 }
 
+function slugify(value: string) {
+  return value
+    .toLowerCase()
+    .normalize("NFKD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "")
+    .replace(/-{2,}/g, "-");
+}
+
 function PublishModal({
   open,
   onClose,
@@ -528,9 +538,16 @@ function PublishModal({
           product={existingProduct}
           initialValues={
             existingProduct
-              ? undefined
+              ? {
+                  name: defaultName,
+                  slug: slugify(defaultName),
+                  summary: defaultSummary ?? "",
+                  description: defaultSummary ?? "",
+                  nicheId: savedNiche?.id ?? existingProduct.nicheId,
+                }
               : {
                   name: defaultName,
+                  slug: slugify(defaultName),
                   summary: "",
                   description: defaultSummary ?? "",
                   nicheId: savedNiche?.id ?? "",
