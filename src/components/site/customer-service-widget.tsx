@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { usePathname } from "next/navigation";
@@ -14,7 +14,7 @@ interface ChatMessage {
   local?: boolean;
 }
 
-const GREETING = "Hi, how can I help? ðŸ‘‹";
+const GREETING = "Hi, how can I help? 👋😊";
 const OPENER_KEY = "1section:customer-service-opened-v2";
 
 function createSessionKey(): string {
