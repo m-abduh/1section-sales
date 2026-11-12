@@ -386,7 +386,8 @@ export function CustomerServiceWidget() {
               onClick={openChat}
               className="group block w-full text-left"
             >
-              <span className="block text-[10px] font-semibold uppercase tracking-[0.14em] text-fg-muted">
+              <span className="inline-flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-[0.14em] text-fg-muted">
+                <span className="size-1.5 animate-pulse rounded-full bg-emerald-500" />
                 1 new message
               </span>
               <span className="mt-2 block pr-5 text-sm leading-5 text-fg">
