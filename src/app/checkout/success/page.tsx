@@ -25,6 +25,13 @@ function startDownload(url: string) {
   window.setTimeout(() => frame.remove(), 60_000);
 }
 
+function validRef(value: string | null): string | null {
+  if (!value) return null;
+  const trimmed = value.trim();
+  if (!trimmed || trimmed === "undefined" || trimmed === "null") return null;
+  return trimmed;
+}
+
 function SuccessContent() {
   const searchParams = useSearchParams();
   const [orderRef, setOrderRef] = useState<string | null>(null);
@@ -33,16 +40,16 @@ function SuccessContent() {
   const [proofEmail, setProofEmail] = useState("");
 
   useEffect(() => {
-    const fromQuery = searchParams.get("order");
-    const txn = searchParams.get("_ptxn") ?? searchParams.get("txn");
+    const fromQuery = validRef(searchParams.get("order"));
+    const txn = validRef(searchParams.get("_ptxn") ?? searchParams.get("txn"));
     const ref = fromQuery || txn;
     if (ref) {
       setOrderRef(ref);
       return;
     }
     try {
-      const storedTxn = window.localStorage.getItem(LAST_TXN_KEY);
-      const storedOrder = window.localStorage.getItem(LAST_ORDER_KEY);
+      const storedTxn = validRef(window.localStorage.getItem(LAST_TXN_KEY));
+      const storedOrder = validRef(window.localStorage.getItem(LAST_ORDER_KEY));
       const stored = storedTxn || storedOrder;
       if (stored) setOrderRef(stored);
     } catch {
