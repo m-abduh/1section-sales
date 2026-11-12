@@ -278,6 +278,28 @@ function docxRuns(nodes: EbookRichTextNode[]): TextRun[] {
   return runs;
 }
 
+function docxRunsColored(nodes: EbookRichTextNode[], color: string): TextRun[] {
+  const runs: TextRun[] = [];
+  for (const run of richTextRuns(nodes)) {
+    if (run.text.length === 0) continue;
+    const marks = run.marks.map((mark) => mark.type);
+    const lines = run.text.split("\n");
+    lines.forEach((line, index) => {
+      runs.push(
+        new TextRun({
+          text: line,
+          font: "Montserrat",
+          bold: marks.includes("bold"),
+          italics: marks.includes("italic"),
+          color,
+          break: index > 0 ? 1 : undefined,
+        }),
+      );
+    });
+  }
+  return runs;
+}
+
 async function docxImageParagraph(
   node: EbookRichTextNode,
   images: DocxImageCache,
@@ -464,14 +486,17 @@ async function richDocxBlocks(
     if (node.type === "blockquote") {
       for (const child of node.content ?? []) {
         if (child.type === "paragraph") {
-          const runs = docxRuns(child.content ?? []);
+          const runs = docxRunsColored(
+            child.content ?? [],
+            CHAPTER_NUMBER_COLOR,
+          );
           blocks.push(
             new Paragraph({
               style: "Normal",
               indent: { left: 360 },
               spacing: {
-                before: 120,
-                after: 120,
+                before: 140,
+                after: 100,
                 line: 360,
                 lineRule: "auto",
               },
@@ -479,7 +504,7 @@ async function richDocxBlocks(
                 left: {
                   style: BorderStyle.SINGLE,
                   size: 18,
-                  color: "C4AD86",
+                  color: CHAPTER_NUMBER_COLOR,
                   space: 14,
                 },
               },
@@ -490,8 +515,13 @@ async function richDocxBlocks(
               },
               children:
                 runs.length > 0
-                  ? runs.map((run, i) => run)
-                  : [new TextRun({ text: "" })],
+                  ? runs
+                  : [
+                      new TextRun({
+                        text: "",
+                        color: CHAPTER_NUMBER_COLOR,
+                      }),
+                    ],
             }),
           );
         } else if (child.content?.length) {
@@ -699,7 +729,7 @@ async function createDocument(
           new TextRun({
             text: `${String(index + 1).padStart(2, "0")}`,
             font: "Montserrat",
-            size: 40,
+            size: 56,
             bold: true,
             color: CHAPTER_NUMBER_COLOR,
           }),
@@ -714,14 +744,14 @@ async function createDocument(
             style: BorderStyle.SINGLE,
             size: 8,
             color: CHAPTER_NUMBER_COLOR,
-            space: 6,
+            space: 18,
           },
         },
         children: [
           new TextRun({
             text: chapter.title,
             font: "Montserrat",
-            size: 36,
+            size: 44,
             bold: true,
           }),
         ],
@@ -828,13 +858,13 @@ async function createDocument(
                 style: BorderStyle.SINGLE,
                 size: 10,
                 color: CHAPTER_NUMBER_COLOR,
-                space: 8,
+                space: 20,
               },
             },
           },
         },
         heading2: {
-          run: { font: "Montserrat", size: 34, bold: true, color: "1F2421" },
+          run: { font: "Montserrat", size: 44, bold: true, color: "1F2421" },
           paragraph: {
             indent: { firstLine: 0 },
             keepNext: true,
@@ -844,7 +874,7 @@ async function createDocument(
                 style: BorderStyle.SINGLE,
                 size: 6,
                 color: CHAPTER_NUMBER_COLOR,
-                space: 6,
+                space: 18,
               },
             },
           },

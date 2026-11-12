@@ -29,7 +29,7 @@ const BODY_BEFORE = 0;
 const BODY_AFTER = 6;
 
 const H1_SIZE = 22;
-const H2_SIZE = 18;
+const H2_SIZE = 22;
 const H3_SIZE = 14;
 // Generous breathing room around level 1/2 headings so sections read clearly.
 const H1_BEFORE = 28;
@@ -42,7 +42,7 @@ const CHAPTER_TITLE_BEFORE = 28;
 const CHAPTER_TITLE_AFTER = 24;
 const COVER_TITLE_SIZE = 26;
 const COVER_DESCRIPTION_SIZE = 12;
-const CHAPTER_NUMBER_SIZE = 22;
+const CHAPTER_NUMBER_SIZE = 34;
 const RUNNING_SIZE = 8;
 const TOC_SIZE = 12;
 const TOC_LINE_GAP = 4;
@@ -357,7 +357,7 @@ class PdfBook {
     this.y = d.y;
 
     if (variant === "h1") {
-      this.y += 6;
+      this.y += 14;
       d.moveTo(MARGIN, this.y)
         .lineTo(MARGIN + 72, this.y)
         .lineWidth(2)
@@ -365,7 +365,7 @@ class PdfBook {
         .stroke();
       this.y += 4;
     } else if (variant === "h2") {
-      this.y += 5;
+      this.y += 13;
       d.moveTo(MARGIN, this.y)
         .lineTo(MARGIN + 48, this.y)
         .lineWidth(1.5)
@@ -678,10 +678,10 @@ class PdfBook {
     d.rect(MARGIN, blockTop, CONTENT_WIDTH, blockHeight)
       .fill("#F5F4F1");
     d.rect(barX, blockTop, 3, blockHeight)
-      .fill("#C4AD86");
+      .fill(GOLD);
     d.restore();
 
-    const textY = blockTop + padY;
+    const textY = blockTop + padY + 2;
     runs.forEach((run, index) => {
       const isLast = index === runs.length - 1;
       const marks = richTextMarksOf({ type: "text", text: run.text, marks: run.marks });
@@ -693,7 +693,7 @@ class PdfBook {
             : marks.italic
               ? "Italic"
               : "Body";
-      d.font(font).fontSize(BODY_SIZE).fillColor("#3A403C");
+      d.font(font).fontSize(BODY_SIZE).fillColor(GOLD);
       if (index === 0) {
         d.text(run.text, textX, textY, { ...options, continued: !isLast });
       } else {
@@ -1033,7 +1033,7 @@ class PdfBook {
           width: CONTENT_WIDTH,
           lineGap: 2,
         });
-      this.y = this.doc.y + 6;
+      this.y = this.doc.y + 14;
       this.doc
         .moveTo(MARGIN, this.y)
         .lineTo(MARGIN + 56, this.y)
