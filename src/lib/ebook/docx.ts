@@ -464,17 +464,34 @@ async function richDocxBlocks(
     if (node.type === "blockquote") {
       for (const child of node.content ?? []) {
         if (child.type === "paragraph") {
+          const runs = docxRuns(child.content ?? []);
           blocks.push(
             new Paragraph({
               style: "Normal",
-              indent: { left: 720 },
+              indent: { left: 360 },
               spacing: {
-                before: 40,
-                after: 40,
+                before: 120,
+                after: 120,
                 line: 360,
                 lineRule: "auto",
               },
-              children: docxRuns(child.content ?? []),
+              border: {
+                left: {
+                  style: BorderStyle.SINGLE,
+                  size: 18,
+                  color: "C4AD86",
+                  space: 14,
+                },
+              },
+              shading: {
+                type: ShadingType.CLEAR,
+                color: "auto",
+                fill: "F5F4F1",
+              },
+              children:
+                runs.length > 0
+                  ? runs.map((run, i) => run)
+                  : [new TextRun({ text: "" })],
             }),
           );
         } else if (child.content?.length) {

@@ -654,28 +654,34 @@ class PdfBook {
     const plain = runs.map((r) => r.text).join("");
     if (!plain.trim()) return;
 
-    const QUOTE_INDENT = 28;
-    const x = MARGIN + QUOTE_INDENT;
+    const barX = MARGIN + 2;
+    const textX = MARGIN + 22;
     const options = {
-      width: CONTENT_WIDTH - QUOTE_INDENT,
+      width: CONTENT_WIDTH - 22,
       align: "left" as const,
-      lineGap: BODY_LINE_GAP,
+      lineGap: BODY_LINE_GAP + 1,
       indent: 0,
     };
 
     d.font("Body").fontSize(BODY_SIZE);
     const height = d.heightOfString(plain, options);
-    this.ensureSpace(12 + height + 12);
-    this.y += 12;
+    const padY = 10;
+    const outerBefore = 10;
+    const outerAfter = 12;
+    this.ensureSpace(outerBefore + padY * 2 + height + outerAfter);
+    this.y += outerBefore;
+
+    const blockTop = this.y;
+    const blockHeight = height + padY * 2;
 
     d.save();
-    d.strokeColor(GOLD);
-    d.lineWidth(2);
-    d.lineCap("round");
-    d.moveTo(MARGIN + 12, this.y).lineTo(MARGIN + 12, this.y + height);
-    d.stroke();
+    d.rect(MARGIN, blockTop, CONTENT_WIDTH, blockHeight)
+      .fill("#F5F4F1");
+    d.rect(barX, blockTop, 3, blockHeight)
+      .fill("#C4AD86");
     d.restore();
 
+    const textY = blockTop + padY;
     runs.forEach((run, index) => {
       const isLast = index === runs.length - 1;
       const marks = richTextMarksOf({ type: "text", text: run.text, marks: run.marks });
@@ -687,15 +693,15 @@ class PdfBook {
             : marks.italic
               ? "Italic"
               : "Body";
-      d.font(font).fontSize(BODY_SIZE).fillColor(MUTED);
+      d.font(font).fontSize(BODY_SIZE).fillColor("#3A403C");
       if (index === 0) {
-        d.text(run.text, x, this.y, { ...options, continued: !isLast });
+        d.text(run.text, textX, textY, { ...options, continued: !isLast });
       } else {
         d.text(run.text, { ...options, continued: !isLast });
       }
     });
 
-    this.y = d.y + 12;
+    this.y = blockTop + blockHeight + outerAfter;
   }
 
   private async richList(node: EbookRichTextNode, level: number) {
