@@ -53,7 +53,7 @@ export function EbookCoverDesign({
         </>
       ) : null}
 
-      <CoverPattern dark={ink.fg === "#FFFFFF"} image={Boolean(imageUrl)} />
+      <CoverTexture dark={ink.fg === "#FFFFFF"} image={Boolean(imageUrl)} />
 
       <div className="relative flex h-full flex-col">
         {cover.template === "signature" ? (
@@ -166,30 +166,20 @@ type LayoutProps = {
   showDescription: boolean;
 };
 
-function CoverPattern({ dark, image }: { dark: boolean; image: boolean }) {
-  const line = dark ? "rgba(255,255,255,0.07)" : "rgba(31,36,33,0.06)";
-  const lineStrong = dark ? "rgba(255,255,255,0.12)" : "rgba(31,36,33,0.1)";
-  const opacity = image ? 0.35 : 1;
+function CoverTexture({ dark, image }: { dark: boolean; image: boolean }) {
+  const noise =
+    "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.45'/%3E%3C/svg%3E\")";
 
   return (
-    <>
-      <div
-        className="pointer-events-none absolute inset-0"
-        style={{
-          backgroundImage: `linear-gradient(${line} 1px, transparent 1px), linear-gradient(90deg, ${line} 1px, transparent 1px)`,
-          backgroundSize: "48px 48px",
-          opacity,
-        }}
-      />
-      <div
-        className="pointer-events-none absolute inset-0"
-        style={{
-          backgroundImage: `linear-gradient(${lineStrong} 1px, transparent 1px), linear-gradient(90deg, ${lineStrong} 1px, transparent 1px)`,
-          backgroundSize: "192px 192px",
-          opacity,
-        }}
-      />
-    </>
+    <div
+      className="pointer-events-none absolute inset-0"
+      style={{
+        backgroundImage: noise,
+        backgroundSize: "180px 180px",
+        opacity: image ? 0.08 : dark ? 0.18 : 0.12,
+        mixBlendMode: dark ? "soft-light" : "multiply",
+      }}
+    />
   );
 }
 

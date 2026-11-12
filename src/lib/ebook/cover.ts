@@ -9,7 +9,7 @@ import type {
  * Bump this when a template's visual output changes so every existing cover
  * is marked stale and gets re-rendered on the next save.
  */
-const COVER_VERSION = 18;
+const COVER_VERSION = 20;
 
 export const COVER_WIDTH = 874;
 export const COVER_HEIGHT = 1240;
@@ -42,8 +42,8 @@ export const TEMPLATE_DEFAULTS: Record<
   Pick<EbookCover, "accent" | "background">
 > = {
   signature: {
-    accent: "#F2C879",
-    background: { type: "gradient", from: "#0F172A", to: "#1E293B", angle: 135 },
+    accent: "#1F2421",
+    background: { type: "gradient", from: "#FBF9F4", to: "#F1ECE2", angle: 135 },
   },
   minimal: {
     accent: "#B68A42",
@@ -65,8 +65,7 @@ export const TEMPLATE_DEFAULTS: Record<
 
 export const DEFAULT_COVER: EbookCover = {
   template: "signature",
-  accent: "#F2C879",
-  background: { type: "gradient", from: "#0F172A", to: "#1E293B", angle: 135 },
+  ...TEMPLATE_DEFAULTS.signature,
   showDescription: true,
 };
 
