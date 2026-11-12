@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { api, getApiErrorMessage } from "@/lib/api";
 import { getPaddle } from "@/lib/paddle";
+import { LAST_ORDER_KEY, LAST_TXN_KEY } from "@/hooks/use-checkout";
 import { Button } from "@/components/ui/button";
 import { Spinner } from "@/components/ui/spinner";
 import type { Product } from "@/lib/types";
@@ -17,7 +18,7 @@ interface BuyButtonProps {
 type State =
   | { kind: "idle" }
   | { kind: "creating" }
-  | { kind: "ready"; transactionId: string; orderNumber: string; accessToken: string }
+  | { kind: "ready"; transactionId: string }
   | { kind: "error"; message: string };
 
 export function BuyButton({
@@ -44,22 +45,22 @@ export function BuyButton({
   const start = async () => {
     setState({ kind: "creating" });
     try {
-      const res = await api.post<{ data: { orderNumber: string; transactionId: string; checkoutUrl: string; accessToken: string } }>(
+      const res = await api.post<{ data: { transactionId: string; checkoutUrl: string } }>(
         "/checkout",
         { productId: product.id },
       );
       const data = res.data.data;
+      const transactionId = typeof data.transactionId === "string" ? data.transactionId.trim() : "";
+      if (!transactionId) {
+        throw new Error("Checkout did not return a transaction ID");
+      }
       try {
-        window.localStorage.setItem("section_last_order", data.orderNumber);
+        window.localStorage.setItem(LAST_TXN_KEY, transactionId);
+        window.localStorage.removeItem(LAST_ORDER_KEY);
       } catch {
         // ignore
       }
-      setState({
-        kind: "ready",
-        transactionId: data.transactionId,
-        orderNumber: data.orderNumber,
-        accessToken: data.accessToken,
-      });
+      setState({ kind: "ready", transactionId });
     } catch (err) {
       setState({ kind: "error", message: getApiErrorMessage(err) });
     }
@@ -68,8 +69,8 @@ export function BuyButton({
   // Render Paddle inline once ready.
   useEffect(() => {
     if (state.kind !== "ready") return;
-    const { transactionId, orderNumber, accessToken } = state;
-    const successUrl = `${window.location.origin}/checkout/success?order=${encodeURIComponent(orderNumber)}&access=${encodeURIComponent(accessToken)}`;
+    const { transactionId } = state;
+    const successUrl = `${window.location.origin}/checkout/success?_ptxn=${encodeURIComponent(transactionId)}`;
     let cancelled = false;
     (async () => {
       try {
@@ -88,7 +89,12 @@ export function BuyButton({
               "width: 100%; min-width: 312px; background-color: transparent; border: none;",
             successUrl,
           },
-        });
+          eventCallback: (event: { name?: string }) => {
+            if (event?.name === "checkout.completed") {
+              window.location.href = successUrl;
+            }
+          },
+        } as Record<string, unknown>);
       } catch (err) {
         if (cancelled) return;
         setState({ kind: "error", message: getApiErrorMessage(err) });
