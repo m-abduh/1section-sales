@@ -555,25 +555,75 @@ async function createDocument(
   const coverImage = await loadCoverImage(ebook, images);
   const coverText = [
     new Paragraph({
+      spacing: { before: 2400, after: 120 },
+      indent: { firstLine: 0 },
       children: [
-        new TextRun({ text: `${ebook.brand} · ${ebook.niche}`, bold: true }),
+        new TextRun({
+          text: `${ebook.brand} · ${ebook.niche}`.toUpperCase(),
+          font: "Montserrat",
+          size: 18,
+          bold: true,
+          color: RUNNING_MATTER_COLOR,
+        }),
       ],
-      alignment: AlignmentType.CENTER,
     }),
-    docxParagraph(" ", "Divider", {
-      bottomBorder: true,
-      alignment: AlignmentType.CENTER,
+    new Paragraph({
       indent: { firstLine: 0 },
+      spacing: { before: 120, after: 360 },
+      border: {
+        bottom: {
+          style: BorderStyle.SINGLE,
+          size: 12,
+          color: CHAPTER_NUMBER_COLOR,
+          space: 8,
+        },
+      },
+      children: [new TextRun({ text: " " })],
     }),
-    docxParagraph(ebook.title, "CoverTitle"),
-    docxParagraph(" ", "Divider", {
-      bottomBorder: true,
-      alignment: AlignmentType.CENTER,
+    new Paragraph({
+      style: "CoverTitle",
       indent: { firstLine: 0 },
+      spacing: { before: 120, after: 240, line: 360, lineRule: "auto" },
+      children: [
+        new TextRun({
+          text: ebook.title,
+          font: "Montserrat",
+          size: 56,
+          bold: true,
+          color: "1F2421",
+        }),
+      ],
     }),
-    docxParagraph(ebook.description, "CoverDescription", {
+    new Paragraph({
       indent: { firstLine: 0 },
+      spacing: { before: 0, after: 240 },
+      border: {
+        bottom: {
+          style: BorderStyle.SINGLE,
+          size: 4,
+          color: RUNNING_MATTER_COLOR,
+          space: 6,
+        },
+      },
+      children: [new TextRun({ text: " " })],
     }),
+    ...(ebook.description?.trim()
+      ? [
+          new Paragraph({
+            style: "CoverDescription",
+            indent: { firstLine: 0 },
+            spacing: { before: 120, after: 120, line: 360, lineRule: "auto" },
+            children: [
+              new TextRun({
+                text: ebook.description,
+                font: "Montserrat",
+                size: 22,
+                color: RUNNING_MATTER_COLOR,
+              }),
+            ],
+          }),
+        ]
+      : []),
   ];
   const coverVisual = coverImage
     ? [

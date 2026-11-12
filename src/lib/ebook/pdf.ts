@@ -835,41 +835,63 @@ class PdfBook {
 
   private drawCoverText() {
     const d = this.doc;
+    const brandNiche = [this.ebook.brand, this.ebook.niche]
+      .filter(Boolean)
+      .join(" · ");
 
-    d.font("Bold")
-      .fontSize(12)
-      .fillColor(INK)
-      .text(`${this.ebook.brand} · ${this.ebook.niche}`, MARGIN, this.y, {
-        width: CONTENT_WIDTH,
-        align: "center",
-        lineGap: 2,
-      });
-    this.y = d.y + 18;
+    // Eyebrow
+    this.y = TOP + 72;
+    if (brandNiche) {
+      d.font("Bold")
+        .fontSize(9)
+        .fillColor(MUTED)
+        .text(brandNiche.toUpperCase(), MARGIN, this.y, {
+          width: CONTENT_WIDTH,
+          align: "left",
+          characterSpacing: 1.2,
+          lineGap: 2,
+        });
+      this.y = d.y + 16;
+    }
 
-    this.rule(this.y);
-    this.y += 18;
+    // Gold accent bar
+    d.moveTo(MARGIN, this.y)
+      .lineTo(MARGIN + 64, this.y)
+      .lineWidth(2)
+      .strokeColor(GOLD)
+      .stroke();
+    this.y += 28;
 
+    // Title
     d.font("Bold")
       .fontSize(COVER_TITLE_SIZE)
       .fillColor(INK)
       .text(this.ebook.title, MARGIN, this.y, {
         width: CONTENT_WIDTH,
         align: "left",
-        lineGap: 4,
+        lineGap: 6,
       });
-    this.y = d.y + 18;
+    this.y = d.y + 20;
 
-    this.rule(this.y);
-    this.y += 18;
+    // Thin rule
+    d.moveTo(MARGIN, this.y)
+      .lineTo(PAGE_WIDTH - MARGIN, this.y)
+      .lineWidth(0.5)
+      .strokeColor(MUTED)
+      .stroke();
+    this.y += 22;
 
-    d.font("Body")
-      .fontSize(COVER_DESCRIPTION_SIZE)
-      .fillColor(INK)
-      .text(this.ebook.description, MARGIN, this.y, {
-        width: CONTENT_WIDTH,
-        align: "left",
-        lineGap: 5,
-      });
+    // Description
+    if (this.ebook.description?.trim()) {
+      d.font("Body")
+        .fontSize(COVER_DESCRIPTION_SIZE)
+        .fillColor(MUTED)
+        .text(this.ebook.description, MARGIN, this.y, {
+          width: CONTENT_WIDTH * 0.92,
+          align: "left",
+          lineGap: 6,
+        });
+    }
   }
 
   private drawContents(pageMap: PageMap) {
