@@ -24,21 +24,27 @@ export function useCheckout() {
       return response.data.data;
     },
     onSuccess: async (data) => {
+      const transactionId =
+        typeof data?.transactionId === "string" ? data.transactionId.trim() : "";
+      if (!transactionId) {
+        return;
+      }
+
       try {
-        window.localStorage.setItem(LAST_TXN_KEY, data.transactionId);
+        window.localStorage.setItem(LAST_TXN_KEY, transactionId);
         window.localStorage.removeItem(LAST_ORDER_KEY);
       } catch {
         /* storage might be unavailable */
       }
 
       const successUrl = `${window.location.origin}/checkout/success?_ptxn=${encodeURIComponent(
-        data.transactionId,
+        transactionId,
       )}`;
 
       try {
         const paddle = await getPaddle();
         paddle.Checkout.open({
-          transactionId: data.transactionId,
+          transactionId,
           settings: {
             displayMode: "overlay",
             successUrl,
@@ -50,10 +56,12 @@ export function useCheckout() {
           },
         } as Record<string, unknown>);
       } catch {
-        // Hosted checkout fallback: Paddle will redirect to its dashboard
-        // default success URL after payment. Configure that default to
-        // /checkout/success so Paddle can append _ptxn automatically.
-        window.location.href = data.checkoutUrl || successUrl;
+        // Hosted checkout fallback: redirect to Paddle checkout URL.
+        // Default success URL in Paddle dashboard must point to /checkout/success
+        // so Paddle can append _ptxn after payment.
+        if (data.checkoutUrl) {
+          window.location.href = data.checkoutUrl;
+        }
       }
     },
   });
