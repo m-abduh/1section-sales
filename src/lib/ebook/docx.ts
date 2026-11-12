@@ -32,7 +32,7 @@ import {
   richTextPlainText,
   richTextRuns,
 } from "./rich-text";
-import type { EbookContent, EbookRichTextNode } from "./types";
+import type { EbookContent, EbookRichTextMark, EbookRichTextNode } from "./types";
 
 const RUNNING_MATTER_COLOR = "7A8589";
 const RUNNING_MATTER_OFFSET = 432;
@@ -69,6 +69,38 @@ function docxParagraph(
         }
       : undefined,
   });
+}
+
+function splitLongText(text: string, maxChars = 900): string[] {
+  const trimmed = text.trim();
+  if (trimmed.length <= maxChars) return [trimmed];
+  const parts: string[] = [];
+  let rest = trimmed;
+  while (rest.length > maxChars) {
+    let cut = rest.lastIndexOf(". ", maxChars);
+    if (cut < maxChars * 0.4) cut = rest.lastIndexOf(" ", maxChars);
+    if (cut < maxChars * 0.3) cut = maxChars;
+    parts.push(rest.slice(0, cut + 1).trim());
+    rest = rest.slice(cut + 1).trim();
+  }
+  if (rest) parts.push(rest);
+  return parts;
+}
+
+function docxBodyParagraphs(text: string): Paragraph[] {
+  const parts = splitLongText(text);
+  if (parts.length === 0) return [];
+  const paragraphs: Paragraph[] = [];
+  parts.forEach((part, idx) => {
+    paragraphs.push(
+      new Paragraph({
+        style: "Normal",
+        indent: idx === 0 ? { firstLine: 360 } : { firstLine: 0 },
+        children: [new TextRun({ text: part, font: "Montserrat" })],
+      }),
+    );
+  });
+  return paragraphs;
 }
 
 function createRunningHeader(kicker: string, sectionTitle: string) {
@@ -274,6 +306,56 @@ async function docxImageParagraph(
   });
 }
 
+function extractRunSegment(
+  runs: { text: string; marks: EbookRichTextMark[] }[],
+  offset: number,
+  length: number,
+): { text: string; marks: EbookRichTextMark[] }[] {
+  const out: { text: string; marks: EbookRichTextMark[] }[] = [];
+  let pos = 0;
+  let start = offset;
+  let remaining = length;
+  for (const run of runs) {
+    const runStart = pos;
+    const runEnd = pos + run.text.length;
+    pos = runEnd;
+    if (runEnd <= start) continue;
+    if (runStart >= start + length) break;
+    const from = Math.max(0, start - runStart);
+    const to = Math.min(run.text.length, start + remaining - runStart);
+    if (to > from) {
+      out.push({ text: run.text.slice(from, to), marks: run.marks });
+      remaining -= to - from;
+      start = runEnd;
+      if (remaining <= 0) break;
+    }
+  }
+  return out;
+}
+
+function docxRunsFromSegments(
+  segments: { text: string; marks: EbookRichTextMark[] }[],
+): TextRun[] {
+  const runs: TextRun[] = [];
+  for (const run of segments) {
+    if (run.text.length === 0) continue;
+    const marks = run.marks.map((mark) => mark.type);
+    const lines = run.text.split("\n");
+    lines.forEach((line, index) => {
+      runs.push(
+        new TextRun({
+          text: line,
+          font: "Montserrat",
+          bold: marks.includes("bold"),
+          italics: marks.includes("italic"),
+          break: index > 0 ? 1 : undefined,
+        }),
+      );
+    });
+  }
+  return runs;
+}
+
 async function richDocxBlocks(
   nodes: EbookRichTextNode[],
   images: DocxImageCache,
@@ -283,9 +365,38 @@ async function richDocxBlocks(
 
   for (const node of nodes) {
     if (node.type === "paragraph") {
-      const runs = docxRuns(node.content ?? []);
-      if (runs.length > 0) {
-        blocks.push(new Paragraph({ children: runs, style: "Normal" }));
+      const plain = richTextPlainText([node]);
+      if (plain.trim().length > 0) {
+        const parts = splitLongText(plain);
+        if (parts.length <= 1) {
+          blocks.push(
+            new Paragraph({
+              children: docxRuns(node.content ?? []),
+              style: "Normal",
+              indent: { firstLine: 360 },
+            }),
+          );
+        } else {
+          const runs = richTextRuns(node.content ?? []);
+          let cursor = 0;
+          for (let i = 0; i < parts.length; i++) {
+            const part = parts[i];
+            // find part position in plain text from cursor
+            const idx = plain.indexOf(part, cursor);
+            const start = idx >= 0 ? idx : cursor;
+            const segment = extractRunSegment(runs, start, part.length);
+            cursor = start + part.length;
+            blocks.push(
+              new Paragraph({
+                children: segment.length
+                  ? docxRunsFromSegments(segment)
+                  : [new TextRun({ text: part, font: "Montserrat" })],
+                style: "Normal",
+                indent: i === 0 ? { firstLine: 360 } : { firstLine: 0 },
+              }),
+            );
+          }
+        }
       }
       continue;
     }
@@ -507,7 +618,7 @@ async function createDocument(
     }),
     ...(introductionBody && !richTextIsEmpty(introductionBody)
       ? await richDocxBlocks(introductionBody, images)
-      : ebook.introduction.map((text) => docxParagraph(text))),
+      : ebook.introduction.flatMap((text) => docxBodyParagraphs(text))),
   ];
 
   const chapters: { title: string; children: (Paragraph | Table)[] }[] = [];
@@ -541,7 +652,9 @@ async function createDocument(
     if (chapter.body !== undefined) {
       children.push(...(await richDocxBlocks(chapter.body, images)));
     } else {
-      (chapter.intro ?? []).forEach((text) => children.push(docxParagraph(text)));
+      (chapter.intro ?? []).forEach((text) =>
+        children.push(...docxBodyParagraphs(text)),
+      );
 
       chapter.sections.forEach((section) => {
         children.push(
@@ -549,7 +662,9 @@ async function createDocument(
             heading: HeadingLevel.HEADING_3,
           }),
         );
-        section.paragraphs.forEach((text) => children.push(docxParagraph(text)));
+        section.paragraphs.forEach((text) =>
+          children.push(...docxBodyParagraphs(text)),
+        );
       });
     }
 
@@ -571,7 +686,7 @@ async function createDocument(
     }),
     ...(ebook.conclusionBody && !richTextIsEmpty(ebook.conclusionBody)
       ? await richDocxBlocks(ebook.conclusionBody, images)
-      : ebook.conclusion.map((text) => docxParagraph(text))),
+      : ebook.conclusion.flatMap((text) => docxBodyParagraphs(text))),
   ];
 
   const references = [
@@ -589,7 +704,7 @@ async function createDocument(
     }),
     ...(ebook.aboutBody && !richTextIsEmpty(ebook.aboutBody)
       ? await richDocxBlocks(ebook.aboutBody, images)
-      : ebook.about.map((text) => docxParagraph(text))),
+      : ebook.about.flatMap((text) => docxBodyParagraphs(text))),
   ];
 
   const kicker = `${ebook.brand} · ${ebook.niche}`;
