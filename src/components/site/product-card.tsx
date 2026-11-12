@@ -20,6 +20,13 @@ export function ProductCard({
   const hasDiscount =
     product.compareAtAmount != null &&
     product.compareAtAmount > product.priceAmount;
+  const discountPercent = hasDiscount
+    ? Math.round(
+        ((product.compareAtAmount as number) - product.priceAmount) /
+          (product.compareAtAmount as number) *
+          100,
+      )
+    : 0;
   const learnings = product.learnings?.slice(0, 3) ?? [];
   const fileCount = product.files?.length ?? 0;
   const number = String(index + 1).padStart(2, "0");
@@ -142,6 +149,11 @@ export function ProductCard({
                   ? "Free"
                   : formatCurrency(product.priceAmount, product.currency)}
               </span>
+              {hasDiscount && discountPercent > 0 ? (
+                <span className="inline-flex items-center rounded-full bg-emerald-500 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wide text-white">
+                  Save {discountPercent}%
+                </span>
+              ) : null}
               {hasDiscount ? (
                 <span className="text-sm text-fg-muted line-through">
                   {formatCurrency(
