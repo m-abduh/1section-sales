@@ -233,7 +233,7 @@ export function CoverBuilder({
                     aria-pressed={active}
                     title={template.hint}
                     onClick={() =>
-                      onChange(coverWithTemplate(cover, template.id))
+                      onChange({ ...cover, template: template.id })
                     }
                     className={`overflow-hidden rounded-lg border bg-card text-left transition ${
                       active
@@ -245,7 +245,7 @@ export function CoverBuilder({
                       <ScaledCover>
                         <EbookCoverDesign
                           content={content}
-                          cover={active ? cover : coverWithTemplate(cover, template.id)}
+                          cover={active ? cover : { ...cover, template: template.id }}
                         />
                       </ScaledCover>
                     </div>

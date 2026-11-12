@@ -9,7 +9,7 @@ import type {
  * Bump this when a template's visual output changes so every existing cover
  * is marked stale and gets re-rendered on the next save.
  */
-const COVER_VERSION = 10;
+const COVER_VERSION = 18;
 
 export const COVER_WIDTH = 874;
 export const COVER_HEIGHT = 1240;
@@ -19,11 +19,11 @@ export const COVER_TEMPLATES: {
   label: string;
   hint: string;
 }[] = [
-  { id: "signature", label: "Signature", hint: "Modern editorial, paling seimbang" },
-  { id: "minimal", label: "Minimal", hint: "Bersih, banyak ruang kosong" },
-  { id: "editorial", label: "Editorial", hint: "Aksen vertikal, kuat" },
-  { id: "bold", label: "Bold", hint: "Display besar, kontras tinggi" },
-  { id: "gradient", label: "Gradient", hint: "Atmosfer, modern" },
+  { id: "signature", label: "Signature", hint: "Elegan, aksen halus" },
+  { id: "minimal", label: "Minimal", hint: "Bersih dengan garis" },
+  { id: "editorial", label: "Editorial", hint: "Tegas, aksen samping" },
+  { id: "bold", label: "Bold", hint: "Judul kuat, kontras" },
+  { id: "gradient", label: "Gradient", hint: "Atmosfer, glow modern" },
 ];
 
 export const COVER_ACCENTS = [

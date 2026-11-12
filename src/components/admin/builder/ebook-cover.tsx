@@ -47,13 +47,13 @@ export function EbookCoverDesign({
             className="absolute inset-0"
             style={{
               background:
-                "linear-gradient(180deg, rgba(0,0,0,0.25) 0%, rgba(0,0,0,0.16) 28%, rgba(0,0,0,0.78) 100%)",
+                "linear-gradient(180deg, rgba(0,0,0,0.28) 0%, rgba(0,0,0,0.18) 32%, rgba(0,0,0,0.8) 100%)",
             }}
           />
         </>
       ) : null}
 
-      <CoverTexture dark={ink.fg === "#FFFFFF"} />
+      <CoverPattern dark={ink.fg === "#FFFFFF"} image={Boolean(imageUrl)} />
 
       <div className="relative flex h-full flex-col">
         {cover.template === "signature" ? (
@@ -166,29 +166,27 @@ type LayoutProps = {
   showDescription: boolean;
 };
 
-function CoverTexture({ dark }: { dark: boolean }) {
-  const noise =
-    "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.5'/%3E%3C/svg%3E\")";
+function CoverPattern({ dark, image }: { dark: boolean; image: boolean }) {
+  const line = dark ? "rgba(255,255,255,0.07)" : "rgba(31,36,33,0.06)";
+  const lineStrong = dark ? "rgba(255,255,255,0.12)" : "rgba(31,36,33,0.1)";
+  const opacity = image ? 0.35 : 1;
 
   return (
     <>
       <div
         className="pointer-events-none absolute inset-0"
         style={{
-          backgroundImage: dark
-            ? `radial-gradient(ellipse at 18% 0%, rgba(255,255,255,0.10), transparent 55%), radial-gradient(ellipse at 100% 100%, rgba(255,255,255,0.06), transparent 45%), ${noise}`
-            : `radial-gradient(ellipse at 18% 0%, rgba(255,255,255,0.55), transparent 55%), radial-gradient(ellipse at 100% 100%, rgba(0,0,0,0.05), transparent 45%), ${noise}`,
-          backgroundSize: "100% 100%, 100% 100%, 140px 140px",
-          mixBlendMode: dark ? "soft-light" : "multiply",
-          opacity: dark ? 0.55 : 0.16,
+          backgroundImage: `linear-gradient(${line} 1px, transparent 1px), linear-gradient(90deg, ${line} 1px, transparent 1px)`,
+          backgroundSize: "48px 48px",
+          opacity,
         }}
       />
       <div
         className="pointer-events-none absolute inset-0"
         style={{
-          boxShadow: dark
-            ? "inset 0 0 180px rgba(0,0,0,0.35)"
-            : "inset 0 0 160px rgba(31,36,33,0.07)",
+          backgroundImage: `linear-gradient(${lineStrong} 1px, transparent 1px), linear-gradient(90deg, ${lineStrong} 1px, transparent 1px)`,
+          backgroundSize: "192px 192px",
+          opacity,
         }}
       />
     </>
@@ -249,20 +247,25 @@ function SignatureCover({
     <div className="flex h-full flex-col px-[88px] py-[92px]">
       <Eyebrow brand={brand} niche={niche} accent={accent} color={ink.fg} />
       <div className="my-auto">
-        <div className="mb-8 h-[3px] w-16 rounded-full" style={{ background: accent }} />
+        <div className="mb-7 flex items-center gap-3">
+          <span className="h-[3px] w-14 rounded-full" style={{ background: accent }} />
+          <span className="h-px flex-1" style={{ background: ink.line }} />
+        </div>
         <h1
-          className="font-semibold tracking-[-0.04em]"
+          className="font-semibold tracking-[-0.045em]"
           style={{
-            fontSize: titleSize(title, 88),
-            lineHeight: 1.0,
+            fontSize: titleSize(title, 90),
+            lineHeight: 1.12,
             ...clampLines(5),
           }}
         >
           {title}
         </h1>
+      </div>
+      <div>
         {showDescription && description ? (
           <p
-            className="mt-8 max-w-[640px] text-[23px] leading-[1.6]"
+            className="max-w-[660px] text-[22px] font-light leading-[1.65]"
             style={{ color: ink.muted, ...clampLines(3) }}
           >
             {description}
@@ -283,26 +286,25 @@ function MinimalCover({
   showDescription,
 }: LayoutProps) {
   return (
-    <div className="flex h-full flex-col px-[84px] py-[90px]">
+    <div className="flex h-full flex-col px-[92px] py-[96px]">
       <Eyebrow brand={brand} niche={niche} accent={accent} color={ink.fg} />
-      <div className="mt-10 h-px w-full" style={{ background: ink.line }} />
-      <div className="flex flex-1 flex-col justify-center">
+      <div className="my-auto">
+        <div className="mb-10 h-px w-20" style={{ background: ink.line }} />
         <h1
-          className="font-semibold tracking-[-0.035em]"
+          className="font-light tracking-[-0.02em]"
           style={{
             fontSize: titleSize(title, 82),
-            lineHeight: 1.02,
-            ...clampLines(6),
+            lineHeight: 1.18,
+            ...clampLines(5),
           }}
         >
           {title}
         </h1>
       </div>
-      <div className="mt-auto pt-10">
-        <div className="h-px w-full" style={{ background: ink.line }} />
+      <div>
         {showDescription && description ? (
           <p
-            className="mt-7 max-w-[660px] text-[22px] leading-[1.58]"
+            className="max-w-[620px] text-[20px] italic leading-[1.7]"
             style={{ color: ink.muted, ...clampLines(3) }}
           >
             {description}
@@ -323,33 +325,31 @@ function EditorialCover({
   showDescription,
 }: LayoutProps) {
   return (
-    <div className="flex h-full">
-      <div
-        className="h-full w-[10px] shrink-0"
-        style={{ background: accent }}
-      />
-      <div className="flex flex-1 flex-col px-[76px] py-[88px]">
-        <Eyebrow brand={brand} niche={niche} accent={accent} color={ink.fg} />
-        <div className="my-auto">
+    <div className="flex h-full flex-col px-[88px] py-[92px]">
+      <Eyebrow brand={brand} niche={niche} accent={accent} color={ink.fg} />
+      <div className="my-auto">
+        <div className="mb-7 h-px w-14" style={{ background: accent }} />
           <h1
-            className="font-semibold tracking-[-0.04em]"
+            className="font-semibold tracking-[-0.03em]"
             style={{
-              fontSize: titleSize(title, 92),
-              lineHeight: 0.98,
+              fontSize: titleSize(title, 88),
+              lineHeight: 1.15,
               ...clampLines(5),
             }}
           >
-            {title}
-          </h1>
-          {showDescription && description ? (
-            <p
-              className="mt-8 max-w-[620px] text-[22px] leading-[1.58]"
-              style={{ color: ink.muted, ...clampLines(3) }}
-            >
-              {description}
-            </p>
-          ) : null}
-        </div>
+          {title}
+        </h1>
+        <div className="mt-7 h-px w-28" style={{ background: ink.line }} />
+      </div>
+      <div>
+        {showDescription && description ? (
+          <p
+            className="max-w-[640px] text-[21px] leading-[1.65]"
+            style={{ color: ink.muted, ...clampLines(3) }}
+          >
+            {description}
+          </p>
+        ) : null}
       </div>
     </div>
   );
@@ -367,24 +367,23 @@ function BoldCover({
   return (
     <div className="flex h-full flex-col px-[88px] py-[92px]">
       <Eyebrow brand={brand} niche={niche} accent={accent} color={ink.fg} />
-      <div className="flex flex-1 flex-col justify-center">
+      <div className="my-auto">
         <h1
-          className="font-bold uppercase tracking-[-0.03em]"
+          className="font-extrabold uppercase tracking-[-0.02em]"
           style={{
             fontSize: titleSize(title, 96),
-            lineHeight: 0.96,
-            ...clampLines(6),
+            lineHeight: 1.08,
+            ...clampLines(5),
           }}
         >
           {title}
         </h1>
-        <div
-          className="mt-10 h-[4px] w-20 rounded-full"
-          style={{ background: accent }}
-        />
+        <div className="mt-8 h-[4px] w-24 rounded-full" style={{ background: accent }} />
+      </div>
+      <div>
         {showDescription && description ? (
           <p
-            className="mt-8 max-w-[620px] text-[21px] leading-[1.58]"
+            className="max-w-[640px] text-[20px] font-medium uppercase tracking-[0.04em] leading-[1.6]"
             style={{ color: ink.muted, ...clampLines(3) }}
           >
             {description}
@@ -408,24 +407,28 @@ function GradientCover({
     <div className="flex h-full flex-col px-[88px] py-[92px]">
       <Eyebrow brand={brand} niche={niche} accent={accent} color={ink.fg} />
       <div className="my-auto">
-        <div className="mb-8 h-[3px] w-16 rounded-full" style={{ background: accent }} />
         <h1
-          className="font-semibold tracking-[-0.04em]"
+          className="font-medium tracking-[-0.015em]"
           style={{
-            fontSize: titleSize(title, 88),
-            lineHeight: 1.0,
+            fontSize: titleSize(title, 86),
+            lineHeight: 1.15,
             ...clampLines(5),
           }}
         >
           {title}
         </h1>
+      </div>
+      <div>
         {showDescription && description ? (
-          <p
-            className="mt-8 max-w-[640px] text-[23px] leading-[1.6]"
-            style={{ color: ink.muted, ...clampLines(3) }}
-          >
-            {description}
-          </p>
+          <>
+            <div className="mb-5 h-px w-full max-w-[420px]" style={{ background: ink.line }} />
+            <p
+              className="max-w-[660px] text-[21px] leading-[1.7]"
+              style={{ color: ink.muted, ...clampLines(3) }}
+            >
+              {description}
+            </p>
+          </>
         ) : null}
       </div>
     </div>
