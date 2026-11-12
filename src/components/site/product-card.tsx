@@ -20,6 +20,13 @@ export function ProductCard({
   const hasDiscount =
     product.compareAtAmount != null &&
     product.compareAtAmount > product.priceAmount;
+  const discountPercent = hasDiscount
+    ? Math.round(
+        ((product.compareAtAmount as number) - product.priceAmount) /
+          (product.compareAtAmount as number) *
+          100,
+      )
+    : 0;
   const learnings = product.learnings?.slice(0, 3) ?? [];
   const fileCount = product.files?.length ?? 0;
   const number = String(index + 1).padStart(2, "0");
@@ -63,15 +70,6 @@ export function ProductCard({
               </span>
             </div>
           )}
-
-          <span className="absolute left-5 top-5 z-10 inline-flex items-center gap-2 rounded-full border border-border/70 bg-surface/85 px-3 py-1.5 text-[10px] font-semibold uppercase tracking-[0.18em] text-fg-muted backdrop-blur">
-            <span
-              aria-hidden
-              className="size-1.5 rounded-full"
-              style={{ backgroundColor: accentColor }}
-            />
-            {LEARNING_LEVEL_LABEL[product.level]}
-          </span>
         </div>
 
         {/* 2. Info */}
@@ -79,6 +77,12 @@ export function ProductCard({
           <div className="flex flex-wrap items-center gap-3">
             <span className="text-[10px] font-semibold uppercase tracking-[0.2em] text-fg-muted">
               Guide {number}
+            </span>
+            <span className="text-[10px] font-semibold uppercase tracking-[0.18em] text-fg-muted">
+              {LEARNING_LEVEL_LABEL[product.level]}
+            </span>
+            <span className="text-[10px] font-semibold uppercase tracking-[0.18em] text-fg-muted">
+              {LEARNING_LEVEL_LABEL[product.level]}
             </span>
             {isFree ? (
               <span
@@ -142,6 +146,11 @@ export function ProductCard({
                   ? "Free"
                   : formatCurrency(product.priceAmount, product.currency)}
               </span>
+              {hasDiscount && discountPercent > 0 ? (
+                <span className="inline-flex items-center rounded-full bg-emerald-500 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wide text-white">
+                  Save {discountPercent}%
+                </span>
+              ) : null}
               {hasDiscount ? (
                 <span className="text-sm text-fg-muted line-through">
                   {formatCurrency(

@@ -55,7 +55,9 @@ const coverBackground = z.discriminatedUnion("type", [
 
 const cover = z
   .object({
-    template: z.enum(["minimal", "editorial", "bold", "gradient", "photo"]),
+    template: z
+      .enum(["signature", "minimal", "editorial", "bold", "gradient", "photo"])
+      .transform((template) => (template === "photo" ? "signature" : template)),
     accent: hexColor,
     background: coverBackground,
     showDescription: z.boolean(),

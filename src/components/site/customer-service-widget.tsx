@@ -14,7 +14,7 @@ interface ChatMessage {
   local?: boolean;
 }
 
-const GREETING = "Hey, need a hand with anything here? 👋";
+const GREETING = "Hi, how can I help? 👋😊";
 const OPENER_KEY = "1section:customer-service-opened-v2";
 
 function createSessionKey(): string {
@@ -372,7 +372,7 @@ export function CustomerServiceWidget() {
     <>
       {!open && teaser ? (
         <div className="fixed bottom-24 right-4 z-50 w-[calc(100vw-5.5rem)] max-w-[300px] origin-bottom-right animate-fade-up sm:right-6">
-          <div className="relative rounded-2xl rounded-br-md border border-border/80 bg-card/95 p-4 shadow-[0_18px_45px_-18px_rgba(0,0,0,0.4)] ring-1 ring-black/5 backdrop-blur-xl dark:ring-white/5">
+          <div className="relative rounded-2xl border border-border bg-card p-4 shadow-lg">
             <button
               type="button"
               onClick={() => setTeaser(false)}
@@ -386,27 +386,21 @@ export function CustomerServiceWidget() {
               onClick={openChat}
               className="group block w-full text-left"
             >
-              <span className="flex items-center gap-2">
-                <span className="relative flex size-7 shrink-0 items-center justify-center rounded-full bg-accent text-accent-fg">
-                  <ChatIcon className="size-3.5" />
-                  <span className="absolute -bottom-0.5 -right-0.5 size-2 rounded-full border-2 border-card bg-emerald-500" />
-                </span>
-                <span className="flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-[0.14em] text-fg-muted">
-                  <span className="size-1.5 animate-pulse rounded-full bg-emerald-500" />
-                  1 new message
-                </span>
+              <span className="inline-flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-[0.14em] text-fg-muted">
+                <span className="size-1.5 animate-pulse rounded-full bg-emerald-500" />
+                1 new message
               </span>
-              <span className="mt-2.5 block pr-4 text-sm leading-5 text-fg">
+              <span className="mt-2 block pr-5 text-sm leading-5 text-fg">
                 {GREETING}
               </span>
-              <span className="mt-2.5 flex items-center gap-1 text-[11px] font-medium text-fg-muted transition group-hover:text-fg">
-                Tap to chat
+              <span className="mt-3 inline-flex items-center gap-1 text-xs font-medium text-fg-muted transition group-hover:text-fg">
+                Chat now
                 <SendIcon className="size-3 transition-transform group-hover:translate-x-0.5" />
               </span>
             </button>
             <span
               aria-hidden
-              className="absolute -bottom-1.5 right-5 size-3 rotate-45 border-b border-r border-border/80 bg-card"
+              className="absolute -bottom-1.5 right-5 size-3 rotate-45 border-b border-r border-border bg-card"
             />
           </div>
         </div>
@@ -429,13 +423,9 @@ export function CustomerServiceWidget() {
             </span>
             <div className="min-w-0 flex-1">
               <p className="truncate text-sm font-semibold tracking-tight text-fg">
-                1section support
+                Customer Service
               </p>
-              <p className="mt-0.5 flex items-center gap-1.5 truncate text-[11px] text-fg-muted">
-                <span className="relative flex size-1.5 shrink-0">
-                  <span className="absolute inline-flex size-full animate-ping rounded-full bg-emerald-500 opacity-60" />
-                  <span className="relative inline-flex size-1.5 rounded-full bg-emerald-500" />
-                </span>
+              <p className="mt-0.5 truncate text-[11px] text-fg-muted">
                 AI assistant · online
               </p>
             </div>
@@ -541,7 +531,7 @@ export function CustomerServiceWidget() {
               </button>
             </div>
             <p className="mt-2 flex items-center justify-center gap-1 text-center text-[10px] text-fg-muted">
-              <span>AI assistant can make mistakes ·</span>
+              <span>AI assistant can make mistakes Â·</span>
               <a
                 href="mailto:support@1section.com"
                 className="font-medium text-fg underline decoration-fg/40 underline-offset-2 transition hover:decoration-fg"

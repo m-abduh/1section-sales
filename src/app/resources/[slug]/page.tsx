@@ -44,6 +44,13 @@ export default async function ResourcePage({ params }: ResourcePageProps) {
   const hasDiscount =
     product.compareAtAmount != null &&
     product.compareAtAmount > product.priceAmount;
+  const discountPercent = hasDiscount
+    ? Math.round(
+        ((product.compareAtAmount as number) - product.priceAmount) /
+          (product.compareAtAmount as number) *
+          100,
+      )
+    : 0;
 
   return (
     <div className="flex min-h-screen flex-col bg-surface">
@@ -207,26 +214,43 @@ export default async function ResourcePage({ params }: ResourcePageProps) {
 
               <aside className="lg:sticky lg:top-24 lg:self-start">
                 <div className="rounded-3xl border border-border bg-card p-6 shadow-2xl shadow-black/5 dark:shadow-black/40">
-                  <div className="flex items-end gap-3">
-                    <span className="text-3xl font-bold text-fg">
-                      {isFree
-                        ? "Free"
-                        : formatCurrency(product.priceAmount, product.currency)}
-                    </span>
-                    {hasDiscount ? (
-                      <span className="text-base text-fg-muted line-through">
-                        {formatCurrency(
-                          product.compareAtAmount as number,
-                          product.currency,
-                        )}
+                  <div className="rounded-2xl border border-border bg-surface-muted/50 p-4">
+                    <div className="flex flex-wrap items-center gap-3">
+                      <span className="text-4xl font-extrabold tracking-tight text-fg">
+                        {isFree
+                          ? "Free"
+                          : formatCurrency(product.priceAmount, product.currency)}
                       </span>
+                      {hasDiscount && discountPercent > 0 ? (
+                        <span className="inline-flex items-center rounded-full bg-emerald-500 px-2.5 py-1 text-xs font-bold uppercase tracking-wide text-white">
+                          Save {discountPercent}%
+                        </span>
+                      ) : null}
+                    </div>
+                    {hasDiscount ? (
+                      <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1">
+                        <span className="text-base text-fg-muted line-through decoration-fg-muted/60">
+                          {formatCurrency(
+                            product.compareAtAmount as number,
+                            product.currency,
+                          )}
+                        </span>
+                        <span className="text-sm font-medium text-emerald-600 dark:text-emerald-400">
+                          {isFree
+                            ? "Free access"
+                            : `You save ${formatCurrency(
+                                (product.compareAtAmount as number) - product.priceAmount,
+                                product.currency,
+                              )}`}
+                        </span>
+                      </div>
                     ) : null}
+                    <p className="mt-3 text-xs text-fg-muted">
+                      {isFree
+                        ? "Free access · lifetime access"
+                        : "One-time payment · lifetime access"}
+                    </p>
                   </div>
-                  <p className="mt-1 text-xs text-fg-muted">
-                    {isFree
-                      ? "Free access · lifetime access"
-                      : "One-time payment · lifetime access"}
-                  </p>
 
                   <div className="mt-5">
                     {product.active ? (

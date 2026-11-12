@@ -52,11 +52,11 @@ export type EbookChapter = {
 };
 
 export type EbookCoverTemplate =
+  | "signature"
   | "minimal"
   | "editorial"
   | "bold"
-  | "gradient"
-  | "photo";
+  | "gradient";
 
 export type EbookCoverBackground =
   | { type: "solid"; color: string }

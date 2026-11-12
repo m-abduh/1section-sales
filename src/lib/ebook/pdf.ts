@@ -8,7 +8,7 @@ import {
   richTextPlainText,
   richTextRuns,
 } from "./rich-text";
-import { tocEntriesOf, type EbookContent, type EbookRichTextNode, type TocEntry } from "./types";
+import { tocEntriesOf, type EbookContent, type EbookRichTextMark, type EbookRichTextNode, type TocEntry } from "./types";
 
 const PAGE_WIDTH = 419.53;
 const PAGE_HEIGHT = 595.28;
@@ -18,6 +18,7 @@ const TOP = MARGIN;
 const BOTTOM = PAGE_HEIGHT - MARGIN;
 
 const INK = "#1F2421";
+const HEADING_COLOR = "#303030";
 const MUTED = "#7A8589";
 const GOLD = "#B68A42";
 
@@ -28,21 +29,21 @@ const BODY_LINE_GAP = 7.3;
 const BODY_BEFORE = 0;
 const BODY_AFTER = 6;
 
-const H1_SIZE = 20;
-const H2_SIZE = 18;
+const H1_SIZE = 22;
+const H2_SIZE = 22;
 const H3_SIZE = 14;
 // Generous breathing room around level 1/2 headings so sections read clearly.
-const H1_BEFORE = 32;
-const H1_AFTER = 32;
+const H1_BEFORE = 28;
+const H1_AFTER = 26;
 // A preceding paragraph already leaves BODY_AFTER (6pt), so 14 + 6 = 20.
-const H2_BEFORE = 14;
-const H2_AFTER = 20;
+const H2_BEFORE = 16;
+const H2_AFTER = 16;
 // Chapter openers are not preceded by a paragraph, so pad them directly.
-const CHAPTER_TITLE_BEFORE = 32;
-const CHAPTER_TITLE_AFTER = 32;
+const CHAPTER_TITLE_BEFORE = 28;
+const CHAPTER_TITLE_AFTER = 24;
 const COVER_TITLE_SIZE = 26;
 const COVER_DESCRIPTION_SIZE = 12;
-const CHAPTER_NUMBER_SIZE = 24;
+const CHAPTER_NUMBER_SIZE = 34;
 const RUNNING_SIZE = 8;
 const TOC_SIZE = 12;
 const TOC_LINE_GAP = 4;
@@ -229,13 +230,119 @@ class PdfBook {
     }
   }
 
+  /**
+   * Renders a plain left-aligned paragraph, splitting it across pages when it
+   * does not fit. The first-line indent is applied only to the first fragment;
+   * any continuation on a new page starts without it.
+   */
+  private paragraph(text: string) {
+    if (!text.trim()) return;
+    const d = this.doc;
+    let rest = text;
+    let first = true;
+
+    while (rest.length > 0) {
+      const indent = first ? 18 : 0;
+      const options = {
+        width: CONTENT_WIDTH,
+        align: "left" as const,
+        lineGap: BODY_LINE_GAP,
+        indent,
+      };
+
+      d.font("Body").fontSize(BODY_SIZE).fillColor(INK);
+      if (first) this.y += BODY_BEFORE;
+
+      const available = BOTTOM - this.y - (first ? BODY_AFTER : 0);
+      const fullHeight = d.heightOfString(rest, options);
+
+      if (fullHeight <= available) {
+        d.text(rest, MARGIN, this.y, options);
+        this.y = d.y + BODY_AFTER;
+        return;
+      }
+
+      // Ensure there is room for at least a couple of lines before splitting.
+      const lineHeight = d.currentLineHeight(true) + BODY_LINE_GAP;
+      if (available < lineHeight * 2) {
+        this.addPage(this.section);
+        first = false;
+        continue;
+      }
+
+      const fragment = this.fitTextToHeight(rest, options, available);
+      if (!fragment.text) {
+        this.addPage(this.section);
+        first = false;
+        continue;
+      }
+
+      d.text(fragment.text, MARGIN, this.y, {
+        ...options,
+        lineBreak: true,
+      });
+      this.addPage(this.section);
+      rest = fragment.rest;
+      first = false;
+    }
+  }
+
+  /**
+   * Finds the longest prefix of `text` that fits within `height`, preferring to
+   * break at whitespace. Returns the drawn text and the remaining text.
+   */
+  private fitTextToHeight(
+    text: string,
+    options: PDFKit.Mixins.TextOptions,
+    height: number,
+  ): { text: string; rest: string } {
+    const d = this.doc;
+    let low = 1;
+    let high = text.length;
+    let best = 0;
+
+    while (low <= high) {
+      const mid = Math.floor((low + high) / 2);
+      const candidate = this.breakPrefix(text, mid);
+      if (!candidate) {
+        high = mid - 1;
+        continue;
+      }
+      const h = d.heightOfString(candidate, options);
+      if (h <= height) {
+        best = candidate.length;
+        low = mid + 1;
+      } else {
+        high = mid - 1;
+      }
+    }
+
+    if (best === 0) {
+      // Force at least one character to make progress.
+      best = 1;
+    }
+
+    const drawn = this.breakPrefix(text, best) ?? text.slice(0, best);
+    const rest = text.slice(drawn.length).replace(/^\s+/, "");
+    return { text: drawn.replace(/\s+$/, ""), rest };
+  }
+
+  private breakPrefix(text: string, target: number): string | null {
+    if (target >= text.length) return text;
+    const slice = text.slice(0, target);
+    const breakAt = Math.max(slice.lastIndexOf(" "), slice.lastIndexOf("\n"));
+    if (breakAt <= 0) return target === text.length ? text : null;
+    return slice.slice(0, breakAt);
+  }
+
   private heading(
     text: string,
     size: number,
     before: number,
     after: number,
-    color = INK,
+    color = HEADING_COLOR,
     keepWith = 0,
+    variant?: "h1" | "h2" | "h3",
   ) {
     const d = this.doc;
     d.font("Bold").fontSize(size).fillColor(color);
@@ -243,11 +350,32 @@ class PdfBook {
       width: CONTENT_WIDTH,
       lineGap: 2,
     });
-    this.ensureSpace(before + height + after + keepWith);
+    const accentH = variant === "h1" ? 10 : variant === "h2" ? 8 : 0;
+    this.ensureSpace(before + height + after + keepWith + accentH);
     d.font("Bold").fontSize(size).fillColor(color);
     this.y += before;
     d.text(text, MARGIN, this.y, { width: CONTENT_WIDTH, lineGap: 2 });
-    this.y = d.y + after;
+    this.y = d.y;
+
+    if (variant === "h1") {
+      this.y += 14;
+      d.moveTo(MARGIN, this.y)
+        .lineTo(MARGIN + 72, this.y)
+        .lineWidth(2)
+        .strokeColor(GOLD)
+        .stroke();
+      this.y += 4;
+    } else if (variant === "h2") {
+      this.y += 13;
+      d.moveTo(MARGIN, this.y)
+        .lineTo(MARGIN + 48, this.y)
+        .lineWidth(1.5)
+        .strokeColor(GOLD)
+        .stroke();
+      this.y += 3;
+    }
+
+    this.y += after;
   }
 
   private paragraphHeight(text: string) {
@@ -256,7 +384,7 @@ class PdfBook {
     d.font("Body").fontSize(BODY_SIZE);
     const height = d.heightOfString(text, {
       width: CONTENT_WIDTH,
-      align: "justify",
+      align: "left",
       lineGap: BODY_LINE_GAP,
       indent: 18,
     });
@@ -266,24 +394,6 @@ class PdfBook {
       Math.min(height, lineHeight * 10) +
       Math.min(BODY_AFTER, lineHeight)
     );
-  }
-
-  private paragraph(text: string) {
-    if (!text.trim()) return;
-    const d = this.doc;
-    d.font("Body").fontSize(BODY_SIZE).fillColor(INK);
-    const options = {
-      width: CONTENT_WIDTH,
-      align: "justify" as const,
-      lineGap: BODY_LINE_GAP,
-      indent: 18,
-    };
-    const height = d.heightOfString(text, options);
-    this.ensureSpace(BODY_BEFORE + height + BODY_AFTER);
-    d.font("Body").fontSize(BODY_SIZE).fillColor(INK);
-    this.y += BODY_BEFORE;
-    d.text(text, MARGIN, this.y, options);
-    this.y = d.y + BODY_AFTER;
   }
 
   private async richBody(nodes: EbookRichTextNode[]) {
@@ -301,9 +411,9 @@ class PdfBook {
         if (!text) continue;
         const level = Number(node.attrs?.level ?? 3);
         if (level <= 2) {
-          this.heading(text, H2_SIZE, H2_BEFORE, H2_AFTER);
+          this.heading(text, H2_SIZE, H2_BEFORE, H2_AFTER, HEADING_COLOR, 0, "h2");
         } else {
-          this.heading(text, H3_SIZE, 10, 12);
+          this.heading(text, H3_SIZE, 10, 12, HEADING_COLOR);
         }
         continue;
       }
@@ -428,19 +538,61 @@ class PdfBook {
     const plain = runs.map((run) => run.text).join("");
     if (!plain.trim()) return;
 
-    const d = this.doc;
-    const x = MARGIN + left;
-    const options = {
-      width: CONTENT_WIDTH - left,
-      align: "justify" as const,
-      lineGap: BODY_LINE_GAP,
-      indent: left === 0 ? 18 : 0,
-    };
-    d.font("Body").fontSize(BODY_SIZE);
-    const height = d.heightOfString(plain, options);
-    this.ensureSpace(BODY_BEFORE + height + BODY_AFTER);
-    this.y += BODY_BEFORE;
+    let restRuns = runs;
+    let first = true;
 
+    while (restRuns.length > 0) {
+      const indent = first && left === 0 ? 18 : 0;
+      const d = this.doc;
+      const x = MARGIN + left;
+      const options = {
+        width: CONTENT_WIDTH - left,
+        align: "left" as const,
+        lineGap: BODY_LINE_GAP,
+        indent,
+      };
+
+      d.font("Body").fontSize(BODY_SIZE).fillColor(INK);
+      const restPlain = restRuns.map((run) => run.text).join("");
+      if (first) this.y += BODY_BEFORE;
+
+      const available = BOTTOM - this.y - (first ? BODY_AFTER : 0);
+      const fullHeight = d.heightOfString(restPlain, options);
+
+      if (fullHeight <= available) {
+        this.drawRuns(restRuns, x, options);
+        this.y = d.y + BODY_AFTER;
+        return;
+      }
+
+      const lineHeight = d.currentLineHeight(true) + BODY_LINE_GAP;
+      if (available < lineHeight * 2) {
+        this.addPage(this.section);
+        first = false;
+        continue;
+      }
+
+      const fragment = this.fitTextToHeight(restPlain, options, available);
+      if (!fragment.text) {
+        this.addPage(this.section);
+        first = false;
+        continue;
+      }
+
+      const split = this.splitRunsAt(restRuns, fragment.text.length);
+      this.drawRuns(split.head, x, options);
+      this.addPage(this.section);
+      restRuns = split.tail;
+      first = false;
+    }
+  }
+
+  private drawRuns(
+    runs: { text: string; marks: EbookRichTextMark[] }[],
+    x: number,
+    options: PDFKit.Mixins.TextOptions,
+  ) {
+    const d = this.doc;
     runs.forEach((run, index) => {
       const isLast = index === runs.length - 1;
       const marks = richTextMarksOf({ type: "text", text: run.text, marks: run.marks });
@@ -459,8 +611,42 @@ class PdfBook {
         d.text(run.text, { ...options, continued: !isLast });
       }
     });
+  }
 
-    this.y = d.y + BODY_AFTER;
+  private splitRunsAt(
+    runs: { text: string; marks: EbookRichTextMark[] }[],
+    count: number,
+  ): {
+    head: { text: string; marks: EbookRichTextMark[] }[];
+    tail: { text: string; marks: EbookRichTextMark[] }[];
+  } {
+    const head: { text: string; marks: EbookRichTextMark[] }[] = [];
+    const tail: { text: string; marks: EbookRichTextMark[] }[] = [];
+    let remaining = Math.max(0, count);
+    let inTail = false;
+
+    for (const run of runs) {
+      if (inTail) {
+        if (run.text) tail.push(run);
+        continue;
+      }
+      if (remaining >= run.text.length) {
+        if (run.text) head.push(run);
+        remaining -= run.text.length;
+        if (remaining === 0) inTail = true;
+        continue;
+      }
+      if (remaining > 0) {
+        const left = run.text.slice(0, remaining);
+        const right = run.text.slice(remaining);
+        if (left) head.push({ text: left, marks: run.marks });
+        if (right) tail.push({ text: right.replace(/^\s+/, ""), marks: run.marks });
+      }
+      remaining = 0;
+      inTail = true;
+    }
+
+    return { head, tail };
   }
 
   private async richBlockquote(node: EbookRichTextNode) {
@@ -469,28 +655,34 @@ class PdfBook {
     const plain = runs.map((r) => r.text).join("");
     if (!plain.trim()) return;
 
-    const QUOTE_INDENT = 28;
-    const x = MARGIN + QUOTE_INDENT;
+    const barX = MARGIN + 2;
+    const textX = MARGIN + 22;
     const options = {
-      width: CONTENT_WIDTH - QUOTE_INDENT,
-      align: "justify" as const,
-      lineGap: BODY_LINE_GAP,
+      width: CONTENT_WIDTH - 22,
+      align: "left" as const,
+      lineGap: BODY_LINE_GAP + 1,
       indent: 0,
     };
 
     d.font("Body").fontSize(BODY_SIZE);
     const height = d.heightOfString(plain, options);
-    this.ensureSpace(12 + height + 12);
-    this.y += 12;
+    const padY = 10;
+    const outerBefore = 10;
+    const outerAfter = 12;
+    this.ensureSpace(outerBefore + padY * 2 + height + outerAfter);
+    this.y += outerBefore;
+
+    const blockTop = this.y;
+    const blockHeight = height + padY * 2;
 
     d.save();
-    d.strokeColor(GOLD);
-    d.lineWidth(2);
-    d.lineCap("round");
-    d.moveTo(MARGIN + 12, this.y).lineTo(MARGIN + 12, this.y + height);
-    d.stroke();
+    d.rect(MARGIN, blockTop, CONTENT_WIDTH, blockHeight)
+      .fill("#F5F4F1");
+    d.rect(barX, blockTop, 3, blockHeight)
+      .fill(GOLD);
     d.restore();
 
+    const textY = blockTop + padY + 2;
     runs.forEach((run, index) => {
       const isLast = index === runs.length - 1;
       const marks = richTextMarksOf({ type: "text", text: run.text, marks: run.marks });
@@ -502,15 +694,15 @@ class PdfBook {
             : marks.italic
               ? "Italic"
               : "Body";
-      d.font(font).fontSize(BODY_SIZE).fillColor(MUTED);
+      d.font(font).fontSize(BODY_SIZE).fillColor(GOLD);
       if (index === 0) {
-        d.text(run.text, x, this.y, { ...options, continued: !isLast });
+        d.text(run.text, textX, textY, { ...options, continued: !isLast });
       } else {
         d.text(run.text, { ...options, continued: !isLast });
       }
     });
 
-    this.y = d.y + 12;
+    this.y = blockTop + blockHeight + outerAfter;
   }
 
   private async richList(node: EbookRichTextNode, level: number) {
@@ -561,7 +753,7 @@ class PdfBook {
     const textX = x + hang;
     const options = {
       width: CONTENT_WIDTH - left - hang,
-      align: "justify" as const,
+      align: "left" as const,
       lineGap: BODY_LINE_GAP,
       indent: 0,
     };
@@ -650,46 +842,68 @@ class PdfBook {
 
   private drawCoverText() {
     const d = this.doc;
+    const brandNiche = [this.ebook.brand, this.ebook.niche]
+      .filter(Boolean)
+      .join(" · ");
 
-    d.font("Bold")
-      .fontSize(12)
-      .fillColor(INK)
-      .text(`${this.ebook.brand} · ${this.ebook.niche}`, MARGIN, this.y, {
-        width: CONTENT_WIDTH,
-        align: "center",
-        lineGap: 2,
-      });
-    this.y = d.y + 18;
+    // Eyebrow
+    this.y = TOP + 72;
+    if (brandNiche) {
+      d.font("Bold")
+        .fontSize(9)
+        .fillColor(MUTED)
+        .text(brandNiche.toUpperCase(), MARGIN, this.y, {
+          width: CONTENT_WIDTH,
+          align: "left",
+          characterSpacing: 1.2,
+          lineGap: 2,
+        });
+      this.y = d.y + 16;
+    }
 
-    this.rule(this.y);
-    this.y += 18;
+    // Gold accent bar
+    d.moveTo(MARGIN, this.y)
+      .lineTo(MARGIN + 64, this.y)
+      .lineWidth(2)
+      .strokeColor(GOLD)
+      .stroke();
+    this.y += 28;
 
+    // Title
     d.font("Bold")
       .fontSize(COVER_TITLE_SIZE)
-      .fillColor(INK)
+      .fillColor(HEADING_COLOR)
       .text(this.ebook.title, MARGIN, this.y, {
         width: CONTENT_WIDTH,
         align: "left",
-        lineGap: 4,
+        lineGap: 6,
       });
-    this.y = d.y + 18;
+    this.y = d.y + 20;
 
-    this.rule(this.y);
-    this.y += 18;
+    // Thin rule
+    d.moveTo(MARGIN, this.y)
+      .lineTo(PAGE_WIDTH - MARGIN, this.y)
+      .lineWidth(0.5)
+      .strokeColor(MUTED)
+      .stroke();
+    this.y += 22;
 
-    d.font("Body")
-      .fontSize(COVER_DESCRIPTION_SIZE)
-      .fillColor(INK)
-      .text(this.ebook.description, MARGIN, this.y, {
-        width: CONTENT_WIDTH,
-        align: "left",
-        lineGap: 5,
-      });
+    // Description
+    if (this.ebook.description?.trim()) {
+      d.font("Body")
+        .fontSize(COVER_DESCRIPTION_SIZE)
+        .fillColor(MUTED)
+        .text(this.ebook.description, MARGIN, this.y, {
+          width: CONTENT_WIDTH * 0.92,
+          align: "left",
+          lineGap: 6,
+        });
+    }
   }
 
   private drawContents(pageMap: PageMap) {
     this.addPage("TABLE OF CONTENTS");
-    this.heading("Table of Contents", H1_SIZE, H1_BEFORE, H1_AFTER);
+    this.heading("Table of Contents", H1_SIZE, H1_BEFORE, H1_AFTER, INK, 0, "h1");
 
     tocEntriesOf(this.ebook).forEach((entry) => {
       this.tocEntry(entry, pageMap);
@@ -787,7 +1001,7 @@ class PdfBook {
   private async drawIntroduction() {
     this.addPage("INTRODUCTION");
     this.pageMap.intro = this.page;
-    this.heading("Introduction", H1_SIZE, H1_BEFORE, H1_AFTER);
+    this.heading("Introduction", H1_SIZE, H1_BEFORE, H1_AFTER, INK, 0, "h1");
 
     const body = this.ebook.introductionBody;
     if (body && !richTextIsEmpty(body)) {
@@ -815,12 +1029,19 @@ class PdfBook {
       this.doc
         .font("Bold")
         .fontSize(H2_SIZE)
-        .fillColor(INK)
+        .fillColor(HEADING_COLOR)
         .text(chapter.title, MARGIN, this.y, {
           width: CONTENT_WIDTH,
           lineGap: 2,
         });
-      this.y = this.doc.y + CHAPTER_TITLE_AFTER;
+      this.y = this.doc.y + 14;
+      this.doc
+        .moveTo(MARGIN, this.y)
+        .lineTo(MARGIN + 56, this.y)
+        .lineWidth(1.5)
+        .strokeColor(GOLD)
+        .stroke();
+      this.y += CHAPTER_TITLE_AFTER;
 
       if (chapter.body !== undefined) {
         await this.richBody(chapter.body);
@@ -831,7 +1052,7 @@ class PdfBook {
           const keepWith = section.paragraphs[0]
             ? this.paragraphHeight(section.paragraphs[0])
             : 0;
-          this.heading(section.title, H3_SIZE, 10, 12, INK, keepWith);
+          this.heading(section.title, H3_SIZE, 10, 12, HEADING_COLOR, keepWith);
           section.paragraphs.forEach((text) => this.paragraph(text));
         });
       }
@@ -848,7 +1069,7 @@ class PdfBook {
   private async drawConclusion() {
     this.addPage("CONCLUSION");
     this.pageMap.conclusion = this.page;
-    this.heading("Conclusion", H1_SIZE, H1_BEFORE, H1_AFTER);
+    this.heading("Conclusion", H1_SIZE, H1_BEFORE, H1_AFTER, INK, 0, "h1");
     const body = this.ebook.conclusionBody;
     if (body && !richTextIsEmpty(body)) {
       await this.richBody(body);
@@ -860,7 +1081,7 @@ class PdfBook {
   private drawReferences() {
     this.addPage("REFERENCES");
     this.pageMap.references = this.page;
-    this.heading("References", H1_SIZE, H1_BEFORE, H1_AFTER);
+    this.heading("References", H1_SIZE, H1_BEFORE, H1_AFTER, INK, 0, "h1");
     this.ebook.references.forEach((reference, index) => {
       this.paragraph(`[${index + 1}] ${reference.title} ${reference.url}`);
     });
@@ -869,7 +1090,7 @@ class PdfBook {
   private async drawAbout() {
     this.addPage("ABOUT");
     this.pageMap.about = this.page;
-    this.heading("About", H1_SIZE, H1_BEFORE, H1_AFTER);
+    this.heading("About", H1_SIZE, H1_BEFORE, H1_AFTER, INK, 0, "h1");
     const body = this.ebook.aboutBody;
     if (body && !richTextIsEmpty(body)) {
       await this.richBody(body);

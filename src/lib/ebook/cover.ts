@@ -9,7 +9,7 @@ import type {
  * Bump this when a template's visual output changes so every existing cover
  * is marked stale and gets re-rendered on the next save.
  */
-const COVER_VERSION = 2;
+const COVER_VERSION = 20;
 
 export const COVER_WIDTH = 874;
 export const COVER_HEIGHT = 1240;
@@ -19,11 +19,11 @@ export const COVER_TEMPLATES: {
   label: string;
   hint: string;
 }[] = [
-  { id: "minimal", label: "Minimal", hint: "Bersih dan lapang" },
-  { id: "editorial", label: "Editorial", hint: "Aksen tegas di kiri" },
-  { id: "bold", label: "Bold", hint: "Judul besar, kontras tinggi" },
-  { id: "gradient", label: "Gradient", hint: "Warna modern" },
-  { id: "photo", label: "Foto", hint: "Gambar penuh + overlay" },
+  { id: "signature", label: "Signature", hint: "Elegan, aksen halus" },
+  { id: "minimal", label: "Minimal", hint: "Bersih dengan garis" },
+  { id: "editorial", label: "Editorial", hint: "Tegas, aksen samping" },
+  { id: "bold", label: "Bold", hint: "Judul kuat, kontras" },
+  { id: "gradient", label: "Gradient", hint: "Atmosfer, glow modern" },
 ];
 
 export const COVER_ACCENTS = [
@@ -41,6 +41,10 @@ export const TEMPLATE_DEFAULTS: Record<
   EbookCoverTemplate,
   Pick<EbookCover, "accent" | "background">
 > = {
+  signature: {
+    accent: "#1F2421",
+    background: { type: "gradient", from: "#FBF9F4", to: "#F1ECE2", angle: 135 },
+  },
   minimal: {
     accent: "#B68A42",
     background: { type: "gradient", from: "#F7F4EE", to: "#EBE3D5", angle: 135 },
@@ -57,15 +61,11 @@ export const TEMPLATE_DEFAULTS: Record<
     accent: "#F2C879",
     background: { type: "gradient", from: "#0B1220", to: "#1D4ED8", angle: 135 },
   },
-  photo: {
-    accent: "#FFFFFF",
-    background: { type: "gradient", from: "#111827", to: "#334155", angle: 160 },
-  },
 };
 
 export const DEFAULT_COVER: EbookCover = {
-  template: "minimal",
-  ...TEMPLATE_DEFAULTS.minimal,
+  template: "signature",
+  ...TEMPLATE_DEFAULTS.signature,
   showDescription: true,
 };
 
@@ -104,8 +104,12 @@ export function normalizeCoverBackground(
 }
 
 export function normalizeCover(cover: EbookCover): EbookCover {
-  const background = normalizeCoverBackground(cover.background);
-  return background === cover.background ? cover : { ...cover, background };
+  let current = cover;
+  if ((current.template as string) === "photo") {
+    current = { ...current, template: "signature" };
+  }
+  const background = normalizeCoverBackground(current.background);
+  return background === current.background ? current : { ...current, background };
 }
 
 export function normalizeEbookCover(content: EbookContent): EbookContent {
