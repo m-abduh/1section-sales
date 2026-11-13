@@ -97,7 +97,7 @@ export function SitePageHero({
 
   return (
     <section
-      className="relative isolate overflow-hidden border-b border-border bg-surface-muted/40"
+      className="relative isolate w-full overflow-hidden border-b border-dashed border-fg/30 bg-surface-muted/40"
       style={accentStyle}
     >
       <div
@@ -110,7 +110,7 @@ export function SitePageHero({
       />
 
       <div
-        className={`relative mx-auto ${maxWidth} px-4 py-16 sm:px-6 sm:py-20`}
+        className={`relative mx-auto w-full ${maxWidth} border-x border-dashed border-fg/30 px-4 py-16 sm:px-6 sm:py-20`}
       >
         {above ? <div className="mb-6">{above}</div> : null}
         {content}
