@@ -297,7 +297,7 @@ function SuccessContent() {
                               const statusText = isLoading
                                 ? "Preparing..."
                                 : isDone
-                                  ? "Downloaded"
+                                  ? "Enjoy your reading!"
                                   : "Click to download";
                               return (
                                 <button
@@ -317,7 +317,11 @@ function SuccessContent() {
                                   } ${isDone ? "border-emerald-200 bg-emerald-50 dark:border-emerald-900/50 dark:bg-emerald-950/30" : ""}`}
                                 >
                                   <div className="flex items-start gap-4">
-                                    {item.coverImage ? (
+                                    {isDone ? (
+                                      <div className="grid h-20 w-14 shrink-0 place-items-center rounded-lg border border-emerald-200 bg-emerald-600 text-2xl text-white sm:h-24 sm:w-16">
+                                        ✓
+                                      </div>
+                                    ) : item.coverImage ? (
                                       <img
                                         src={item.coverImage}
                                         alt={item.productName}
@@ -330,8 +334,13 @@ function SuccessContent() {
                                     )}
                                     <div className="min-w-0 flex-1">
                                       <p className="text-base font-semibold text-fg break-words">
-                                        {item.productName}
+                                        {isDone ? "Enjoy your reading!" : item.productName}
                                       </p>
+                                      {isDone ? (
+                                        <p className="mt-1 text-sm text-fg-muted break-words">
+                                          {item.productName}
+                                        </p>
+                                      ) : null}
                                       <div
                                         className={`mt-3 inline-flex items-center gap-2 rounded-full px-3 py-1.5 text-xs font-medium ${
                                           isDone
