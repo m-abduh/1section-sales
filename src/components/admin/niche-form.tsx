@@ -17,9 +17,6 @@ const schema = z.object({
     .optional(),
   tagline: z.string().max(240).optional(),
   description: z.string().max(5000).optional(),
-  audience: z.string().max(1000).optional(),
-  problems: z.string().max(3000).optional(),
-  heroImage: z.string().max(500).optional(),
   accentColor: z.string().regex(/^#[0-9a-fA-F]{6}$/, "Use a hex color"),
   active: z.boolean(),
   sortOrder: z.coerce.number().int(),
@@ -32,20 +29,10 @@ const emptyValues: FormValues = {
   slug: "",
   tagline: "",
   description: "",
-  audience: "",
-  problems: "",
-  heroImage: "",
   accentColor: "#6366F1",
   active: true,
   sortOrder: 0,
 };
-
-function parseProblems(value: string): string[] {
-  return value
-    .split("\n")
-    .map((line) => line.trim())
-    .filter(Boolean);
-}
 
 export function NicheForm({
   niche,
@@ -64,9 +51,6 @@ export function NicheForm({
         slug: niche.slug,
         tagline: niche.tagline ?? "",
         description: niche.description ?? "",
-        audience: niche.audience ?? "",
-        problems: (niche.problems ?? []).join("\n"),
-        heroImage: niche.heroImage ?? "",
         accentColor: niche.accentColor,
         active: niche.active,
         sortOrder: niche.sortOrder,
@@ -85,9 +69,6 @@ export function NicheForm({
       slug: values.slug || undefined,
       tagline: values.tagline || null,
       description: values.description || null,
-      audience: values.audience || null,
-      problems: parseProblems(values.problems ?? ""),
-      heroImage: values.heroImage || null,
       accentColor: values.accentColor,
       active: values.active,
       sortOrder: values.sortOrder,
@@ -126,22 +107,6 @@ export function NicheForm({
         <div className="mt-3 space-y-4">
           <Field label="Description" error={errors.description?.message}>
             <Textarea rows={4} placeholder="Explain what this niche is about" {...register("description")} />
-          </Field>
-
-          <Field label="Audience" hint="Who this problem area is for" error={errors.audience?.message}>
-            <Input placeholder="Adults with irregular income" {...register("audience")} />
-          </Field>
-
-          <Field
-            label="Problems"
-            hint="One problem per line. Shown as the selling points of this area."
-            error={errors.problems?.message}
-          >
-            <Textarea rows={4} placeholder={"I cannot reconcile irregular income...\nI do not know whether to save or pay debt first..."} {...register("problems")} />
-          </Field>
-
-          <Field label="Hero image URL" error={errors.heroImage?.message}>
-            <Input placeholder="https://..." {...register("heroImage")} />
           </Field>
         </div>
       </div>

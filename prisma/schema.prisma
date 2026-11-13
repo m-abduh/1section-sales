@@ -85,9 +85,6 @@ model Niche {
   name        String
   tagline     String?
   description String?
-  audience    String?
-  problems    Json      @default("[]")
-  heroImage   String?
   accentColor String    @default("#6366F1")
   active      Boolean   @default(true)
   sortOrder   Int       @default(0)

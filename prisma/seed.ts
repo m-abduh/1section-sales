@@ -107,8 +107,6 @@ async function main() {
         name: nicheData.name,
         tagline: nicheData.tagline,
         description: nicheData.description,
-        audience: nicheData.audience,
-        problems: nicheData.problems,
         accentColor: nicheData.accentColor,
         sortOrder: nicheData.sortOrder,
         active: true,

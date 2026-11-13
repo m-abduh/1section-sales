@@ -4,38 +4,18 @@ export const niches = [
   {
     slug: "career",
     name: "Career",
-    tagline: "Make sense of the uncertainty shaping your working life.",
+    tagline: "Navigate uncertainty at work.",
     description:
-      "Focused explanations for adults facing job insecurity, stalled growth, burnout, difficult workplace dynamics, or a job search that is not moving. Each guide examines one situation and the factors that may shape it, without promising career outcomes.",
-    audience:
-      "Adults navigating a job search, workplace pressure, a career change, or uncertainty about what comes next.",
-    problems: [
-      "Applying for months without hearing back",
-      "Resumes getting filtered out by software",
-      "Fear that AI will replace your job",
-      "Anxiety about getting laid off",
-      "Burnout from a growing workload",
-      "Salary stuck for years",
-    ],
+      "Practical guides for job insecurity, burnout, stalled growth, and difficult work situations.",
     accentColor: "#F59E0B",
     sortOrder: 1,
   },
   {
     slug: "finance",
     name: "Finance",
-    tagline: "Understand the pressures behind everyday money problems.",
+    tagline: "Make sense of everyday money pressure.",
     description:
-      "Focused explanations of situations like money running out before payday, debt payments piling up, rising costs outpacing raises, or not knowing where your income goes. Each guide explores the context and trade-offs behind one money problem; it is educational, not personalized financial advice.",
-    audience:
-      "Adults dealing with day-to-day money pressure who want to understand their options before deciding what to do.",
-    problems: [
-      "Money running out before the next paycheck",
-      "Raises that never catch up to rising prices",
-      "No emergency fund while layoffs loom",
-      "Buy-now-pay-later payments piling up",
-      "Paying only the minimum on credit cards",
-      "Pay off debt first or save first?",
-    ],
+      "Guides for budgeting strain, debt, rising costs, and everyday money decisions.",
     accentColor: "#10B981",
     sortOrder: 2,
   },
@@ -44,150 +24,70 @@ export const niches = [
     name: "Learning",
     tagline: "Understand why learning feels stuck.",
     description:
-      "Clear explanations for adult learners who feel overwhelmed by a large subject, keep re-reading without retaining much, or are unsure whether they understand what they studied. Guides explore how learning can break down and ways to examine it more deliberately.",
-    audience:
-      "Adults learning independently while balancing study with work, family, or other responsibilities.",
-    problems: [
-      "A course feels too big to know where to begin.",
-      "Re-reading notes takes hours, but little of it sticks.",
-      "You recognize the material but struggle to explain it without your notes.",
-      "You have limited study time after work and do not know what to prioritize.",
-      "Practice questions expose gaps, but it is unclear what to review next.",
-      "Too many courses and resources make it hard to choose a learning path.",
-    ],
+      "Guides for overwhelm, poor retention, and studying more effectively as an adult.",
     accentColor: "#3B82F6",
     sortOrder: 3,
   },
   {
     slug: "health",
     name: "Health",
-    tagline: "Make sense of why everyday health routines are hard to sustain.",
+    tagline: "Build health routines that last.",
     description:
-      "Evidence-aware explanations for adults whose plans for sleep, movement, or meals keep falling apart when work, stress, or family life gets busy. Guides examine the circumstances around a routine without offering diagnosis or individualized medical advice.",
-    audience:
-      "Adults trying to understand everyday health habits in the context of busy or changing lives.",
-    problems: [
-      "A new routine disappears as soon as the workweek gets busy.",
-      "Conflicting health advice makes it hard to know what applies to you.",
-      "One missed day turns into abandoning the whole plan.",
-      "You are too tired after work to follow the routine you planned.",
-      "Sleep timing shifts whenever your schedule changes.",
-      "Meal plans feel difficult to maintain with limited time or budget.",
-    ],
+      "Guides for sleep, movement, and meal habits that fit busy, changing lives.",
     accentColor: "#EF4444",
     sortOrder: 4,
   },
   {
     slug: "psychology",
     name: "Psychology",
-    tagline: "Understand the patterns shaping how you feel and respond.",
+    tagline: "Understand patterns in how you feel.",
     description:
-      "Evidence-aware explanations for adults navigating burnout, overthinking, loneliness, anxiety, procrastination, or self-doubt. Guides explore possible contributing factors and perspectives; they do not diagnose or replace mental-health care.",
-    audience:
-      "Adults trying to make sense of recurring emotional or behavioral patterns in everyday life.",
-    problems: [
-      "Burned out but unable to stop",
-      "Overthinking at bedtime",
-      "Procrastinating because you're overwhelmed",
-      "Feeling lonely while surrounded by people",
-      "Perfectionism that paralyzes you",
-      "Feeling guilty when you rest",
-    ],
+      "Guides for burnout, overthinking, anxiety, loneliness, and recurring emotional patterns.",
     accentColor: "#EC4899",
     sortOrder: 5,
   },
   {
     slug: "technology",
     name: "Technology",
-    tagline: "Understand the digital risks woven into everyday life.",
+    tagline: "Stay safer in everyday digital life.",
     description:
-      "Plain-language explanations for situations like scam messages, account takeovers, privacy worries, AI-generated media, and habits that make it hard to put a phone down. Guides focus on how these problems work and what to consider, without recommending specific apps or tools.",
-    audience:
-      "Adults who use digital services every day and want to understand the risks without needing technical expertise.",
-    problems: [
-      "Scam calls and texts posing as your bank or a delivery company",
-      "AI cloning a family member's voice to ask for money",
-      "Social media account getting hacked",
-      "Can't tell real photos and videos from AI-generated ones",
-      "Personal data leaked and not knowing what to do",
-      "Compulsive scrolling you can't stop",
-    ],
+      "Guides for scams, account security, privacy, AI-generated media, and screen habits.",
     accentColor: "#8B5CF6",
     sortOrder: 6,
   },
   {
     slug: "parenting",
     name: "Parenting",
-    tagline: "Understand the friction behind difficult family routines.",
+    tagline: "Ease friction in family routines.",
     description:
-      "Evidence-aware explanations for parents dealing with recurring friction around mornings, homework, screen time, boundaries, or bedtime. Guides explore the situation and family context without diagnosing children or promising a one-size-fits-all fix.",
-    audience:
-      "Adult parents trying to understand recurring challenges in everyday family life.",
-    problems: [
-      "Mornings turn into the same argument before everyone leaves home.",
-      "Homework becomes a nightly conflict, even when you want to help.",
-      "Bedtime keeps stretching later despite repeated reminders.",
-      "Screen-time limits turn into arguments whenever it is time to stop.",
-      "Getting out the door is hard because transitions keep getting resisted.",
-      "You and your co-parent disagree about how to respond to the same behavior.",
-    ],
+      "Guides for mornings, homework, screen time, boundaries, and bedtime challenges.",
     accentColor: "#F97316",
     sortOrder: 7,
   },
   {
     slug: "relationship",
     name: "Relationship",
-    tagline: "Understand the patterns behind difficult relationships.",
+    tagline: "Understand difficult relationship patterns.",
     description:
-      "Thoughtful explanations of situations like recurring arguments, emotional distance, fading friendships, jealousy, or uncertainty about where a relationship stands. Guides explore communication and boundaries without presenting themselves as therapy or minimizing unsafe situations.",
-    audience:
-      "Adults navigating tension, distance, uncertainty, or changing boundaries in close relationships.",
-    problems: [
-      "A partner who's busy and feels distant",
-      "Fighting about the same thing again and again",
-      "Struggling to express your feelings",
-      "Struggling to trust after being cheated on",
-      "Feeling lonely inside a relationship",
-      "Struggling to set boundaries",
-    ],
+      "Guides for conflict, distance, boundaries, trust, and changing relationships.",
     accentColor: "#F43F5E",
     sortOrder: 8,
   },
   {
     slug: "business",
     name: "Business",
-    tagline: "Make sense of the problems that keep a small business stuck.",
+    tagline: "Work through common small-business hurdles.",
     description:
-      "Focused explanations for adults trying to find first customers, set prices, manage cash, stand out from competitors, or understand why steady effort is not turning into sales. Guides examine one business situation without promising revenue or success.",
-    audience:
-      "Aspiring founders, solo operators, and small business owners facing practical uncertainty in their work.",
-    problems: [
-      "Having a business idea but being afraid to start",
-      "Not knowing how to price what you sell",
-      "Struggling to land your first customer",
-      "Posting regularly but online sales stay quiet",
-      "Running out of cash before breaking even",
-      "Not knowing if you're profitable or just busy",
-    ],
+      "Guides for first customers, pricing, cash flow, and turning effort into sales.",
     accentColor: "#6366F1",
     sortOrder: 9,
   },
   {
     slug: "investing",
     name: "Investing",
-    tagline: "Understand the uncertainty behind investing decisions.",
+    tagline: "Understand investing decisions with clarity.",
     description:
-      "Plain-language education for adults unsure when to start, worried about market swings, comparing themselves with other investors, or trying to understand risk, fees, and different kinds of investments. Guides do not recommend assets or promise returns.",
-    audience:
-      "Adults who are new to investing or uncertain about risk and want to understand general concepts before making their own decisions.",
-    problems: [
-      "Scared to buy because prices are high, scared to sell because they're falling",
-      "Panic selling when your portfolio turns red",
-      "Following influencer picks without understanding the risk",
-      "Falling for scams that promise unrealistic returns",
-      "Mixing up savings accounts, CDs, index funds, and stocks",
-      "Missing hidden costs like fees, spreads, and taxes",
-    ],
+      "Guides on risk, fees, market swings, and core investing concepts.",
     accentColor: "#0EA5E9",
     sortOrder: 10,
   },

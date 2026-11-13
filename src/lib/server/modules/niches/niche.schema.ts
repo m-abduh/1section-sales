@@ -8,9 +8,6 @@ export const createNicheSchema = z.object({
   name: z.string().min(2).max(120),
   tagline: z.string().max(240).optional().nullable(),
   description: z.string().max(5000).optional().nullable(),
-  audience: z.string().max(1000).optional().nullable(),
-  problems: z.array(z.string().min(1).max(300)).max(30).optional(),
-  heroImage: z.string().max(500).optional().nullable(),
   accentColor: z
     .string()
     .regex(/^#[0-9a-fA-F]{6}$/, "Accent color must be a hex value")

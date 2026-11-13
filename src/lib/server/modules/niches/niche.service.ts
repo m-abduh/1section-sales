@@ -95,9 +95,6 @@ export async function createNiche(input: CreateNicheInput) {
     name: input.name,
     tagline: input.tagline ?? null,
     description: input.description ?? null,
-    audience: input.audience ?? null,
-    problems: input.problems ?? [],
-    heroImage: input.heroImage ?? null,
     accentColor: input.accentColor ?? "#6366F1",
     active: input.active ?? true,
     sortOrder: input.sortOrder ?? 0,
@@ -118,9 +115,6 @@ export async function updateNiche(id: string, input: UpdateNicheInput) {
   if (input.name !== undefined) data.name = input.name;
   if (input.tagline !== undefined) data.tagline = input.tagline;
   if (input.description !== undefined) data.description = input.description;
-  if (input.audience !== undefined) data.audience = input.audience;
-  if (input.problems !== undefined) data.problems = input.problems;
-  if (input.heroImage !== undefined) data.heroImage = input.heroImage;
   if (input.accentColor !== undefined) data.accentColor = input.accentColor;
   if (input.active !== undefined) data.active = input.active;
   if (input.sortOrder !== undefined) data.sortOrder = input.sortOrder;
