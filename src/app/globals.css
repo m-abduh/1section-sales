@@ -58,9 +58,9 @@
   --border: rgba(255, 255, 255, 0.12);
   --fg: #e5e7eb;
   --fg-muted: #94a3b8;
-  --accent: #818cf8;
-  --accent-fg: #0b1020;
-  --ring: rgba(129, 140, 248, 0.35);
+  --accent: #1e293b;
+  --accent-fg: #f8fafc;
+  --ring: rgba(248, 250, 252, 0.25);
   color-scheme: dark;
 }
 

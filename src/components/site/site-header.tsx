@@ -15,21 +15,18 @@ export function SiteHeader({
   const accent = niches.find((n) => n.name === currentNicheName)?.accentColor;
   return (
     <header className="sticky top-0 z-40 w-full px-3 pt-3 sm:px-4 sm:pt-4">
-      <div className="glass-strong mx-auto flex h-14 w-full max-w-6xl items-center justify-between gap-4 rounded-[2rem] px-4 sm:h-16 sm:px-6">
+      <div className="mx-auto flex h-14 w-full max-w-6xl items-center justify-between gap-4 rounded-[2rem] border border-white/40 bg-white/30 px-4 shadow-lg shadow-black/5 backdrop-blur-2xl backdrop-saturate-150 sm:h-16 sm:px-6 dark:border-white/10 dark:bg-slate-900/30">
         <div className="flex min-w-0 items-center gap-3">
           <Link href="/" aria-label={SITE_NAME} className="flex shrink-0 items-center">
-            <Logo className="h-5 w-[82px] text-fg sm:h-6 sm:w-[98px]" />
+            <Logo className="h-4 w-[66px] text-fg sm:h-5 sm:w-[82px]" />
           </Link>
           {currentNicheName ? (
-            <div className="flex min-w-0 items-center gap-1.5 sm:gap-2">
-              <span aria-hidden className="text-fg-muted/40">/</span>
+            <div className="flex min-w-0 items-center gap-2 sm:gap-2.5">
+              <span aria-hidden className="text-base text-fg-muted/40 sm:text-lg">/</span>
               <span
-                className="max-w-24 truncate rounded-full px-2 py-0.5 text-[11px] font-semibold sm:max-w-52 sm:px-2.5 sm:py-1 sm:text-xs"
+                className="max-w-[8rem] truncate text-sm font-semibold sm:max-w-60 sm:text-base"
                 style={{
-                  color: accent ? `color-mix(in srgb, ${accent} 80%, var(--fg))` : "var(--fg-muted)",
-                  backgroundColor: accent
-                    ? `color-mix(in srgb, ${accent} 14%, transparent)`
-                    : "var(--surface-muted)",
+                  color: accent ? `color-mix(in srgb, ${accent} 85%, var(--fg))` : "var(--fg-muted)",
                 }}
               >
                 {currentNicheName}
@@ -38,7 +35,7 @@ export function SiteHeader({
           ) : null}
         </div>
 
-        <ThemeToggle className="shrink-0 border-white/40 bg-white/40 backdrop-blur-md hover:bg-white/60 dark:border-white/10 dark:bg-white/5 dark:hover:bg-white/10" />
+        <ThemeToggle className="shrink-0 border-white/50 bg-white/30 backdrop-blur-xl hover:bg-white/45 dark:border-white/10 dark:bg-white/10 dark:hover:bg-white/15" />
       </div>
     </header>
   );

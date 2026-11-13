@@ -372,7 +372,7 @@ export function CustomerServiceWidget() {
     <>
       {!open && teaser ? (
         <div className="fixed bottom-24 right-4 z-50 w-[calc(100vw-5.5rem)] max-w-[300px] origin-bottom-right animate-fade-up sm:right-6">
-          <div className="relative rounded-2xl border border-border bg-card p-4 shadow-lg">
+          <div className="relative rounded-2xl border border-white/40 bg-white/35 p-4 shadow-lg backdrop-blur-2xl backdrop-saturate-150 dark:border-white/10 dark:bg-slate-900/35">
             <button
               type="button"
               onClick={() => setTeaser(false)}
@@ -400,23 +400,30 @@ export function CustomerServiceWidget() {
             </button>
             <span
               aria-hidden
-              className="absolute -bottom-1.5 right-5 size-3 rotate-45 border-b border-r border-border bg-card"
+              className="absolute -bottom-1.5 right-5 size-3 rotate-45 border-b border-r border-white/40 bg-white/35 backdrop-blur-2xl dark:border-white/10 dark:bg-slate-900/35"
             />
           </div>
         </div>
       ) : null}
 
-      <div
-        className={`fixed bottom-24 right-4 z-50 w-[calc(100vw-2rem)] max-w-[390px] origin-bottom-right animate-fade-up sm:right-6 ${
-          open ? "" : "pointer-events-none hidden"
-        }`}
-      >
-        <div
-          role="dialog"
-          aria-label="Customer service chat"
-          className="flex h-[min(580px,calc(100dvh-8rem))] flex-col overflow-hidden rounded-[26px] border border-border/80 bg-card/95 shadow-[0_30px_80px_-24px_rgba(0,0,0,0.45)] ring-1 ring-black/5 backdrop-blur-xl dark:ring-white/5"
-        >
-          <div className="relative flex items-center gap-3 border-b border-border/70 bg-gradient-to-b from-surface-muted to-card px-4 py-3.5">
+      {open ? (
+        <>
+          <button
+            type="button"
+            aria-label="Close chat"
+            onClick={() => {
+              endSession("user_closed");
+              setOpen(false);
+            }}
+            className="fixed inset-0 z-40 bg-slate-950/10 backdrop-blur-md dark:bg-black/30"
+          />
+          <div className="fixed bottom-24 right-4 z-50 w-[calc(100vw-2rem)] max-w-[390px] origin-bottom-right animate-fade-up sm:right-6">
+            <div
+              role="dialog"
+              aria-label="Customer service chat"
+              className="flex h-[min(580px,calc(100dvh-8rem))] flex-col overflow-hidden rounded-[26px] border border-white/40 bg-white/40 shadow-[0_30px_80px_-24px_rgba(0,0,0,0.25)] ring-1 ring-white/20 backdrop-blur-2xl backdrop-saturate-150 dark:border-white/10 dark:bg-slate-900/40 dark:ring-white/5"
+            >
+          <div className="relative flex items-center gap-3 border-b border-white/30 bg-white/30 px-4 py-3.5 backdrop-blur-xl dark:border-white/10 dark:bg-white/5">
             <span className="relative flex size-10 shrink-0 items-center justify-center rounded-2xl bg-accent text-accent-fg shadow-sm ring-1 ring-inset ring-accent-fg/20">
               <ChatIcon className="size-5" />
               <span className="absolute -bottom-0.5 -right-0.5 size-2.5 rounded-full border-2 border-card bg-emerald-500" />
@@ -436,7 +443,7 @@ export function CustomerServiceWidget() {
                 setOpen(false);
               }}
               aria-label="Close chat"
-              className="inline-flex size-8 items-center justify-center rounded-full border border-border/60 bg-card/60 text-fg-muted transition hover:bg-surface-muted hover:text-fg focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
+              className="inline-flex size-8 items-center justify-center rounded-full border border-white/40 bg-white/40 text-fg-muted backdrop-blur-md transition hover:bg-white/60 hover:text-fg focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent dark:border-white/10 dark:bg-white/10 dark:hover:bg-white/20"
             >
               <CloseIcon className="size-4" />
             </button>
@@ -445,7 +452,7 @@ export function CustomerServiceWidget() {
           <div
             ref={listRef}
             aria-live="polite"
-            className="flex-1 space-y-3.5 overflow-y-auto bg-surface/40 px-4 py-5"
+            className="flex-1 space-y-3.5 overflow-y-auto bg-white/10 px-4 py-5 dark:bg-white/5"
           >
             {messages.map((message) =>
               message.role === "user" ? (
@@ -460,7 +467,7 @@ export function CustomerServiceWidget() {
                     className={`max-w-[88%] whitespace-pre-wrap rounded-2xl rounded-bl-md px-3.5 py-2.5 text-sm leading-6 ${
                       message.error
                         ? "border border-red-500/25 bg-red-500/5 text-fg"
-                        : "bg-surface-muted text-fg ring-1 ring-inset ring-border/60"
+                        : "border border-white/40 bg-white/45 text-fg backdrop-blur-md dark:border-white/10 dark:bg-white/10"
                     }`}
                   >
                     {message.content}
@@ -471,7 +478,7 @@ export function CustomerServiceWidget() {
 
             {sending ? (
               <div className="flex justify-start">
-                <span className="inline-flex items-center gap-1 rounded-2xl rounded-bl-md bg-surface-muted px-3.5 py-3 ring-1 ring-inset ring-border/60">
+                <span className="inline-flex items-center gap-1 rounded-2xl rounded-bl-md border border-white/40 bg-white/45 px-3.5 py-3 backdrop-blur-md dark:border-white/10 dark:bg-white/10">
                   <span className="size-1.5 animate-bounce rounded-full bg-fg-muted [animation-delay:-0.3s]" />
                   <span className="size-1.5 animate-bounce rounded-full bg-fg-muted [animation-delay:-0.15s]" />
                   <span className="size-1.5 animate-bounce rounded-full bg-fg-muted" />
@@ -492,7 +499,7 @@ export function CustomerServiceWidget() {
                       key={suggestion}
                       type="button"
                       onClick={() => void send(suggestion)}
-                      className="group inline-flex items-center gap-1.5 rounded-full border border-border bg-card px-3 py-1.5 text-xs font-medium text-fg-muted shadow-sm transition hover:-translate-y-0.5 hover:border-fg/25 hover:text-fg hover:shadow-md"
+                      className="group inline-flex items-center gap-1.5 rounded-full border border-white/40 bg-white/35 px-3 py-1.5 text-xs font-medium text-fg-muted shadow-sm backdrop-blur-md transition hover:-translate-y-0.5 hover:bg-white/55 hover:text-fg hover:shadow-md dark:border-white/10 dark:bg-white/10 dark:hover:bg-white/15"
                     >
                       {suggestion}
                       <SendIcon className="size-3 opacity-0 transition-all group-hover:translate-x-0.5 group-hover:opacity-100" />
@@ -508,9 +515,9 @@ export function CustomerServiceWidget() {
               event.preventDefault();
               void send(input);
             }}
-            className="border-t border-border/70 bg-card/80 p-3"
+            className="border-t border-white/30 bg-white/25 p-3 backdrop-blur-xl dark:border-white/10 dark:bg-white/5"
           >
-            <div className="flex items-end gap-2 rounded-2xl border border-border bg-surface p-1.5 pl-3.5 shadow-sm transition focus-within:border-fg/25 focus-within:ring-2 focus-within:ring-fg/5">
+            <div className="flex items-end gap-2 rounded-2xl border border-white/40 bg-white/40 p-1.5 pl-3.5 shadow-sm backdrop-blur-md transition focus-within:border-white/60 focus-within:ring-2 focus-within:ring-white/20 dark:border-white/10 dark:bg-white/10 dark:focus-within:ring-white/10">
               <input
                 ref={inputRef}
                 value={input}
@@ -542,6 +549,8 @@ export function CustomerServiceWidget() {
           </form>
         </div>
       </div>
+        </>
+      ) : null}
 
       <button
         type="button"
@@ -555,12 +564,12 @@ export function CustomerServiceWidget() {
         }}
         aria-label={open ? "Close customer service chat" : "Open customer service chat"}
         aria-expanded={open}
-        className={`group fixed bottom-5 right-4 z-[60] inline-flex h-14 items-center justify-center gap-2.5 rounded-full bg-accent text-accent-fg ring-1 ring-inset ring-accent-fg/20 transition-all duration-300 hover:-translate-y-0.5 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent sm:right-6 ${
+        className={`group fixed bottom-5 right-4 z-[60] inline-flex h-14 items-center justify-center gap-2.5 rounded-full border border-white/30 bg-accent/85 text-accent-fg backdrop-blur-xl ring-1 ring-inset ring-white/20 transition-all duration-300 hover:-translate-y-0.5 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent sm:right-6 ${
           open ? "w-14" : "w-14 sm:w-auto sm:pl-5 sm:pr-5"
         } ${
           !open && teaser
-            ? "shadow-[0_0_0_5px_rgba(16,185,129,0.16),0_14px_44px_-10px_rgba(0,0,0,0.6)]"
-            : "shadow-[0_12px_40px_-10px_rgba(0,0,0,0.55)] hover:shadow-[0_18px_50px_-12px_rgba(0,0,0,0.6)]"
+            ? "shadow-[0_0_0_5px_rgba(16,185,129,0.16),0_14px_44px_-10px_rgba(0,0,0,0.35)]"
+            : "shadow-[0_12px_40px_-10px_rgba(0,0,0,0.3)] hover:shadow-[0_18px_50px_-12px_rgba(0,0,0,0.35)]"
         }`}
       >
         {!open && teaser ? (

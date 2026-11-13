@@ -72,9 +72,8 @@ export function SitePageHero({
   return (
     <section className="relative w-full px-3 pt-6 sm:px-4 sm:pt-8">
       <div className={`glass-strong relative mx-auto w-full ${maxWidth} overflow-hidden rounded-[2rem] px-5 py-12 sm:px-10 sm:py-16 lg:py-20`}>
-        <div aria-hidden className="orb -left-16 -top-16 h-64 w-64 opacity-25" style={{ backgroundColor: accent }} />
-        <div aria-hidden className="orb -bottom-20 right-0 h-72 w-72 bg-pink-400/20" />
-        <div aria-hidden className="orb bottom-10 left-1/3 h-40 w-40 bg-sky-400/20" />
+        <div aria-hidden className="orb -left-32 -top-32 h-[26rem] w-[26rem] opacity-[0.06] blur-[120px]" style={{ backgroundColor: accent }} />
+        <div aria-hidden className="orb -bottom-28 right-0 h-[24rem] w-[24rem] bg-sky-400/[0.05] blur-[120px]" />
         <div className="relative">
           {above ? <div className="mb-6">{above}</div> : null}
           {content}

@@ -44,8 +44,6 @@ export default async function NichePage({ params }: NichePageProps) {
       <main className="flex-1">
         <section className="px-3 pt-6 sm:px-4 sm:pt-8">
           <div className="glass relative mx-auto w-full max-w-6xl overflow-hidden rounded-[2rem] px-5 py-10 sm:px-8 sm:py-14">
-            <div aria-hidden className="orb -right-12 -top-12 h-40 w-40 opacity-25" style={{ backgroundColor: niche.accentColor }} />
-            <div aria-hidden className="orb -left-16 -bottom-16 h-48 w-48 opacity-15" style={{ backgroundColor: niche.accentColor }} />
             <div className="relative mx-auto max-w-3xl text-center">
               <div className="inline-flex items-center gap-2 rounded-full bg-surface-muted/60 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.16em] text-fg-muted">
                 <span className="size-1.5 rounded-full" style={{ backgroundColor: niche.accentColor }} />

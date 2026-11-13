@@ -36,9 +36,8 @@ export default async function HomePage() {
       <main className="flex-1">
         <section className="relative px-3 pt-6 sm:px-4 sm:pt-8">
           <div className="glass-strong relative mx-auto w-full max-w-6xl overflow-hidden rounded-[2rem] px-5 py-14 sm:px-10 sm:py-20 lg:py-24">
-            <div aria-hidden className="orb -left-20 -top-20 h-72 w-72 opacity-30" style={{ backgroundColor: heroAccent }} />
-            <div aria-hidden className="orb -bottom-24 right-0 h-80 w-80 bg-pink-400/20" />
-            <div aria-hidden className="orb bottom-12 left-1/3 h-44 w-44 bg-sky-400/20" />
+            <div aria-hidden className="orb -left-40 -top-40 h-[30rem] w-[30rem] bg-indigo-400/[0.05] blur-[120px]" />
+            <div aria-hidden className="orb -bottom-32 right-0 h-[28rem] w-[28rem] bg-sky-400/[0.05] blur-[120px]" />
             <div className="relative mx-auto flex max-w-4xl flex-col items-center text-center">
               <h1 className="text-balance text-4xl font-bold leading-[1.03] tracking-tight text-fg sm:text-6xl lg:text-7xl">
                 One problem,{" "}
