@@ -32,12 +32,15 @@ function validRef(value: string | null): string | null {
   return trimmed;
 }
 
+type DownloadState = "idle" | "loading" | "done";
+
 function SuccessContent() {
   const searchParams = useSearchParams();
   const [orderRef, setOrderRef] = useState<string | null>(null);
   const [manual, setManual] = useState("");
   const [email, setEmail] = useState("");
   const [proofEmail, setProofEmail] = useState("");
+  const [downloadState, setDownloadState] = useState<Record<string, DownloadState>>({});
 
   useEffect(() => {
     const fromQuery = validRef(searchParams.get("order"));
@@ -72,6 +75,20 @@ function SuccessContent() {
     refetchInterval: (query) =>
       query.state.data?.status === "PENDING" ? 3000 : false,
   });
+
+  const handleDownload = (token: string, url: string) => {
+    setDownloadState((prev) => {
+      const current = prev[token];
+      if (current === "loading" || current === "done") return prev;
+      return { ...prev, [token]: "loading" };
+    });
+    // Guard against double-invocation in same tick
+    if (downloadState[token] === "loading" || downloadState[token] === "done") return;
+    startDownload(url);
+    window.setTimeout(() => {
+      setDownloadState((prev) => ({ ...prev, [token]: "done" }));
+    }, 1200);
+  };
 
   return (
     <div className="flex flex-1 flex-col bg-surface">
@@ -237,9 +254,20 @@ function SuccessContent() {
                         key={item.id}
                         className="rounded-3xl border border-border bg-card p-6 transition hover:shadow-lg"
                       >
-                        <div className="flex items-start justify-between gap-4">
+                        <div className="flex items-start gap-4">
+                          {item.coverImage ? (
+                            <img
+                              src={item.coverImage}
+                              alt={item.productName}
+                              className="h-20 w-14 shrink-0 rounded-lg border border-border object-cover bg-surface-muted sm:h-24 sm:w-16"
+                            />
+                          ) : (
+                            <div className="grid h-20 w-14 shrink-0 place-items-center rounded-lg border border-border bg-surface-muted text-lg sm:h-24 sm:w-16">
+                              📄
+                            </div>
+                          )}
                           <div className="min-w-0">
-                            <p className="text-base font-semibold text-fg">
+                            <p className="text-base font-semibold text-fg break-words">
                               {item.productName}
                             </p>
                             <p className="mt-1 text-xs text-fg-muted">
@@ -265,26 +293,58 @@ function SuccessContent() {
                               </div>
                             )
                           ) : (
-                            item.downloads.map((download) => (
-                              <button
-                                key={download.token}
-                                type="button"
-                                onClick={() =>
-                                  startDownload(`${apiUrl()}${download.url}`)
-                                }
-                                className="group flex w-full cursor-pointer items-center justify-between gap-3 rounded-2xl border border-border bg-surface-muted px-4 py-3 text-left text-sm font-medium text-fg transition hover:border-fg/20 hover:bg-card"
-                              >
-                                <span className="flex min-w-0 items-center gap-3">
-                                  <span className="grid size-8 shrink-0 place-items-center rounded-lg bg-fg text-xs font-bold text-surface">
-                                    ↓
+                            item.downloads.map((download) => {
+                              const state = downloadState[download.token] ?? "idle";
+                              const isLoading = state === "loading";
+                              const isDone = state === "done";
+                              const disabled = isLoading || isDone;
+                              return (
+                                <button
+                                  key={download.token}
+                                  type="button"
+                                  disabled={disabled}
+                                  onClick={() =>
+                                    handleDownload(
+                                      download.token,
+                                      `${apiUrl()}${download.url}`,
+                                    )
+                                  }
+                                  className={`group flex w-full items-start justify-between gap-3 rounded-2xl border px-4 py-3 text-left text-sm font-medium transition sm:items-center ${
+                                    disabled
+                                      ? "cursor-not-allowed border-border bg-surface-muted opacity-80"
+                                      : "cursor-pointer border-border bg-surface-muted hover:border-fg/20 hover:bg-card"
+                                  } ${isDone ? "border-emerald-200 bg-emerald-50 dark:border-emerald-900/50 dark:bg-emerald-950/30" : ""}`}
+                                >
+                                  <span className="flex min-w-0 items-start gap-3 sm:items-center">
+                                    <span
+                                      className={`grid size-8 shrink-0 place-items-center rounded-lg text-xs font-bold ${
+                                        isDone
+                                          ? "bg-emerald-600 text-white"
+                                          : "bg-fg text-surface"
+                                      }`}
+                                    >
+                                      {isLoading ? (
+                                        <Spinner className="size-4" />
+                                      ) : isDone ? (
+                                        "✓"
+                                      ) : (
+                                        "↓"
+                                      )}
+                                    </span>
+                                    <span className="min-w-0 break-words whitespace-normal text-fg">
+                                      {download.label}
+                                    </span>
                                   </span>
-                                  <span className="truncate">{download.label}</span>
-                                </span>
-                                <span className="shrink-0 text-xs text-fg-muted">
-                                  {download.remaining} left
-                                </span>
-                              </button>
-                            ))
+                                  <span className="shrink-0 text-xs text-fg-muted sm:whitespace-nowrap">
+                                    {isLoading
+                                      ? "Menyiapkan..."
+                                      : isDone
+                                        ? "Berhasil terdownload"
+                                        : `${download.remaining} left`}
+                                  </span>
+                                </button>
+                              );
+                            })
                           )}
                         </div>
                       </div>

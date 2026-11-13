@@ -77,7 +77,9 @@ export async function getOrderStatus(
       items: {
         include: {
           tokens: true,
-          product: { select: { _count: { select: { files: true } } } },
+          product: {
+            select: { coverImage: true, _count: { select: { files: true } } },
+          },
         },
       },
     },
@@ -108,7 +110,9 @@ export async function getOrderStatus(
       where: { orderId: order.id },
       include: {
         tokens: true,
-        product: { select: { _count: { select: { files: true } } } },
+        product: {
+          select: { coverImage: true, _count: { select: { files: true } } },
+        },
       },
     });
   }
@@ -124,6 +128,7 @@ export async function getOrderStatus(
     items: order.items.map((item) => ({
       id: item.id,
       productName: item.productName,
+      coverImage: item.product?.coverImage ?? null,
       quantity: item.quantity,
       unitAmount: item.unitAmount,
       hasFiles: (item.product?._count?.files ?? 0) > 0,

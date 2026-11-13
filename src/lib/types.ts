@@ -98,6 +98,7 @@ export interface DownloadLink {
 export interface PublicOrderItem {
   id: string;
   productName: string;
+  coverImage?: string | null;
   quantity: number;
   unitAmount: number;
   hasFiles: boolean;
