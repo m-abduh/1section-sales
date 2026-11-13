@@ -33,7 +33,8 @@ function getDownloadLabel(order: AdminOrder): string {
   if (order.status !== "PAID") return "-";
   const stats: AdminDownloadStats | undefined = order.downloadStats;
   if (!stats || stats.tokenCount === 0) return "No files";
-  return stats.downloaded ? "Downloaded" : "Not downloaded";
+  if (stats.downloaded) return `Downloaded (${stats.totalDownloadCount}×)`;
+  return "Not downloaded";
 }
 
 function getDownloadClass(order: AdminOrder): string {
@@ -244,7 +245,7 @@ export default function AdminOrdersPage() {
                   <span className="text-fg-muted">No files/tokens for this order</span>
                 ) : selected.downloadStats.downloaded ? (
                   <span className="font-medium text-emerald-600 dark:text-emerald-400">
-                    Downloaded
+                    Downloaded ({selected.downloadStats.totalDownloadCount}×)
                   </span>
                 ) : (
                   <span className="font-medium text-amber-600 dark:text-amber-400">
@@ -271,7 +272,7 @@ export default function AdminOrdersPage() {
                           {item.downloadStats.tokenCount === 0
                             ? "No files"
                             : item.downloadStats.downloaded
-                              ? "Downloaded"
+                              ? `Downloaded (${item.downloadStats.totalDownloadCount}×)`
                               : "Not downloaded"}
                         </p>
                       ) : null}

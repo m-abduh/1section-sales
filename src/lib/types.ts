@@ -118,6 +118,7 @@ export interface PublicOrder {
 export interface AdminDownloadStats {
   tokenCount: number;
   downloaded: boolean;
+  totalDownloadCount: number;
 }
 
 export interface AdminOrderItem {

@@ -202,17 +202,21 @@ export async function listAdminOrders(params: {
   const items = rows.map((order) => {
     let tokenCount = 0;
     let downloaded = false;
+    let totalDownloadCount = 0;
 
     const items = order.items.map((item) => {
       let itemTokenCount = 0;
       let itemDownloaded = false;
+      let itemTotalDownloadCount = 0;
 
       for (const token of item.tokens) {
         itemTokenCount += 1;
+        itemTotalDownloadCount += token.downloadCount;
         if (token.downloadCount > 0) itemDownloaded = true;
       }
 
       tokenCount += itemTokenCount;
+      totalDownloadCount += itemTotalDownloadCount;
       if (itemDownloaded) downloaded = true;
 
       const { tokens: _tokens, ...rest } = item;
@@ -221,6 +225,7 @@ export async function listAdminOrders(params: {
         downloadStats: {
           tokenCount: itemTokenCount,
           downloaded: itemDownloaded,
+          totalDownloadCount: itemTotalDownloadCount,
         },
       };
     });
@@ -231,6 +236,7 @@ export async function listAdminOrders(params: {
       downloadStats: {
         tokenCount,
         downloaded,
+        totalDownloadCount,
       },
     };
   });
