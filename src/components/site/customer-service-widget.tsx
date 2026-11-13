@@ -372,7 +372,7 @@ export function CustomerServiceWidget() {
     <>
       {!open && teaser ? (
         <div className="fixed bottom-24 right-4 z-50 w-[calc(100vw-5.5rem)] max-w-[300px] origin-bottom-right animate-fade-up sm:right-6">
-          <div className="relative rounded-2xl border border-white/40 bg-white/35 p-4 shadow-lg backdrop-blur-2xl backdrop-saturate-150 dark:border-white/10 dark:bg-slate-900/35">
+          <div className="relative rounded-2xl border border-white/40 bg-white/50 p-4 shadow-lg backdrop-blur-[4px] backdrop-saturate-150 dark:border-white/10 dark:bg-slate-900/50">
             <button
               type="button"
               onClick={() => setTeaser(false)}
@@ -400,7 +400,7 @@ export function CustomerServiceWidget() {
             </button>
             <span
               aria-hidden
-              className="absolute -bottom-1.5 right-5 size-3 rotate-45 border-b border-r border-white/40 bg-white/35 backdrop-blur-2xl dark:border-white/10 dark:bg-slate-900/35"
+              className="absolute -bottom-1.5 right-5 size-3 rotate-45 border-b border-r border-white/40 bg-white/50 backdrop-blur-[4px] dark:border-white/10 dark:bg-slate-900/50"
             />
           </div>
         </div>
