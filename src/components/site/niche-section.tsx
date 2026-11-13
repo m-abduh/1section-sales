@@ -37,17 +37,9 @@ export function NicheSection({
             {niche.tagline}
           </p>
         ) : null}
-        {niche.description ? (
-          <p className="mt-3 line-clamp-4 whitespace-pre-line text-xs leading-5 text-fg-muted sm:text-sm sm:leading-6">
-            {niche.description}
-          </p>
-        ) : null}
-      </div>
-
-      <div className="mt-5 border-t border-fg/30 pt-4 sm:mt-6">
         <Link
           href={nicheUrl(niche.slug)}
-          className="group inline-flex items-center gap-2 text-sm font-semibold text-fg transition hover:opacity-80"
+          className="group mt-4 inline-flex items-center gap-2 text-sm font-semibold text-fg transition hover:opacity-80"
         >
           <span className="break-words">Explore {niche.name}</span>
           <span
@@ -57,9 +49,15 @@ export function NicheSection({
             →
           </span>
         </Link>
-        <div className="mt-3">
-          <SocialLinks slug={niche.slug} />
-        </div>
+        {niche.description ? (
+          <p className="mt-3 line-clamp-4 whitespace-pre-line text-xs leading-5 text-fg-muted sm:text-sm sm:leading-6">
+            {niche.description}
+          </p>
+        ) : null}
+      </div>
+
+      <div className="mt-5 border-t border-fg/30 pt-4 sm:mt-6">
+        <SocialLinks slug={niche.slug} />
       </div>
     </article>
   );

@@ -33,41 +33,53 @@ export default async function HomePage() {
 
       <main className="flex-1">
         <section className="w-full border-b border-dashed border-fg/30">
-          <div className="mx-auto w-full max-w-6xl border-x border-dashed border-fg/30 px-4 py-12 sm:px-6 sm:py-16">
+          <div className="mx-auto flex w-full max-w-6xl flex-col items-center border-x border-dashed border-fg/30 px-4 py-16 text-center sm:px-6 sm:py-24">
             <div className="max-w-3xl">
-              <span className="animate-fade-up inline-flex items-center gap-2 rounded-full border border-border bg-card/80 px-3 py-1 text-xs font-medium tracking-wide text-fg-muted backdrop-blur">
+              <span className="animate-fade-up inline-flex items-center gap-2 rounded-full border border-fg/30 bg-surface px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.18em] text-fg-muted">
                 <span
                   className="size-1.5 rounded-full"
                   style={{
                     backgroundColor: niches[0]?.accentColor ?? "var(--accent)",
                   }}
                 />
-                ONE PROBLEM · UNDERSTOOD MORE DEEPLY
+                Clear perspective
               </span>
               <h1
-                className="animate-fade-up mt-7 max-w-2xl text-balance text-4xl font-bold leading-[1.08] tracking-tight text-fg sm:text-6xl sm:leading-[1.02]"
+                className="animate-fade-up mt-8 text-balance text-4xl font-bold leading-[1.05] tracking-tight text-fg sm:text-6xl lg:text-7xl"
                 style={{ animationDelay: "80ms" }}
               >
-                Understand the problems that shape your life.
+                One problem,{" "}
+                <span
+                  style={{
+                    color: niches[0]?.accentColor ?? "var(--fg-muted)",
+                  }}
+                >
+                  many paths.
+                </span>
               </h1>
               <p
-                className="animate-fade-up mt-6 max-w-2xl text-lg text-fg-muted"
+                className="animate-fade-up mx-auto mt-6 max-w-2xl text-base leading-7 text-fg-muted sm:text-lg sm:leading-8"
                 style={{ animationDelay: "160ms" }}
               >
                 1section turns real-life problems into deep, practical
-                understanding. We look beyond familiar advice to explore why a
-                problem happens, so you can think through what it means for you.
+                understanding—beyond familiar advice—so you can think clearly
+                about what a situation means for you.
               </p>
               <div
-                className="animate-fade-up mt-9 flex flex-wrap items-center gap-3"
+                className="animate-fade-up mt-10 flex justify-center"
                 style={{ animationDelay: "240ms" }}
               >
                 <a
                   href="#niches"
-                  className="inline-flex items-center gap-2 rounded-full bg-accent px-7 py-3 text-sm font-semibold text-accent-fg transition hover:opacity-90"
+                  className="group inline-flex items-center gap-2 rounded-full bg-accent px-7 py-3.5 text-sm font-semibold text-accent-fg transition hover:opacity-90"
                 >
                   Explore real-life problems
-                  <span aria-hidden>→</span>
+                  <span
+                    aria-hidden
+                    className="transition-transform group-hover:translate-x-0.5"
+                  >
+                    →
+                  </span>
                 </a>
               </div>
             </div>
