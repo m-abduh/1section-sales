@@ -45,6 +45,7 @@ export default async function NichePage({ params }: NichePageProps) {
         <section className="px-3 pt-6 sm:px-4 sm:pt-8">
           <div className="glass relative mx-auto w-full max-w-6xl overflow-hidden rounded-[2rem] px-5 py-10 sm:px-8 sm:py-14">
             <div aria-hidden className="orb -right-12 -top-12 h-40 w-40 opacity-25" style={{ backgroundColor: niche.accentColor }} />
+            <div aria-hidden className="orb -left-16 -bottom-16 h-48 w-48 opacity-15" style={{ backgroundColor: niche.accentColor }} />
             <div className="relative mx-auto max-w-3xl text-center">
               <div className="inline-flex items-center gap-2 rounded-full bg-surface-muted/60 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.16em] text-fg-muted">
                 <span className="size-1.5 rounded-full" style={{ backgroundColor: niche.accentColor }} />
@@ -62,21 +63,14 @@ export default async function NichePage({ params }: NichePageProps) {
                   <span aria-hidden>↓</span>
                 </a>
               </div>
-            </div>
-          </div>
-        </section>
-
-        <section className="px-3 pt-6 sm:px-4 sm:pt-8">
-          <div className="glass relative mx-auto w-full max-w-6xl overflow-hidden rounded-[2rem] px-4 py-5 sm:px-6 sm:py-6">
-            <div aria-hidden className="orb -right-10 -top-10 h-32 w-32 opacity-15" style={{ backgroundColor: niche.accentColor }} />
-            <div className="relative">
-              <div className="mb-4 flex flex-wrap items-end justify-between gap-2">
-                <div>
-                  <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-fg-muted">Stay connected</p>
-                  <h2 className="mt-1 text-lg font-semibold tracking-tight text-fg sm:text-xl">Follow {niche.name}</h2>
+              <div className="mt-8 flex flex-col items-center">
+                <div className="mb-3 flex items-center gap-3 text-[10px] font-semibold uppercase tracking-[0.18em] text-fg-muted/70">
+                  <span className="h-px w-8 bg-fg-muted/20" aria-hidden />
+                  <span>Follow {niche.name}</span>
+                  <span className="h-px w-8 bg-fg-muted/20" aria-hidden />
                 </div>
+                <SocialLinks slug={niche.slug} accentColor={niche.accentColor} variant="hero" />
               </div>
-              <SocialLinks slug={niche.slug} accentColor={niche.accentColor} variant="cards" />
             </div>
           </div>
         </section>
