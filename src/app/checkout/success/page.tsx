@@ -254,50 +254,51 @@ function SuccessContent() {
                         key={item.id}
                         className="rounded-3xl border border-border bg-card p-6 transition hover:shadow-lg"
                       >
-                        <div className="flex items-start gap-4">
-                          {item.coverImage ? (
-                            <img
-                              src={item.coverImage}
-                              alt={item.productName}
-                              className="h-20 w-14 shrink-0 rounded-lg border border-border object-cover bg-surface-muted sm:h-24 sm:w-16"
-                            />
-                          ) : (
-                            <div className="grid h-20 w-14 shrink-0 place-items-center rounded-lg border border-border bg-surface-muted text-lg sm:h-24 sm:w-16">
-                              📄
+                        {item.downloads.length === 0 ? (
+                          <div>
+                            <div className="flex items-start gap-4">
+                              {item.coverImage ? (
+                                <img
+                                  src={item.coverImage}
+                                  alt={item.productName}
+                                  className="h-20 w-14 shrink-0 rounded-lg border border-border object-cover bg-surface-muted sm:h-24 sm:w-16"
+                                />
+                              ) : (
+                                <div className="grid h-20 w-14 shrink-0 place-items-center rounded-lg border border-border bg-surface-muted text-lg sm:h-24 sm:w-16">
+                                  📄
+                                </div>
+                              )}
+                              <div className="min-w-0">
+                                <p className="text-base font-semibold text-fg break-words">
+                                  {item.productName}
+                                </p>
+                              </div>
                             </div>
-                          )}
-                          <div className="min-w-0">
-                            <p className="text-base font-semibold text-fg break-words">
-                              {item.productName}
-                            </p>
-                            <p className="mt-1 text-xs text-fg-muted">
-                              {item.downloads.length === 0
-                                ? item.hasFiles
-                                  ? "Preparing your download link..."
-                                  : "No file attached yet"
-                                : `${item.downloads.length} file${item.downloads.length === 1 ? "" : "s"} available`}
-                            </p>
+                            <div className="mt-4">
+                              {item.hasFiles ? (
+                                <div className="flex items-center gap-2 rounded-2xl bg-surface-muted px-4 py-3 text-sm text-fg-muted">
+                                  <Spinner /> Preparing your download link...
+                                </div>
+                              ) : (
+                                <div className="rounded-2xl bg-surface-muted px-4 py-3 text-sm text-fg-muted">
+                                  No file is attached to this item yet. Please
+                                  contact support and we will sort it out.
+                                </div>
+                              )}
+                            </div>
                           </div>
-                        </div>
-
-                        <div className="mt-4 space-y-2">
-                          {item.downloads.length === 0 ? (
-                            item.hasFiles ? (
-                              <div className="flex items-center gap-2 rounded-2xl bg-surface-muted px-4 py-3 text-sm text-fg-muted">
-                                <Spinner /> Preparing your download link...
-                              </div>
-                            ) : (
-                              <div className="rounded-2xl bg-surface-muted px-4 py-3 text-sm text-fg-muted">
-                                No file is attached to this item yet. Please
-                                contact support and we will sort it out.
-                              </div>
-                            )
-                          ) : (
-                            item.downloads.map((download) => {
+                        ) : (
+                          <div className="space-y-3">
+                            {item.downloads.map((download) => {
                               const state = downloadState[download.token] ?? "idle";
                               const isLoading = state === "loading";
                               const isDone = state === "done";
                               const disabled = isLoading || isDone;
+                              const statusText = isLoading
+                                ? "Preparing..."
+                                : isDone
+                                  ? "Downloaded"
+                                  : "Click to download";
                               return (
                                 <button
                                   key={download.token}
@@ -309,44 +310,53 @@ function SuccessContent() {
                                       `${apiUrl()}${download.url}`,
                                     )
                                   }
-                                  className={`group flex w-full items-start justify-between gap-3 rounded-2xl border px-4 py-3 text-left text-sm font-medium transition sm:items-center ${
+                                  className={`group w-full rounded-2xl border p-4 text-left transition ${
                                     disabled
-                                      ? "cursor-not-allowed border-border bg-surface-muted opacity-80"
+                                      ? "cursor-not-allowed border-border bg-surface-muted/70"
                                       : "cursor-pointer border-border bg-surface-muted hover:border-fg/20 hover:bg-card"
                                   } ${isDone ? "border-emerald-200 bg-emerald-50 dark:border-emerald-900/50 dark:bg-emerald-950/30" : ""}`}
                                 >
-                                  <span className="flex min-w-0 items-start gap-3 sm:items-center">
-                                    <span
-                                      className={`grid size-8 shrink-0 place-items-center rounded-lg text-xs font-bold ${
-                                        isDone
-                                          ? "bg-emerald-600 text-white"
-                                          : "bg-fg text-surface"
-                                      }`}
-                                    >
-                                      {isLoading ? (
-                                        <Spinner className="size-4" />
-                                      ) : isDone ? (
-                                        "✓"
-                                      ) : (
-                                        "↓"
-                                      )}
-                                    </span>
-                                    <span className="min-w-0 break-words whitespace-normal text-fg">
-                                      {download.label}
-                                    </span>
-                                  </span>
-                                  <span className="shrink-0 text-xs text-fg-muted sm:whitespace-nowrap">
-                                    {isLoading
-                                      ? "Menyiapkan..."
-                                      : isDone
-                                        ? "Berhasil terdownload"
-                                        : `${download.remaining} left`}
-                                  </span>
+                                  <div className="flex items-start gap-4">
+                                    {item.coverImage ? (
+                                      <img
+                                        src={item.coverImage}
+                                        alt={item.productName}
+                                        className="h-20 w-14 shrink-0 rounded-lg border border-border object-cover bg-surface-muted sm:h-24 sm:w-16"
+                                      />
+                                    ) : (
+                                      <div className="grid h-20 w-14 shrink-0 place-items-center rounded-lg border border-border bg-surface-muted text-lg sm:h-24 sm:w-16">
+                                        📄
+                                      </div>
+                                    )}
+                                    <div className="min-w-0 flex-1">
+                                      <p className="text-base font-semibold text-fg break-words">
+                                        {item.productName}
+                                      </p>
+                                      <div
+                                        className={`mt-3 inline-flex items-center gap-2 rounded-full px-3 py-1.5 text-xs font-medium ${
+                                          isDone
+                                            ? "bg-emerald-600 text-white"
+                                            : isLoading
+                                              ? "bg-fg/10 text-fg"
+                                              : "bg-fg text-surface"
+                                        }`}
+                                      >
+                                        {isLoading ? (
+                                          <Spinner className="size-3.5" />
+                                        ) : isDone ? (
+                                          <span aria-hidden>✓</span>
+                                        ) : (
+                                          <span aria-hidden>↓</span>
+                                        )}
+                                        <span>{statusText}</span>
+                                      </div>
+                                    </div>
+                                  </div>
                                 </button>
                               );
-                            })
-                          )}
-                        </div>
+                            })}
+                          </div>
+                        )}
                       </div>
                     ))}
                   </div>
