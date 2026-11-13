@@ -177,7 +177,7 @@ export default async function HomePage() {
                 </p>
               </div>
             ) : (
-              <div className="grid grid-cols-2 divide-x divide-y divide-fg/30">
+              <div className="grid grid-cols-2 [&>*]:min-w-0 [&>*]:border-b [&>*]:border-dashed [&>*]:border-fg/30 [&>*:nth-child(odd)]:border-r">
                 {list.map((niche, index) => (
                   <NicheSection key={niche.id} niche={niche} index={index} />
                 ))}

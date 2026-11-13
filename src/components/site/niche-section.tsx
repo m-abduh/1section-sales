@@ -13,7 +13,7 @@ export function NicheSection({
   const count = niche._count?.products ?? 0;
 
   return (
-    <article className="flex h-full flex-col p-4 sm:p-6 lg:p-8">
+    <article className="flex h-full min-w-0 flex-col bg-surface p-4 sm:p-6 lg:p-8">
       <div className="flex flex-wrap items-start justify-between gap-2 border-b border-fg/30 pb-3 sm:pb-4">
         <span className="inline-flex items-center gap-2 text-[10px] font-semibold uppercase tracking-[0.16em] text-fg-muted sm:text-xs">
           <span
