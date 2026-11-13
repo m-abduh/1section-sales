@@ -371,14 +371,7 @@ export function CustomerServiceWidget() {
   return (
     <>
       {!open && teaser ? (
-        <>
-          <button
-            type="button"
-            aria-label="Dismiss message"
-            onClick={() => setTeaser(false)}
-            className="fixed inset-0 z-40 bg-slate-950/10 backdrop-blur-md dark:bg-black/30"
-          />
-          <div className="fixed bottom-24 right-4 z-50 w-[calc(100vw-5.5rem)] max-w-[300px] origin-bottom-right animate-fade-up sm:right-6">
+        <div className="fixed bottom-24 right-4 z-50 w-[calc(100vw-5.5rem)] max-w-[300px] origin-bottom-right animate-fade-up sm:right-6">
           <div className="relative rounded-2xl border border-white/40 bg-white/35 p-4 shadow-lg backdrop-blur-2xl backdrop-saturate-150 dark:border-white/10 dark:bg-slate-900/35">
             <button
               type="button"
@@ -411,7 +404,6 @@ export function CustomerServiceWidget() {
             />
           </div>
         </div>
-        </>
       ) : null}
 
       {open ? (
