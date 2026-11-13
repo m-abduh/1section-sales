@@ -42,16 +42,6 @@ export function NicheSection({
             {niche.description}
           </p>
         ) : null}
-        {niche.audience ? (
-          <div className="mt-4 border-t border-fg/30 pt-3">
-            <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-fg-muted">
-              A good place to start if
-            </p>
-            <p className="mt-1.5 text-xs leading-5 text-fg sm:text-sm sm:leading-6">
-              {niche.audience}
-            </p>
-          </div>
-        ) : null}
       </div>
 
       <div className="mt-5 border-t border-fg/30 pt-4 sm:mt-6">
