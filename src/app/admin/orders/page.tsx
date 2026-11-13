@@ -33,7 +33,7 @@ function getDownloadLabel(order: AdminOrder): string {
   if (order.status !== "PAID") return "-";
   const stats: AdminDownloadStats | undefined = order.downloadStats;
   if (!stats || stats.tokenCount === 0) return "No files";
-  if (stats.downloaded) return `Downloaded (${stats.totalDownloadCount}×)`;
+  if (stats.downloaded) return `Downloaded (${stats.totalDownloadCount ?? 0}×)`;
   return "Not downloaded";
 }
 
@@ -132,6 +132,7 @@ export default function AdminOrdersPage() {
                 <tr>
                   <th className="px-5 py-3 font-semibold">Order</th>
                   <th className="px-5 py-3 font-semibold">Customer</th>
+                  <th className="px-5 py-3 font-semibold">Niche</th>
                   <th className="px-5 py-3 font-semibold">Total</th>
                   <th className="px-5 py-3 font-semibold">Status</th>
                   <th className="px-5 py-3 font-semibold">Download</th>
@@ -150,6 +151,9 @@ export default function AdminOrdersPage() {
                     </td>
                     <td className="px-5 py-4 text-fg-muted">
                       {order.email ?? "-"}
+                    </td>
+                    <td className="px-5 py-4 text-fg-muted">
+                      {[...new Set(order.items.map((i) => i.nicheName).filter(Boolean))].join(", ") || "-"}
                     </td>
                     <td className="px-5 py-4 font-medium text-fg">
                       {formatCurrency(order.total, order.currency)}
@@ -245,7 +249,7 @@ export default function AdminOrdersPage() {
                   <span className="text-fg-muted">No files/tokens for this order</span>
                 ) : selected.downloadStats.downloaded ? (
                   <span className="font-medium text-emerald-600 dark:text-emerald-400">
-                    Downloaded ({selected.downloadStats.totalDownloadCount}×)
+                    Downloaded ({selected.downloadStats.totalDownloadCount ?? 0}×)
                   </span>
                 ) : (
                   <span className="font-medium text-amber-600 dark:text-amber-400">
@@ -269,12 +273,15 @@ export default function AdminOrdersPage() {
                       </p>
                       {selected.status === "PAID" && item.downloadStats ? (
                         <p className="text-xs text-fg-muted">
+                          {item.nicheName ? `${item.nicheName} · ` : ""}
                           {item.downloadStats.tokenCount === 0
                             ? "No files"
                             : item.downloadStats.downloaded
-                              ? `Downloaded (${item.downloadStats.totalDownloadCount}×)`
+                              ? `Downloaded (${item.downloadStats.totalDownloadCount ?? 0}×)`
                               : "Not downloaded"}
                         </p>
+                      ) : item.nicheName ? (
+                        <p className="text-xs text-fg-muted">{item.nicheName}</p>
                       ) : null}
                     </div>
                     <span className="shrink-0 text-fg-muted">

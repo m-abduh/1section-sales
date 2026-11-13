@@ -192,6 +192,13 @@ export async function listAdminOrders(params: {
             tokens: {
               select: { downloadCount: true },
             },
+            product: {
+              select: {
+                niche: {
+                  select: { name: true },
+                },
+              },
+            },
           },
         },
       },
@@ -219,9 +226,10 @@ export async function listAdminOrders(params: {
       totalDownloadCount += itemTotalDownloadCount;
       if (itemDownloaded) downloaded = true;
 
-      const { tokens: _tokens, ...rest } = item;
+      const { tokens: _tokens, product, ...rest } = item;
       return {
         ...rest,
+        nicheName: product?.niche?.name ?? null,
         downloadStats: {
           tokenCount: itemTokenCount,
           downloaded: itemDownloaded,

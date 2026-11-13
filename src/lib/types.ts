@@ -126,6 +126,7 @@ export interface AdminOrderItem {
   productName: string;
   quantity: number;
   unitAmount: number;
+  nicheName?: string | null;
   downloadStats?: AdminDownloadStats;
 }
 
