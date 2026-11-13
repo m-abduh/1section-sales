@@ -45,11 +45,7 @@ export default async function NichePage({ params }: NichePageProps) {
         <section className="px-3 pt-6 sm:px-4 sm:pt-8">
           <div className="glass relative mx-auto w-full max-w-6xl overflow-hidden rounded-[2rem] px-5 py-10 sm:px-8 sm:py-14">
             <div className="relative mx-auto max-w-3xl text-center">
-              <div className="inline-flex items-center gap-2 rounded-full bg-surface-muted/60 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.16em] text-fg-muted">
-                <span className="size-1.5 rounded-full" style={{ backgroundColor: niche.accentColor }} />
-                {niche.name}
-              </div>
-              <h1 className="mt-5 text-balance text-3xl font-bold leading-tight tracking-tight text-fg sm:text-5xl">
+              <h1 className="text-balance text-3xl font-bold leading-tight tracking-tight text-fg sm:text-5xl">
                 {niche.tagline ?? `Understand what makes ${niche.name.toLowerCase()} difficult.`}
               </h1>
               <p className="mx-auto mt-4 max-w-2xl whitespace-pre-line text-base leading-7 text-fg-muted sm:text-lg">
