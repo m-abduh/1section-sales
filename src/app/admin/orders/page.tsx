@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import type { AdminOrder, OrderStatus } from "@/lib/types";
+import type { AdminDownloadStats, AdminOrder, OrderStatus } from "@/lib/types";
 import { useAdminOrders } from "@/hooks/use-admin-orders";
 import { formatCurrency, formatDate } from "@/lib/format";
 import { Modal } from "@/components/admin/modal";
@@ -28,6 +28,22 @@ const statusLabels: Record<string, string> = {
   CANCELED: "Canceled",
   REFUNDED: "Refunded",
 };
+
+function getDownloadLabel(order: AdminOrder): string {
+  if (order.status !== "PAID") return "-";
+  const stats: AdminDownloadStats | undefined = order.downloadStats;
+  if (!stats || stats.tokenCount === 0) return "No files";
+  return stats.downloaded ? "Downloaded" : "Not downloaded";
+}
+
+function getDownloadClass(order: AdminOrder): string {
+  if (order.status !== "PAID") return "text-fg-muted";
+  const stats = order.downloadStats;
+  if (!stats || stats.tokenCount === 0) return "text-fg-muted";
+  return stats.downloaded
+    ? "text-emerald-600 dark:text-emerald-400"
+    : "text-amber-600 dark:text-amber-400";
+}
 
 export default function AdminOrdersPage() {
   const [page, setPage] = useState(1);
@@ -117,6 +133,7 @@ export default function AdminOrdersPage() {
                   <th className="px-5 py-3 font-semibold">Customer</th>
                   <th className="px-5 py-3 font-semibold">Total</th>
                   <th className="px-5 py-3 font-semibold">Status</th>
+                  <th className="px-5 py-3 font-semibold">Download</th>
                   <th className="px-5 py-3 font-semibold">Date</th>
                   <th className="px-5 py-3 text-right font-semibold">Actions</th>
                 </tr>
@@ -138,6 +155,9 @@ export default function AdminOrdersPage() {
                     </td>
                     <td className="px-5 py-4">
                       <StatusBadge status={order.status} />
+                    </td>
+                    <td className={`px-5 py-4 text-sm font-medium ${getDownloadClass(order)}`}>
+                      {getDownloadLabel(order)}
                     </td>
                     <td className="px-5 py-4 text-fg-muted">
                       {formatDate(order.createdAt)}
@@ -216,17 +236,47 @@ export default function AdminOrdersPage() {
             </div>
 
             <div>
+              <p className="text-xs uppercase tracking-wide text-fg-muted">Download</p>
+              <div className="mt-2 rounded-xl bg-surface-muted p-3 text-sm">
+                {selected.status !== "PAID" ? (
+                  <span className="text-fg-muted">-</span>
+                ) : !selected.downloadStats || selected.downloadStats.tokenCount === 0 ? (
+                  <span className="text-fg-muted">No files/tokens for this order</span>
+                ) : selected.downloadStats.downloaded ? (
+                  <span className="font-medium text-emerald-600 dark:text-emerald-400">
+                    Downloaded
+                  </span>
+                ) : (
+                  <span className="font-medium text-amber-600 dark:text-amber-400">
+                    Not downloaded yet
+                  </span>
+                )}
+              </div>
+            </div>
+
+            <div>
               <p className="text-xs uppercase tracking-wide text-fg-muted">Items</p>
               <ul className="mt-2 divide-y divide-border overflow-hidden rounded-xl ring-1 ring-border">
                 {selected.items.map((item) => (
                   <li
                     key={item.id}
-                    className="flex items-center justify-between px-3 py-2 text-sm"
+                    className="flex items-center justify-between gap-3 px-3 py-2 text-sm"
                   >
-                    <span className="text-fg">
-                      {item.productName} × {item.quantity}
-                    </span>
-                    <span className="text-fg-muted">
+                    <div className="min-w-0">
+                      <p className="text-fg">
+                        {item.productName} × {item.quantity}
+                      </p>
+                      {selected.status === "PAID" && item.downloadStats ? (
+                        <p className="text-xs text-fg-muted">
+                          {item.downloadStats.tokenCount === 0
+                            ? "No files"
+                            : item.downloadStats.downloaded
+                              ? "Downloaded"
+                              : "Not downloaded"}
+                        </p>
+                      ) : null}
+                    </div>
+                    <span className="shrink-0 text-fg-muted">
                       {formatCurrency(item.unitAmount * item.quantity, selected.currency)}
                     </span>
                   </li>

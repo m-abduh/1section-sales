@@ -115,6 +115,19 @@ export interface PublicOrder {
   items: PublicOrderItem[];
 }
 
+export interface AdminDownloadStats {
+  tokenCount: number;
+  downloaded: boolean;
+}
+
+export interface AdminOrderItem {
+  id: string;
+  productName: string;
+  quantity: number;
+  unitAmount: number;
+  downloadStats?: AdminDownloadStats;
+}
+
 export interface AdminOrder {
   id: string;
   orderNumber: string;
@@ -125,7 +138,8 @@ export interface AdminOrder {
   total: number;
   paidAt: string | null;
   createdAt: string;
-  items: { id: string; productName: string; quantity: number; unitAmount: number }[];
+  items: AdminOrderItem[];
+  downloadStats?: AdminDownloadStats;
 }
 
 export interface Pagination {

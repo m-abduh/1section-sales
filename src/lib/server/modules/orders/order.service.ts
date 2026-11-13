@@ -180,16 +180,60 @@ export async function listAdminOrders(params: {
     ];
   }
 
-  const [items, total] = await Promise.all([
+  const [rows, total] = await Promise.all([
     prisma.order.findMany({
       where,
       orderBy: { createdAt: "desc" },
       skip: (params.page - 1) * params.pageSize,
       take: params.pageSize,
-      include: { items: true },
+      include: {
+        items: {
+          include: {
+            tokens: {
+              select: { downloadCount: true },
+            },
+          },
+        },
+      },
     }),
     prisma.order.count({ where }),
   ]);
+
+  const items = rows.map((order) => {
+    let tokenCount = 0;
+    let downloaded = false;
+
+    const items = order.items.map((item) => {
+      let itemTokenCount = 0;
+      let itemDownloaded = false;
+
+      for (const token of item.tokens) {
+        itemTokenCount += 1;
+        if (token.downloadCount > 0) itemDownloaded = true;
+      }
+
+      tokenCount += itemTokenCount;
+      if (itemDownloaded) downloaded = true;
+
+      const { tokens: _tokens, ...rest } = item;
+      return {
+        ...rest,
+        downloadStats: {
+          tokenCount: itemTokenCount,
+          downloaded: itemDownloaded,
+        },
+      };
+    });
+
+    return {
+      ...order,
+      items,
+      downloadStats: {
+        tokenCount,
+        downloaded,
+      },
+    };
+  });
 
   return {
     items,
