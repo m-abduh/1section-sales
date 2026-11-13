@@ -35,17 +35,8 @@ export default async function HomePage() {
         <section className="w-full border-b border-dashed border-fg/30">
           <div className="mx-auto flex w-full max-w-6xl flex-col items-center border-x border-dashed border-fg/30 px-4 py-16 text-center sm:px-6 sm:py-24">
             <div className="max-w-3xl">
-              <span className="animate-fade-up inline-flex items-center gap-2 rounded-full border border-fg/30 bg-surface px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.18em] text-fg-muted">
-                <span
-                  className="size-1.5 rounded-full"
-                  style={{
-                    backgroundColor: niches[0]?.accentColor ?? "var(--accent)",
-                  }}
-                />
-                Clear perspective
-              </span>
               <h1
-                className="animate-fade-up mt-8 text-balance text-4xl font-bold leading-[1.05] tracking-tight text-fg sm:text-6xl lg:text-7xl"
+                className="animate-fade-up text-balance text-4xl font-bold leading-[1.05] tracking-tight text-fg sm:text-6xl lg:text-7xl"
                 style={{ animationDelay: "80ms" }}
               >
                 One problem,{" "}
@@ -104,43 +95,73 @@ export default async function HomePage() {
 
             {latestProducts.length > 0 ? (
               <ul className="grid grid-cols-2 gap-px bg-fg/30 lg:grid-cols-4">
-                {latestProducts.map(({ product, niche }, index) => (
-                  <li key={product.id} className="min-w-0 bg-surface">
-                    <a
-                      href={resourceUrl(niche.slug, product.slug)}
-                      className="group flex h-full flex-col p-4 transition-colors hover:bg-surface-muted/40 sm:p-6"
-                    >
-                      <div className="flex items-center justify-between gap-2">
-                        <span className="flex min-w-0 items-center gap-2 text-[10px] font-medium text-fg-muted sm:text-xs">
-                          <span
-                            className="size-1.5 shrink-0 rounded-full"
-                            style={{
-                              backgroundColor: niche.accentColor,
-                            }}
-                          />
-                          <span className="truncate">{niche.name}</span>
-                        </span>
-                        <span className="shrink-0 text-[10px] tabular-nums text-fg-muted sm:text-xs">
-                          0{index + 1}
-                        </span>
-                      </div>
-                      <h3 className="mt-3 text-base font-semibold tracking-tight text-fg break-words transition group-hover:translate-x-0.5 sm:text-lg">
-                        {product.name}
-                      </h3>
-                      <p className="mt-2 line-clamp-3 text-xs leading-5 text-fg-muted sm:text-sm sm:leading-6">
-                        {product.summary ??
-                          product.outcome ??
-                          "A focused guide to understanding a real-life problem."}
-                      </p>
-                      <span className="mt-3 text-sm font-semibold text-fg">
-                        {formatCurrency(
-                          product.priceAmount,
-                          product.currency,
-                        )}
-                      </span>
-                    </a>
-                  </li>
-                ))}
+                {latestProducts.map(({ product, niche }, index) => {
+                  const hasDiscount =
+                    product.compareAtAmount != null &&
+                    product.compareAtAmount > product.priceAmount;
+                  const discountPercent = hasDiscount
+                    ? Math.round(
+                        ((product.compareAtAmount as number) -
+                          product.priceAmount) /
+                          (product.compareAtAmount as number) *
+                          100,
+                      )
+                    : 0;
+                  return (
+                    <li key={product.id} className="min-w-0 bg-surface">
+                      <a
+                        href={resourceUrl(niche.slug, product.slug)}
+                        className="group flex h-full flex-col p-4 transition-colors hover:bg-surface-muted/40 sm:p-6"
+                      >
+                        <div className="flex items-center justify-between gap-2">
+                          <span className="flex min-w-0 items-center gap-2 text-[10px] font-medium text-fg-muted sm:text-xs">
+                            <span
+                              className="size-1.5 shrink-0 rounded-full"
+                              style={{
+                                backgroundColor: niche.accentColor,
+                              }}
+                            />
+                            <span className="truncate">{niche.name}</span>
+                          </span>
+                          <span className="shrink-0 text-[10px] tabular-nums text-fg-muted sm:text-xs">
+                            0{index + 1}
+                          </span>
+                        </div>
+                        <h3 className="mt-3 text-base font-semibold tracking-tight text-fg break-words transition group-hover:translate-x-0.5 sm:text-lg">
+                          {product.name}
+                        </h3>
+                        <p className="mt-2 line-clamp-3 text-xs leading-5 text-fg-muted sm:text-sm sm:leading-6">
+                          {product.summary ??
+                            product.outcome ??
+                            "A focused guide to understanding a real-life problem."}
+                        </p>
+                        <div className="mt-3 flex flex-wrap items-center gap-x-2 gap-y-1">
+                          <span className="text-sm font-semibold text-fg">
+                            {product.priceAmount === 0
+                              ? "Free"
+                              : formatCurrency(
+                                  product.priceAmount,
+                                  product.currency,
+                                )}
+                          </span>
+                          {hasDiscount ? (
+                            <>
+                              <span className="text-xs text-fg-muted line-through">
+                                {formatCurrency(
+                                  product.compareAtAmount as number,
+                                  product.currency,
+                                )}
+                              </span>
+                              <span className="text-[11px] font-semibold text-emerald-600 dark:text-emerald-400">
+                                {discountPercent}% off
+                              </span>
+                            </>
+                          ) : null}
+                        </div>
+                      </a>
+                    </li>
+                  );
+                })}
               </ul>
             ) : (
               <p className="py-8 text-sm text-fg-muted">
@@ -152,7 +173,7 @@ export default async function HomePage() {
 
         <section id="niches" className="w-full border-b border-dashed border-fg/30">
           <div className="mx-auto w-full max-w-6xl border-x border-dashed border-fg/30">
-            <div className="border-b border-fg/30 px-4 pb-8 pt-20 sm:px-6 sm:pb-12 sm:pt-28">
+            <div className="border-b border-dashed border-fg/30 px-4 pb-8 pt-20 sm:px-6 sm:pb-12 sm:pt-28">
               <div className="grid gap-6 pb-0 lg:grid-cols-[1fr_0.7fr] lg:items-end lg:gap-12">
                 <div>
                   <p className="text-xs font-semibold uppercase tracking-[0.2em] text-fg-muted">
@@ -177,7 +198,7 @@ export default async function HomePage() {
                 </p>
               </div>
             ) : (
-              <div className="grid grid-cols-2 [&>*]:min-w-0 [&>*]:border-b [&>*]:border-dashed [&>*]:border-fg/30 [&>*:nth-child(odd)]:border-r">
+              <div className="grid grid-cols-2 [&>*]:min-w-0 [&>*]:border-b [&>*]:border-dashed [&>*]:border-fg/30 [&>*:nth-child(odd)]:border-r [&>*:last-child]:border-b-0 [&>*:nth-last-child(2):nth-child(odd)]:border-b-0">
                 {list.map((niche, index) => (
                   <NicheSection key={niche.id} niche={niche} index={index} />
                 ))}

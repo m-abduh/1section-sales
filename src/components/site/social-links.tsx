@@ -4,7 +4,7 @@ const TIKTOK_PATH =
   "M16.5 3c.4 2.3 1.9 3.9 4.2 4.1v2.8c-1.4.1-2.8-.3-4.1-1v5.9c0 3.8-3 6.2-6.3 5.5-2.6-.6-4.4-3-4.1-5.7.3-2.5 2.5-4.5 5.1-4.4.3 0 .6 0 .9.1v2.9c-.3-.1-.6-.2-.9-.2-1.2 0-2.1 1-2.1 2.2 0 1.1.9 2 2 2.1 1.2.1 2.3-.9 2.3-2.2V3h2.9Z";
 
 function SocialIcon({ platform }: { platform: SocialLink["platform"] }) {
-  const className = "size-4 shrink-0";
+  const className = "size-3.5 shrink-0";
   if (platform === "YouTube") {
     return (
       <svg viewBox="0 0 24 24" className={className} aria-hidden>
@@ -51,7 +51,7 @@ export function SocialLinks({ slug }: { slug: string }) {
           target="_blank"
           rel="noreferrer"
           aria-label={`${social.platform} @${social.handle}`}
-          className="inline-flex items-center gap-2 rounded-full border border-border bg-card px-3.5 py-2 text-xs font-medium text-fg-muted transition hover:border-fg/20 hover:text-fg"
+          className="inline-flex items-center gap-1.5 rounded-full border border-border bg-card px-3 py-1.5 text-[11px] font-medium text-fg-muted transition hover:border-fg/20 hover:text-fg"
         >
           <SocialIcon platform={social.platform} />
           @{social.handle}
