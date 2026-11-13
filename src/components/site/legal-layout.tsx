@@ -20,7 +20,7 @@ export async function LegalLayout({
   const currentNiche = await getCurrentNiche();
 
   return (
-    <div className="flex min-h-screen flex-col bg-surface">
+    <div className="flex min-h-screen flex-col">
       <SiteHeader niches={niches} currentNicheName={currentNiche?.name} />
       <main className="flex-1">
         <SitePageHero
@@ -31,9 +31,9 @@ export async function LegalLayout({
           meta={`Last updated: ${LEGAL_UPDATED}`}
         />
 
-        <section className="w-full border-b border-dashed border-fg/30">
-          <div className="mx-auto w-full max-w-6xl border-x border-dashed border-fg/30 px-4 py-12 sm:px-6 sm:py-16">
-            <div className="space-y-8 text-sm leading-7 text-fg-muted sm:text-base sm:leading-8 [&_h2]:text-lg [&_h2]:font-semibold [&_h2]:tracking-tight [&_h2]:text-fg [&_h2]:sm:text-xl [&_p]:max-w-2xl [&_ul]:max-w-2xl">
+        <section className="w-full px-3 py-6 sm:px-4 sm:py-8">
+          <div className="glass mx-auto w-full max-w-6xl rounded-[2rem] px-5 py-8 sm:px-10 sm:py-12">
+            <div className="space-y-8 text-sm leading-7 text-fg-muted sm:text-base sm:leading-8 [&_h2]:text-lg [&_h2]:font-semibold [&_h2]:tracking-tight [&_h2]:text-fg [&_h2]:sm:text-xl [&_p]:max-w-3xl [&_ul]:max-w-3xl">
               {children}
             </div>
           </div>

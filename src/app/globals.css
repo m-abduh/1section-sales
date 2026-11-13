@@ -39,28 +39,28 @@
 }
 
 :root {
-  --surface: #ffffff;
-  --surface-muted: #f4f4f5;
-  --card: #ffffff;
-  --border: #e4e4e7;
-  --fg: #09090b;
-  --fg-muted: #71717a;
-  --accent: #09090b;
-  --accent-fg: #fafafa;
-  --ring: #d4d4d8;
+  --surface: #f6f7fb;
+  --surface-muted: #eef1f8;
+  --card: rgba(255, 255, 255, 0.72);
+  --border: rgba(255, 255, 255, 0.65);
+  --fg: #0f172a;
+  --fg-muted: #64748b;
+  --accent: #6366f1;
+  --accent-fg: #ffffff;
+  --ring: rgba(99, 102, 241, 0.35);
   color-scheme: light;
 }
 
 .dark {
-  --surface: #060606;
-  --surface-muted: #101012;
-  --card: #0d0d0f;
-  --border: #232327;
-  --fg: #fafafa;
-  --fg-muted: #a1a1aa;
-  --accent: #fafafa;
-  --accent-fg: #09090b;
-  --ring: #333338;
+  --surface: #0b1020;
+  --surface-muted: #111827;
+  --card: rgba(17, 24, 39, 0.62);
+  --border: rgba(255, 255, 255, 0.12);
+  --fg: #e5e7eb;
+  --fg-muted: #94a3b8;
+  --accent: #818cf8;
+  --accent-fg: #0b1020;
+  --ring: rgba(129, 140, 248, 0.35);
   color-scheme: dark;
 }
 
@@ -144,8 +144,20 @@ body {
   font-family: var(--font-sans);
   color: var(--fg);
   background-color: var(--surface);
+  background-image:
+    radial-gradient(1200px 600px at -10% -10%, rgba(99, 102, 241, 0.18), transparent 60%),
+    radial-gradient(900px 500px at 110% 0%, rgba(236, 72, 153, 0.14), transparent 55%),
+    radial-gradient(800px 500px at 50% 110%, rgba(56, 189, 248, 0.16), transparent 55%);
+  background-attachment: fixed;
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
+}
+
+.dark body {
+  background-image:
+    radial-gradient(1200px 600px at -10% -10%, rgba(99, 102, 241, 0.22), transparent 60%),
+    radial-gradient(900px 500px at 110% 0%, rgba(236, 72, 153, 0.16), transparent 55%),
+    radial-gradient(800px 500px at 50% 110%, rgba(56, 189, 248, 0.14), transparent 55%);
 }
 
 * {
@@ -153,28 +165,57 @@ body {
 }
 
 ::selection {
-  background: var(--fg);
-  color: var(--surface);
+  background: color-mix(in srgb, var(--accent) 35%, transparent);
+  color: var(--fg);
 }
 
-/* Cinematic helpers */
-.cinema-grid {
-  background-image:
-    linear-gradient(to right, color-mix(in oklab, var(--fg) 7%, transparent) 1px, transparent 1px),
-    linear-gradient(to bottom, color-mix(in oklab, var(--fg) 7%, transparent) 1px, transparent 1px);
-  background-size: 64px 64px;
+/* Soft glassmorphism helpers */
+.glass {
+  background: var(--card);
+  backdrop-filter: blur(20px) saturate(140%);
+  -webkit-backdrop-filter: blur(20px) saturate(140%);
+  border: 1px solid var(--border);
+  box-shadow:
+    0 8px 30px rgba(15, 23, 42, 0.06),
+    inset 0 1px 0 rgba(255, 255, 255, 0.5);
 }
-
-.cinema-spotlight {
-  background: radial-gradient(
-    60% 60% at 50% 0%,
-    color-mix(in oklab, var(--fg) 12%, transparent),
-    transparent 70%
-  );
+.dark .glass {
+  box-shadow:
+    0 8px 30px rgba(0, 0, 0, 0.35),
+    inset 0 1px 0 rgba(255, 255, 255, 0.06);
 }
-
-.cinema-noise {
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.35'/%3E%3C/svg%3E");
+.glass-soft {
+  background: color-mix(in srgb, var(--card) 80%, transparent);
+  backdrop-filter: blur(16px) saturate(130%);
+  -webkit-backdrop-filter: blur(16px) saturate(130%);
+  border: 1px solid color-mix(in srgb, var(--border) 80%, transparent);
+}
+.glass-strong {
+  background: color-mix(in srgb, var(--surface) 60%, var(--card));
+  backdrop-filter: blur(28px) saturate(160%);
+  -webkit-backdrop-filter: blur(28px) saturate(160%);
+  border: 1px solid var(--border);
+  box-shadow:
+    0 20px 50px rgba(15, 23, 42, 0.08),
+    inset 0 1px 0 rgba(255, 255, 255, 0.55);
+}
+.dark .glass-strong {
+  box-shadow:
+    0 20px 50px rgba(0, 0, 0, 0.45),
+    inset 0 1px 0 rgba(255, 255, 255, 0.08);
+}
+.soft-shadow {
+  box-shadow: 0 10px 40px -10px rgba(15, 23, 42, 0.12);
+}
+.dark .soft-shadow {
+  box-shadow: 0 10px 40px -10px rgba(0, 0, 0, 0.5);
+}
+.orb {
+  position: absolute;
+  border-radius: 9999px;
+  filter: blur(60px);
+  opacity: 0.55;
+  pointer-events: none;
 }
 
 @media (prefers-reduced-motion: reduce) {

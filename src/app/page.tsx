@@ -27,134 +27,79 @@ export default async function HomePage() {
     )
     .slice(0, 4);
 
+  const heroAccent = niches[0]?.accentColor ?? "var(--accent)";
+
   return (
-    <div className="flex min-h-screen flex-col bg-surface">
-      <SiteHeader niches={niches} />
+    <div className="flex min-h-screen flex-col">
+      <SiteHeader niches={niches} variant="home" />
 
       <main className="flex-1">
-        <section className="w-full border-b border-dashed border-fg/30">
-          <div className="mx-auto flex w-full max-w-6xl flex-col items-center border-x border-dashed border-fg/30 px-4 py-16 text-center sm:px-6 sm:py-24">
-            <div className="max-w-3xl">
-              <h1
-                className="animate-fade-up text-balance text-4xl font-bold leading-[1.05] tracking-tight text-fg sm:text-6xl lg:text-7xl"
-                style={{ animationDelay: "80ms" }}
-              >
+        <section className="relative px-3 pt-6 sm:px-4 sm:pt-8">
+          <div className="glass-strong relative mx-auto w-full max-w-6xl overflow-hidden rounded-[2rem] px-5 py-14 sm:px-10 sm:py-20 lg:py-24">
+            <div aria-hidden className="orb -left-20 -top-20 h-72 w-72 opacity-30" style={{ backgroundColor: heroAccent }} />
+            <div aria-hidden className="orb -bottom-24 right-0 h-80 w-80 bg-pink-400/20" />
+            <div aria-hidden className="orb bottom-12 left-1/3 h-44 w-44 bg-sky-400/20" />
+            <div className="relative mx-auto flex max-w-4xl flex-col items-center text-center">
+              <h1 className="text-balance text-4xl font-bold leading-[1.03] tracking-tight text-fg sm:text-6xl lg:text-7xl">
                 One problem,{" "}
-                <span
-                  style={{
-                    color: niches[0]?.accentColor ?? "var(--fg-muted)",
-                  }}
-                >
-                  many paths.
-                </span>
+                <span style={{ color: heroAccent }}>many paths.</span>
               </h1>
-              <p
-                className="animate-fade-up mx-auto mt-6 max-w-2xl text-base leading-7 text-fg-muted sm:text-lg sm:leading-8"
-                style={{ animationDelay: "160ms" }}
-              >
-                1section turns real-life problems into deep, practical
-                understanding—beyond familiar advice—so you can think clearly
-                about what a situation means for you.
+              <p className="mt-6 max-w-2xl text-base leading-7 text-fg-muted sm:text-lg sm:leading-8">
+                1section turns real-life problems into deep, practical understanding—beyond familiar advice—so you can think clearly about what a situation means for you.
               </p>
-              <div
-                className="animate-fade-up mt-10 flex justify-center"
-                style={{ animationDelay: "240ms" }}
-              >
-                <a
-                  href="#niches"
-                  className="group inline-flex items-center gap-2 rounded-full bg-accent px-7 py-3.5 text-sm font-semibold text-accent-fg transition hover:opacity-90"
-                >
+              <div className="mt-10 flex flex-wrap items-center justify-center gap-3">
+                <a href="#niches" className="group inline-flex items-center gap-2 rounded-full bg-accent px-7 py-3.5 text-sm font-semibold text-accent-fg shadow-lg shadow-indigo-500/20 ring-1 ring-white/20 transition hover:-translate-y-0.5">
                   Explore real-life problems
-                  <span
-                    aria-hidden
-                    className="transition-transform group-hover:translate-x-0.5"
-                  >
-                    →
-                  </span>
+                  <span aria-hidden className="transition-transform group-hover:translate-x-0.5">→</span>
+                </a>
+                <a href="#latest" className="glass-soft inline-flex items-center gap-2 rounded-full px-6 py-3.5 text-sm font-semibold text-fg transition hover:-translate-y-0.5">
+                  Latest guides
                 </a>
               </div>
             </div>
           </div>
         </section>
 
-        <section className="w-full border-b border-dashed border-fg/30">
-          <div className="mx-auto w-full max-w-6xl border-x border-dashed border-fg/30 px-4 py-16 sm:px-6 sm:py-20">
-            <div className="flex flex-col gap-4 border-b border-fg/30 pb-6 sm:flex-row sm:items-end sm:justify-between">
+        <section id="latest" className="px-3 pt-6 sm:px-4 sm:pt-8">
+          <div className="glass relative mx-auto w-full max-w-6xl overflow-hidden rounded-[2rem] px-5 py-10 sm:px-8 sm:py-14">
+            <div aria-hidden className="orb -right-16 -top-16 h-48 w-48 bg-sky-400/20" />
+            <div className="relative flex flex-col gap-4 border-b border-white/40 pb-6 sm:flex-row sm:items-end sm:justify-between dark:border-white/10">
               <div>
-                <p className="text-[10px] font-semibold uppercase tracking-[0.22em] text-fg-muted sm:text-xs">
-                  Recently published
-                </p>
-                <h2 className="mt-2 text-2xl font-semibold tracking-tight text-fg sm:text-3xl">
-                  Latest guides
-                </h2>
+                <p className="text-[10px] font-semibold uppercase tracking-[0.22em] text-fg-muted sm:text-xs">Recently published</p>
+                <h2 className="mt-2 text-2xl font-semibold tracking-tight text-fg sm:text-4xl">Latest guides</h2>
               </div>
-              <span className="text-xs text-fg-muted sm:pb-1">
-                One problem, explored in depth
-              </span>
+              <span className="inline-flex w-fit items-center rounded-full bg-surface-muted/60 px-3 py-1.5 text-xs text-fg-muted ring-1 ring-white/30 dark:ring-white/10">One problem, explored in depth</span>
             </div>
 
             {latestProducts.length > 0 ? (
-              <ul className="grid grid-cols-2 gap-px bg-fg/30 lg:grid-cols-4">
+              <ul className="relative mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
                 {latestProducts.map(({ product, niche }, index) => {
                   const hasDiscount =
                     product.compareAtAmount != null &&
                     product.compareAtAmount > product.priceAmount;
                   const discountPercent = hasDiscount
                     ? Math.round(
-                        ((product.compareAtAmount as number) -
-                          product.priceAmount) /
-                          (product.compareAtAmount as number) *
-                          100,
+                        ((product.compareAtAmount as number) - product.priceAmount) /
+                          (product.compareAtAmount as number) * 100,
                       )
                     : 0;
                   return (
-                    <li key={product.id} className="min-w-0 bg-surface">
-                      <a
-                        href={resourceUrl(niche.slug, product.slug)}
-                        className="group flex h-full flex-col p-4 transition-colors hover:bg-surface-muted/40 sm:p-6"
-                      >
-                        <div className="flex items-center justify-between gap-2">
-                          <span className="flex min-w-0 items-center gap-2 text-[10px] font-medium text-fg-muted sm:text-xs">
-                            <span
-                              className="size-1.5 shrink-0 rounded-full"
-                              style={{
-                                backgroundColor: niche.accentColor,
-                              }}
-                            />
-                            <span className="truncate">{niche.name}</span>
-                          </span>
-                          <span className="shrink-0 text-[10px] tabular-nums text-fg-muted sm:text-xs">
-                            0{index + 1}
-                          </span>
+                    <li key={product.id} className="min-w-0">
+                      <a href={resourceUrl(niche.slug, product.slug)} className="glass-soft group flex h-full flex-col overflow-hidden rounded-2xl p-4 transition duration-300 hover:-translate-y-1 hover:shadow-lg sm:p-5">
+                        <div aria-hidden className="pointer-events-none -mx-4 -mt-4 mb-3 h-1 sm:-mx-5 sm:-mt-5" style={{ background: `linear-gradient(90deg, ${niche.accentColor}, transparent)` }} />
+                        <div className="flex items-center justify-end gap-2">
+                          <span className="shrink-0 rounded-full bg-surface-muted/70 px-2 py-0.5 text-[10px] tabular-nums text-fg-muted">0{index + 1}</span>
                         </div>
-                        <h3 className="mt-3 text-base font-semibold tracking-tight text-fg break-words transition group-hover:translate-x-0.5 sm:text-lg">
-                          {product.name}
-                        </h3>
-                        <p className="mt-2 line-clamp-3 text-xs leading-5 text-fg-muted sm:text-sm sm:leading-6">
-                          {product.summary ??
-                            product.outcome ??
-                            "A focused guide to understanding a real-life problem."}
+                        <h3 className="mt-3 text-base font-semibold tracking-tight text-fg break-words sm:text-lg">{product.name}</h3>
+                        <p className="mt-2 line-clamp-3 text-sm leading-6 text-fg-muted">
+                          {product.summary ?? product.outcome ?? "A focused guide to understanding a real-life problem."}
                         </p>
-                        <div className="mt-3 flex flex-wrap items-center gap-x-2 gap-y-1">
-                          <span className="text-sm font-semibold text-fg">
-                            {product.priceAmount === 0
-                              ? "Free"
-                              : formatCurrency(
-                                  product.priceAmount,
-                                  product.currency,
-                                )}
-                          </span>
+                        <div className="mt-auto pt-4 flex flex-wrap items-center gap-x-2 gap-y-1">
+                          <span className="text-sm font-semibold text-fg">{product.priceAmount === 0 ? "Free" : formatCurrency(product.priceAmount, product.currency)}</span>
                           {hasDiscount ? (
                             <>
-                              <span className="text-xs text-fg-muted line-through">
-                                {formatCurrency(
-                                  product.compareAtAmount as number,
-                                  product.currency,
-                                )}
-                              </span>
-                              <span className="text-[11px] font-semibold text-emerald-600 dark:text-emerald-400">
-                                {discountPercent}% off
-                              </span>
+                              <span className="text-xs text-fg-muted line-through">{formatCurrency(product.compareAtAmount as number, product.currency)}</span>
+                              <span className="rounded-full bg-emerald-500/15 px-2 py-0.5 text-[11px] font-semibold text-emerald-700 dark:text-emerald-400">{discountPercent}% off</span>
                             </>
                           ) : null}
                         </div>
@@ -164,41 +109,31 @@ export default async function HomePage() {
                 })}
               </ul>
             ) : (
-              <p className="py-8 text-sm text-fg-muted">
-                New guides will appear here as they are published.
-              </p>
+              <p className="relative mt-6 rounded-2xl bg-surface-muted/40 py-10 text-center text-sm text-fg-muted">New guides will appear here as they are published.</p>
             )}
           </div>
         </section>
 
-        <section id="niches" className="w-full border-b border-dashed border-fg/30">
-          <div className="mx-auto w-full max-w-6xl border-x border-dashed border-fg/30">
-            <div className="border-b border-dashed border-fg/30 px-4 pb-8 pt-20 sm:px-6 sm:pb-12 sm:pt-28">
-              <div className="grid gap-6 pb-0 lg:grid-cols-[1fr_0.7fr] lg:items-end lg:gap-12">
-                <div>
-                  <p className="text-xs font-semibold uppercase tracking-[0.2em] text-fg-muted">
-                    Find your starting point
-                  </p>
-                  <h2 className="mt-4 max-w-2xl text-balance text-3xl font-bold tracking-tight text-fg sm:text-5xl sm:leading-[1.08]">
-                    Start with what&rsquo;s happening in your life.
-                  </h2>
-                </div>
-                <p className="max-w-lg text-sm leading-7 text-fg-muted sm:text-base lg:justify-self-end">
-                  Not sure what to call it? Begin with the situation. Explore
-                  focused guides that look at what may be behind it—and what that
-                  could mean for you.
-                </p>
+        <section id="niches" className="px-3 pb-2 pt-6 sm:px-4 sm:pt-8">
+          <div className="glass relative mx-auto w-full max-w-6xl overflow-hidden rounded-[2rem] px-5 py-10 sm:px-8 sm:py-14">
+            <div className="relative grid gap-6 border-b border-white/40 pb-8 lg:grid-cols-[1fr_0.7fr] lg:items-end dark:border-white/10">
+              <div>
+                <p className="text-xs font-semibold uppercase tracking-[0.2em] text-fg-muted">Find your starting point</p>
+                <h2 className="mt-4 max-w-2xl text-balance text-3xl font-bold tracking-tight text-fg sm:text-5xl sm:leading-[1.08]">
+                  Start with what’s happening in your life.
+                </h2>
               </div>
+              <p className="max-w-lg text-sm leading-7 text-fg-muted sm:text-base lg:justify-self-end">
+                Not sure what to call it? Begin with the situation. Explore focused guides that look at what may be behind it—and what that could mean for you.
+              </p>
             </div>
 
             {list.length === 0 ? (
-              <div className="px-4 py-12 sm:px-6">
-                <p className="rounded-3xl border border-fg/30 bg-surface-muted/50 p-10 text-center text-sm text-fg-muted">
-                  No problem areas are published yet.
-                </p>
+              <div className="relative pt-8">
+                <p className="rounded-2xl bg-surface-muted/40 p-10 text-center text-sm text-fg-muted">No problem areas are published yet.</p>
               </div>
             ) : (
-              <div className="grid grid-cols-2 [&>*]:min-w-0 [&>*]:border-b [&>*]:border-dashed [&>*]:border-fg/30 [&>*:nth-child(odd)]:border-r [&>*:last-child]:border-b-0 [&>*:nth-last-child(2):nth-child(odd)]:border-b-0">
+              <div className="relative mt-8 grid grid-cols-1 gap-4 sm:grid-cols-2">
                 {list.map((niche, index) => (
                   <NicheSection key={niche.id} niche={niche} index={index} />
                 ))}

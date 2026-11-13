@@ -2,6 +2,13 @@ import { socialLinks, type SocialLink } from "@/lib/site";
 
 const TIKTOK_PATH =
   "M16.5 3c.4 2.3 1.9 3.9 4.2 4.1v2.8c-1.4.1-2.8-.3-4.1-1v5.9c0 3.8-3 6.2-6.3 5.5-2.6-.6-4.4-3-4.1-5.7.3-2.5 2.5-4.5 5.1-4.4.3 0 .6 0 .9.1v2.9c-.3-.1-.6-.2-.9-.2-1.2 0-2.1 1-2.1 2.2 0 1.1.9 2 2 2.1 1.2.1 2.3-.9 2.3-2.2V3h2.9Z";
+
+const PLATFORM: Record<SocialLink["platform"], { short: string; tint: string }> = {
+  YouTube: { short: "YT", tint: "bg-red-500/10 text-red-600 dark:text-red-400" },
+  Instagram: { short: "IG", tint: "bg-pink-500/10 text-pink-600 dark:text-pink-400" },
+  TikTok: { short: "TT", tint: "bg-cyan-500/10 text-cyan-700 dark:text-cyan-400" },
+};
+
 function SocialIcon({ platform }: { platform: SocialLink["platform"] }) {
   const className = "size-4 shrink-0";
 
@@ -41,17 +48,65 @@ function SocialIcon({ platform }: { platform: SocialLink["platform"] }) {
   );
 }
 
-export function SocialLinks({ slug }: { slug: string }) {
+export function SocialLinks({
+  slug,
+  accentColor,
+  variant = "inline",
+}: {
+  slug: string;
+  accentColor?: string;
+  variant?: "inline" | "cards";
+}) {
+  const items = socialLinks(slug);
+
+  if (variant === "cards") {
+    return (
+      <div className="grid w-full grid-cols-1 gap-2.5 sm:grid-cols-3">
+        {items.map((social) => {
+          const meta = PLATFORM[social.platform];
+          return (
+            <a
+              key={social.platform}
+              href={social.url}
+              target="_blank"
+              rel="noreferrer"
+              aria-label={`${social.platform} @${social.handle}`}
+              className="group flex items-center gap-3 rounded-xl border border-white/40 bg-surface-muted/25 px-3.5 py-3 transition duration-200 hover:bg-surface-muted/45 dark:border-white/10"
+            >
+              <span className={`grid size-9 shrink-0 place-items-center rounded-lg ${meta.tint}`}>
+                <SocialIcon platform={social.platform} />
+              </span>
+              <span className="min-w-0 flex-1">
+                <span className="block text-[10px] font-semibold uppercase tracking-[0.14em] text-fg-muted">
+                  {social.platform}
+                </span>
+                <span className="mt-0.5 block truncate text-sm font-medium text-fg">
+                  @{social.handle}
+                </span>
+              </span>
+              <span
+                aria-hidden
+                className="shrink-0 text-xs text-fg-muted/70 transition-colors group-hover:text-fg"
+              >
+                ↗
+              </span>
+            </a>
+          );
+        })}
+      </div>
+    );
+  }
+
   return (
     <div className="flex flex-wrap items-center justify-center gap-2.5">
-      {socialLinks(slug).map((social) => (
+      {items.map((social) => (
         <a
           key={social.platform}
           href={social.url}
           target="_blank"
           rel="noreferrer"
           aria-label={`${social.platform} @${social.handle}`}
-          className="group inline-flex items-center gap-2 rounded-full border border-fg/30 bg-surface px-3.5 py-2 text-xs font-medium text-fg-muted transition hover:border-fg/50 hover:bg-surface-muted/50 hover:text-fg"
+          className="glass-soft group inline-flex items-center gap-2 rounded-full px-3.5 py-2 text-xs font-medium text-fg-muted transition hover:-translate-y-0.5 hover:text-fg"
         >
           <SocialIcon platform={social.platform} />
           <span>@{social.handle}</span>

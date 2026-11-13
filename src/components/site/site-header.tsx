@@ -1,117 +1,44 @@
 import Link from "next/link";
 import type { Niche } from "@/lib/types";
-import { SITE_NAME, nicheUrl } from "@/lib/site";
+import { SITE_NAME } from "@/lib/site";
 import { Logo } from "@/components/site/logo";
+import { ThemeToggle } from "@/components/theme-toggle";
 
 export function SiteHeader({
   niches = [],
-  variant = "default",
   currentNicheName,
 }: {
   niches?: Niche[];
   variant?: "default" | "home";
   currentNicheName?: string;
 }) {
-  if (variant === "home") {
-    return (
-      <header className="sticky top-0 z-40 w-full border-b border-dashed border-fg/30 bg-surface/70 backdrop-blur-xl">
-        {niches.length > 0 ? (
-          <div className="mx-auto w-full max-w-6xl border-x border-dashed border-fg/30">
-            <div
-              aria-hidden
-              className="h-[3px] w-full"
-              style={{
-                backgroundImage: `linear-gradient(90deg, ${niches
-                  .map((n) => n.accentColor)
-                  .join(", ")})`,
-              }}
-            />
-          </div>
-        ) : null}
-        <div className="mx-auto flex h-14 w-full max-w-6xl items-center gap-4 border-x border-dashed border-fg/30 px-4 sm:px-6">
-          <span
-            aria-hidden
-            className="h-px flex-1 bg-gradient-to-r from-transparent to-border"
-          />
-          <Link
-            href="/"
-            aria-label={SITE_NAME}
-            className="flex shrink-0 items-center"
-          >
-            <Logo className="h-5 w-[82px] text-fg" />
-          </Link>
-          <span
-            aria-hidden
-            className="h-px flex-1 bg-gradient-to-l from-transparent to-border"
-          />
-        </div>
-
-        <div className="w-full border-t border-dashed border-fg/30 bg-surface-muted/60">
-          <div className="mx-auto flex w-full max-w-6xl items-center gap-2 border-x border-dashed border-fg/30 px-4 sm:px-6">
-            <nav className="flex flex-1 items-center gap-1 overflow-x-auto py-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-              {niches.length === 0 ? (
-                <span className="px-2 py-1 text-sm text-fg-muted">
-                  No areas yet
-                </span>
-              ) : (
-                niches.map((niche) => (
-                  <a
-                    key={niche.id}
-                    href={nicheUrl(niche.slug)}
-                    className="group inline-flex shrink-0 items-center gap-2 rounded-full px-3 py-1.5 text-sm font-medium text-fg-muted transition hover:bg-card hover:text-fg"
-                  >
-                    <span
-                      className="size-2 rounded-full transition group-hover:scale-125"
-                      style={{ backgroundColor: niche.accentColor }}
-                    />
-                    {niche.name}
-                  </a>
-                ))
-              )}
-            </nav>
-          </div>
-        </div>
-      </header>
-    );
-  }
-
+  const accent = niches.find((n) => n.name === currentNicheName)?.accentColor;
   return (
-    <header className="sticky top-0 z-40 w-full border-b border-dashed border-fg/30 bg-surface/70 backdrop-blur-xl">
-      <div className="mx-auto flex h-14 w-full max-w-6xl items-center gap-4 border-x border-dashed border-fg/30 px-4 sm:px-6">
-        <span
-          aria-hidden
-          className="h-px flex-1 bg-gradient-to-r from-transparent to-border"
-        />
-
-        <div className="flex min-w-0 shrink-0 items-center gap-2">
-          <Link href="/" aria-label={SITE_NAME} className="flex items-center">
-            <Logo className="h-5 w-[82px] text-fg" />
+    <header className="sticky top-0 z-40 w-full px-3 pt-3 sm:px-4 sm:pt-4">
+      <div className="glass-strong mx-auto flex h-14 w-full max-w-6xl items-center justify-between gap-4 rounded-[2rem] px-4 sm:h-16 sm:px-6">
+        <div className="flex min-w-0 items-center gap-3">
+          <Link href="/" aria-label={SITE_NAME} className="flex shrink-0 items-center">
+            <Logo className="h-5 w-[82px] text-fg sm:h-6 sm:w-[98px]" />
           </Link>
           {currentNicheName ? (
-            <>
-              <span aria-hidden className="text-sm text-fg-muted/60">
-                /
-              </span>
+            <div className="flex min-w-0 items-center gap-1.5 sm:gap-2">
+              <span aria-hidden className="text-fg-muted/40">/</span>
               <span
-                className="max-w-48 truncate text-xs font-bold sm:text-sm"
+                className="max-w-24 truncate rounded-full px-2 py-0.5 text-[11px] font-semibold sm:max-w-52 sm:px-2.5 sm:py-1 sm:text-xs"
                 style={{
-                  color:
-                    `color-mix(in srgb, ${
-                      niches.find((n) => n.name === currentNicheName)
-                        ?.accentColor ?? "var(--accent)"
-                    } 72%, var(--fg-muted))`,
+                  color: accent ? `color-mix(in srgb, ${accent} 80%, var(--fg))` : "var(--fg-muted)",
+                  backgroundColor: accent
+                    ? `color-mix(in srgb, ${accent} 14%, transparent)`
+                    : "var(--surface-muted)",
                 }}
               >
                 {currentNicheName}
               </span>
-            </>
+            </div>
           ) : null}
         </div>
 
-        <span
-          aria-hidden
-          className="h-px flex-1 bg-gradient-to-l from-transparent to-border"
-        />
+        <ThemeToggle className="shrink-0 border-white/40 bg-white/40 backdrop-blur-md hover:bg-white/60 dark:border-white/10 dark:bg-white/5 dark:hover:bg-white/10" />
       </div>
     </header>
   );

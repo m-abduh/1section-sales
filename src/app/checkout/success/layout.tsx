@@ -1,4 +1,4 @@
-import { SiteFooter } from "@/components/site/site-footer";
+﻿import { SiteFooter } from "@/components/site/site-footer";
 import { SiteHeader } from "@/components/site/site-header";
 import { getCurrentNiche, getNiches } from "@/lib/server-api";
 
@@ -14,7 +14,7 @@ export default async function CheckoutSuccessLayout({
   const niches = nichesResponse ?? [];
 
   return (
-    <div className="flex min-h-screen flex-col bg-surface">
+    <div className="flex min-h-screen flex-col">
       <SiteHeader niches={niches} currentNicheName={currentNiche?.name} />
       {children}
       <SiteFooter niches={niches} />
