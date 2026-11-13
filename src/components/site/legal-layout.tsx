@@ -21,10 +21,7 @@ export async function LegalLayout({
 
   return (
     <div className="flex min-h-screen flex-col bg-surface">
-      <SiteHeader
-        niches={niches}
-        currentNicheName={currentNiche?.name}
-      />
+      <SiteHeader niches={niches} currentNicheName={currentNiche?.name} />
       <main className="flex-1">
         <SitePageHero
           eyebrow="1section · information"
@@ -34,9 +31,11 @@ export async function LegalLayout({
           meta={`Last updated: ${LEGAL_UPDATED}`}
         />
 
-        <section className="mx-auto max-w-3xl px-4 py-16 sm:px-6">
-          <div className="space-y-8 text-sm leading-relaxed text-fg-muted [&_h2]:text-lg [&_h2]:font-semibold [&_h2]:text-fg [&_h2]:tracking-tight">
-            {children}
+        <section className="w-full border-b border-dashed border-fg/30">
+          <div className="mx-auto w-full max-w-6xl border-x border-dashed border-fg/30 px-4 py-12 sm:px-6 sm:py-16">
+            <div className="space-y-8 text-sm leading-7 text-fg-muted sm:text-base sm:leading-8 [&_h2]:text-lg [&_h2]:font-semibold [&_h2]:tracking-tight [&_h2]:text-fg [&_h2]:sm:text-xl [&_p]:max-w-2xl [&_ul]:max-w-2xl">
+              {children}
+            </div>
           </div>
         </section>
       </main>

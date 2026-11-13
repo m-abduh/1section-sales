@@ -29,7 +29,7 @@ export default async function HomePage() {
 
   return (
     <div className="flex min-h-screen flex-col bg-surface">
-      <SiteHeader niches={niches} variant="home" />
+      <SiteHeader niches={niches} />
 
       <main className="flex-1">
         <section className="w-full border-b border-dashed border-fg/30">

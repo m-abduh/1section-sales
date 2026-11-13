@@ -6,7 +6,7 @@ export function SitePageHero({
   description,
   meta,
   accentColor,
-  maxWidth = "max-w-3xl",
+  maxWidth = "max-w-6xl",
   children,
   media,
   above,
@@ -37,7 +37,7 @@ export function SitePageHero({
       <div className="min-w-0">
         {children}
         {eyebrow ? (
-          <div className="inline-flex items-center gap-2.5 rounded-full border border-border bg-card/80 px-3 py-1.5 text-[10px] font-semibold uppercase tracking-[0.2em] text-fg-muted backdrop-blur sm:text-xs">
+          <div className="inline-flex items-center gap-2.5 rounded-full border border-fg/30 bg-surface px-3 py-1.5 text-[10px] font-semibold uppercase tracking-[0.18em] text-fg-muted sm:text-xs">
             {accentColor ? (
               <span
                 aria-hidden
@@ -51,8 +51,8 @@ export function SitePageHero({
         <h1
           className={`text-balance tracking-tight text-fg ${
             framed
-              ? "mt-4 font-serif text-3xl font-medium leading-tight sm:text-4xl lg:text-5xl"
-              : "mt-7 max-w-4xl font-bold text-4xl leading-[1.08] sm:text-5xl sm:leading-[1.06] lg:text-[3.5rem]"
+              ? "mt-4 text-3xl font-bold leading-[1.1] sm:text-4xl lg:text-5xl"
+              : "mt-6 max-w-4xl text-4xl font-bold leading-[1.08] sm:text-5xl sm:leading-[1.06] lg:text-[3.25rem]"
           }`}
         >
           {title}
@@ -62,55 +62,35 @@ export function SitePageHero({
             className={`max-w-2xl text-fg-muted ${
               framed
                 ? "mt-3 text-sm leading-6 sm:text-base sm:leading-7"
-                : "mt-6 text-base leading-7 sm:text-lg sm:leading-8"
+                : "mt-5 text-base leading-7 sm:text-lg sm:leading-8"
             }`}
           >
             {description}
           </p>
         ) : null}
         {meta ? (
-          <p className="mt-4 text-xs font-medium text-fg-muted">{meta}</p>
+          <p className="mt-4 text-xs font-medium text-fg-muted sm:text-sm">{meta}</p>
         ) : null}
       </div>
-      {media ? (
-        <div className="relative justify-self-center">
-          {media}
-        </div>
-      ) : null}
+      {media ? <div className="relative justify-self-center">{media}</div> : null}
     </div>
   );
 
-  const accentStyle = accentColor
-    ? {
-        backgroundImage: `radial-gradient(48% 70% at 100% 0%, color-mix(in srgb, ${accentColor} 9%, transparent), transparent 72%)`,
-      }
-    : undefined;
-
   if (framed) {
     return (
-      <section className={`relative mx-auto ${maxWidth} px-4 pt-8 sm:px-6`}>
+      <section className={`relative mx-auto w-full ${maxWidth} px-4 pt-8 sm:px-6`}>
         {above ? <div className="mb-4">{above}</div> : null}
-        {content}
+        <div className="rounded-2xl border border-fg/30 bg-card p-6 sm:p-8">
+          {content}
+        </div>
       </section>
     );
   }
 
   return (
-    <section
-      className="relative isolate w-full overflow-hidden border-b border-dashed border-fg/30 bg-surface-muted/40"
-      style={accentStyle}
-    >
+    <section className="relative w-full border-b border-dashed border-fg/30 bg-surface-muted/30">
       <div
-        aria-hidden
-        className="cinema-grid pointer-events-none absolute inset-0 opacity-40"
-      />
-      <div
-        aria-hidden
-        className="cinema-spotlight pointer-events-none absolute inset-0"
-      />
-
-      <div
-        className={`relative mx-auto w-full ${maxWidth} border-x border-dashed border-fg/30 px-4 py-16 sm:px-6 sm:py-20`}
+        className={`relative mx-auto w-full ${maxWidth} border-x border-dashed border-fg/30 px-4 py-14 sm:px-6 sm:py-20`}
       >
         {above ? <div className="mb-6">{above}</div> : null}
         {content}

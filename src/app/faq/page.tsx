@@ -61,42 +61,47 @@ export default async function FaqPage() {
 
       <main className="flex-1">
         <SitePageHero
-          eyebrow={currentNiche ? `${currentNiche.name} · Help & guidance` : "Help & guidance"}
+          eyebrow={
+            currentNiche ? `${currentNiche.name} · Help & guidance` : "Help & guidance"
+          }
           title="Frequently asked questions"
           description="Everything about buying, accessing, and using a resource."
           accentColor={currentNiche?.accentColor}
         />
 
-        <section className="mx-auto max-w-3xl px-4 py-16 sm:px-6">
-          <div className="divide-y divide-border overflow-hidden rounded-3xl border border-border bg-card shadow-sm">
-            {faqs.map((item) => (
-              <details
-                key={item.q}
-                className="group px-5 py-5 transition-colors open:bg-surface-muted/50 sm:px-6"
-              >
-                <summary className="flex cursor-pointer list-none items-center justify-between gap-4 font-semibold text-fg">
-                  {item.q}
-                  <span
-                    aria-hidden
-                    className="grid size-7 shrink-0 place-items-center rounded-full border border-border text-sm text-fg-muted transition group-open:rotate-45"
-                  >
-                    +
-                  </span>
-                </summary>
-                <p className="mt-3 max-w-2xl text-sm leading-7 text-fg-muted">
-                  {item.a}
-                </p>
-              </details>
-            ))}
-          </div>
+        <section className="w-full border-b border-dashed border-fg/30">
+          <div className="mx-auto w-full max-w-6xl border-x border-dashed border-fg/30">
+            <div className="divide-y divide-fg/20">
+              {faqs.map((item) => (
+                <details key={item.q} className="group px-4 py-5 sm:px-6 sm:py-6">
+                  <summary className="flex cursor-pointer list-none items-start justify-between gap-4 text-left">
+                    <span className="text-base font-semibold text-fg sm:text-lg">
+                      {item.q}
+                    </span>
+                    <span
+                      aria-hidden
+                      className="mt-0.5 grid size-7 shrink-0 place-items-center rounded-full border border-fg/30 text-sm text-fg-muted transition group-open:rotate-45"
+                    >
+                      +
+                    </span>
+                  </summary>
+                  <p className="mt-3 max-w-2xl text-sm leading-7 text-fg-muted sm:text-base sm:leading-8">
+                    {item.a}
+                  </p>
+                </details>
+              ))}
+            </div>
 
-          <p className="mt-10 text-sm text-fg-muted">
-            Still have a question?{" "}
-            <Link href="/support" className="font-medium text-fg hover:underline">
-              Contact support
-            </Link>
-            .
-          </p>
+            <div className="border-t border-fg/30 px-4 py-6 sm:px-6 sm:py-8">
+              <p className="text-sm text-fg-muted sm:text-base">
+                Still have a question?{" "}
+                <Link href="/support" className="font-medium text-fg hover:underline">
+                  Contact support
+                </Link>
+                .
+              </p>
+            </div>
+          </div>
         </section>
       </main>
 

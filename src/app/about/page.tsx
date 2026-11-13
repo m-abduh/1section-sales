@@ -20,72 +20,102 @@ export default async function AboutPage() {
   ]);
   const niches = nichesResponse ?? [];
 
+  const principles = [
+    {
+      title: "Honest scope",
+      text: "We state the audience, the boundaries, and the limitations of each resource.",
+    },
+    {
+      title: "Decision-first",
+      text: "Learning is in service of a decision, not an end in itself.",
+    },
+    {
+      title: "Actionable",
+      text: "Every resource ends with something you can start this week.",
+    },
+    {
+      title: "No filler",
+      text: "We remove padding and repetition so you can move quickly.",
+    },
+  ];
+
   return (
     <div className="flex min-h-screen flex-col bg-surface">
       <SiteHeader niches={niches} currentNicheName={currentNiche?.name} />
 
       <main className="flex-1">
         <SitePageHero
-          eyebrow={currentNiche ? `${currentNiche.name} · About 1section` : "About 1section"}
+          eyebrow={
+            currentNiche ? `${currentNiche.name} · About 1section` : "About 1section"
+          }
           title={`About ${SITE_NAME}`}
           description="Most people do not lack information. They lack a clear next step."
           accentColor={currentNiche?.accentColor}
         />
 
-        <section className="mx-auto max-w-3xl px-4 py-16 sm:px-6">
-          <div className="space-y-8 text-base text-fg-muted">
-            <p>
-              {SITE_NAME} is a practical learning platform organized around
-              real-world problems. Instead of browsing by topic, you start by
-              describing the situation you are actually in: irregular income,
-              an untested business idea, a habit that keeps breaking, or a role
-              you want but are not sure how to prepare for.
-            </p>
-            <p>
-              Every resource follows the same structure: understand the problem,
-              decide what to do with a framework, and act with a concrete next
-              step. We write in plain language, use worked examples, and say
-              clearly who a resource is for and what it will not do.
-            </p>
-
-            <div className="rounded-2xl border border-border bg-card p-6">
-              <h2 className="text-lg font-semibold text-fg">Our principles</h2>
-              <ul className="mt-4 space-y-3">
-                <li>
-                  <span className="font-medium text-fg">Honest scope.</span> We
-                  state the audience, the boundaries, and the limitations of
-                  each resource.
-                </li>
-                <li>
-                  <span className="font-medium text-fg">Decision-first.</span>{" "}
-                  Learning is in service of a decision, not an end in itself.
-                </li>
-                <li>
-                  <span className="font-medium text-fg">Actionable.</span> Every
-                  resource ends with something you can start this week.
-                </li>
-                <li>
-                  <span className="font-medium text-fg">No filler.</span> We
-                  remove padding and repetition so you can move quickly.
-                </li>
-              </ul>
-            </div>
-
-            <div>
-              <h2 className="text-lg font-semibold text-fg">How we are funded</h2>
-              <p className="mt-3">
-                Resources are sold as one-time purchases. Payments and taxes are
-                handled by Paddle as merchant of record. We do not run
-                subscription billing or show third-party advertising.
+        <section className="w-full border-b border-dashed border-fg/30">
+          <div className="mx-auto w-full max-w-6xl border-x border-dashed border-fg/30">
+            <div className="px-4 py-8 sm:px-6 sm:py-10">
+              <p className="max-w-2xl text-base leading-7 text-fg-muted sm:text-lg sm:leading-8">
+                {SITE_NAME} is a practical learning platform organized around
+                real-world problems. Instead of browsing by topic, you start by
+                describing the situation you are actually in: irregular income, an
+                untested business idea, a habit that keeps breaking, or a role you
+                want but are not sure how to prepare for.
+              </p>
+              <p className="mt-5 max-w-2xl text-base leading-7 text-fg-muted sm:text-lg sm:leading-8">
+                Every resource follows the same structure: understand the problem,
+                decide what to do with a framework, and act with a concrete next
+                step. We write in plain language, use worked examples, and say
+                clearly who a resource is for and what it will not do.
               </p>
             </div>
 
-            <div>
-              <h2 className="text-lg font-semibold text-fg">Editorial care</h2>
-              <p className="mt-3">
-                We review each resource for clarity and accuracy before
-                publishing, and we keep an eye on feedback. If something is
-                unclear or out of date, tell us and we will correct it.
+            <div className="border-t border-fg/30">
+              <div className="px-4 py-6 sm:px-6 sm:py-8">
+                <h2 className="text-xl font-semibold tracking-tight text-fg sm:text-2xl">
+                  Our principles
+                </h2>
+              </div>
+              <ul className="grid divide-y divide-fg/20 border-t border-fg/20 sm:grid-cols-2 sm:divide-x sm:divide-y-0">
+                {principles.map((item, i) => (
+                  <li
+                    key={item.title}
+                    className={`px-4 py-6 sm:px-6 sm:py-8 ${i > 1 ? "sm:border-t sm:border-fg/20" : ""}`}
+                  >
+                    <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-fg-muted">
+                      {String(i + 1).padStart(2, "0")}
+                    </p>
+                    <h3 className="mt-2 text-base font-semibold text-fg">
+                      {item.title}
+                    </h3>
+                    <p className="mt-2 text-sm leading-6 text-fg-muted sm:text-base sm:leading-7">
+                      {item.text}
+                    </p>
+                  </li>
+                ))}
+              </ul>
+            </div>
+
+            <div className="border-t border-fg/30 px-4 py-8 sm:px-6 sm:py-10">
+              <h2 className="text-xl font-semibold tracking-tight text-fg sm:text-2xl">
+                How we are funded
+              </h2>
+              <p className="mt-3 max-w-2xl text-sm leading-7 text-fg-muted sm:text-base sm:leading-8">
+                Resources are sold as one-time purchases. Payments and taxes are
+                handled by Paddle as merchant of record. We do not run subscription
+                billing or show third-party advertising.
+              </p>
+            </div>
+
+            <div className="border-t border-fg/30 px-4 py-8 sm:px-6 sm:py-10">
+              <h2 className="text-xl font-semibold tracking-tight text-fg sm:text-2xl">
+                Editorial care
+              </h2>
+              <p className="mt-3 max-w-2xl text-sm leading-7 text-fg-muted sm:text-base sm:leading-8">
+                We review each resource for clarity and accuracy before publishing,
+                and we keep an eye on feedback. If something is unclear or out of
+                date, tell us and we will correct it.
               </p>
             </div>
           </div>
