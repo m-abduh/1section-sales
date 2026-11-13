@@ -25,21 +25,16 @@ export default async function HomePage() {
         new Date(right.product.createdAt).getTime() -
         new Date(left.product.createdAt).getTime(),
     )
-    .slice(0, 3);
+    .slice(0, 4);
 
   return (
     <div className="flex min-h-screen flex-col bg-surface">
       <SiteHeader niches={niches} variant="home" />
 
       <main className="flex-1">
-        <section className="relative w-full overflow-hidden border-b border-dashed border-fg/30">
-          <div className="cinema-grid pointer-events-none absolute inset-0 opacity-50" />
-          <div className="cinema-spotlight pointer-events-none absolute inset-0" />
-          <div className="cinema-noise pointer-events-none absolute inset-0 opacity-[0.04] mix-blend-multiply dark:mix-blend-screen" />
-          <div className="pointer-events-none absolute inset-x-0 bottom-0 h-40 bg-gradient-to-t from-surface to-transparent" />
-
-          <div className="relative mx-auto grid w-full max-w-6xl items-center gap-12 border-x border-dashed border-fg/30 px-4 py-20 sm:px-6 sm:py-28 lg:grid-cols-[1.05fr_0.95fr] lg:gap-16">
-            <div className="max-w-2xl">
+        <section className="w-full border-b border-dashed border-fg/30">
+          <div className="mx-auto w-full max-w-6xl border-x border-dashed border-fg/30 px-4 py-12 sm:px-6 sm:py-16">
+            <div className="max-w-3xl">
               <span className="animate-fade-up inline-flex items-center gap-2 rounded-full border border-border bg-card/80 px-3 py-1 text-xs font-medium tracking-wide text-fg-muted backdrop-blur">
                 <span
                   className="size-1.5 rounded-full"
@@ -50,7 +45,7 @@ export default async function HomePage() {
                 ONE PROBLEM · UNDERSTOOD MORE DEEPLY
               </span>
               <h1
-                className="animate-fade-up mt-7 max-w-xl text-balance text-4xl font-bold leading-[1.08] tracking-tight text-fg sm:text-6xl sm:leading-[1.02]"
+                className="animate-fade-up mt-7 max-w-2xl text-balance text-4xl font-bold leading-[1.08] tracking-tight text-fg sm:text-6xl sm:leading-[1.02]"
                 style={{ animationDelay: "80ms" }}
               >
                 Understand the problems that shape your life.
@@ -76,74 +71,70 @@ export default async function HomePage() {
                 </a>
               </div>
             </div>
+          </div>
+        </section>
 
-            <aside
-              aria-label="Latest guides"
-              className="animate-fade-up mx-auto w-full max-w-xl lg:ml-auto lg:mr-0 lg:max-w-lg"
-              style={{ animationDelay: "180ms" }}
-            >
-              <div className="flex items-end justify-between gap-4 border-b border-fg/20 pb-4">
-                <div>
-                  <p className="text-[10px] font-semibold uppercase tracking-[0.22em] text-fg-muted sm:text-xs">
-                    Recently published
-                  </p>
-                  <h2 className="mt-2 text-2xl font-semibold tracking-tight text-fg sm:text-3xl">
-                    Latest guides
-                  </h2>
-                </div>
-                <span className="pb-1 text-xs text-fg-muted">
-                  One problem, explored in depth
-                </span>
-              </div>
-
-              {latestProducts.length > 0 ? (
-                <ul>
-                  {latestProducts.map(({ product, niche }, index) => (
-                    <li key={product.id} className="border-b border-border">
-                      <a
-                        href={resourceUrl(niche.slug, product.slug)}
-                        className="group block py-5 transition-colors hover:bg-surface-muted/60 sm:py-6"
-                      >
-                        <div className="flex items-center justify-between gap-4">
-                          <span className="flex items-center gap-2 text-xs font-medium text-fg-muted">
-                            <span
-                              className="size-1.5 rounded-full"
-                              style={{
-                                backgroundColor: niche.accentColor,
-                              }}
-                            />
-                            {niche.name}
-                          </span>
-                          <span className="text-xs tabular-nums text-fg-muted">
-                            0{index + 1}
-                          </span>
-                        </div>
-                        <h3 className="mt-3 text-lg font-semibold tracking-tight text-fg transition group-hover:translate-x-0.5 sm:text-xl">
-                          {product.name}
-                        </h3>
-                        <div className="mt-3 flex items-center justify-between gap-4">
-                          <p className="line-clamp-2 max-w-sm text-sm leading-6 text-fg-muted">
-                            {product.summary ??
-                              product.outcome ??
-                              "A focused guide to understanding a real-life problem."}
-                          </p>
-                          <span className="shrink-0 text-sm font-semibold text-fg">
-                            {formatCurrency(
-                              product.priceAmount,
-                              product.currency,
-                            )}
-                          </span>
-                        </div>
-                      </a>
-                    </li>
-                  ))}
-                </ul>
-              ) : (
-                <p className="border-b border-border py-8 text-sm text-fg-muted">
-                  New guides will appear here as they are published.
+        <section className="w-full border-b border-dashed border-fg/30">
+          <div className="mx-auto w-full max-w-6xl border-x border-dashed border-fg/30 px-4 py-16 sm:px-6 sm:py-20">
+            <div className="flex flex-col gap-4 border-b border-fg/30 pb-6 sm:flex-row sm:items-end sm:justify-between">
+              <div>
+                <p className="text-[10px] font-semibold uppercase tracking-[0.22em] text-fg-muted sm:text-xs">
+                  Recently published
                 </p>
-              )}
-            </aside>
+                <h2 className="mt-2 text-2xl font-semibold tracking-tight text-fg sm:text-3xl">
+                  Latest guides
+                </h2>
+              </div>
+              <span className="text-xs text-fg-muted sm:pb-1">
+                One problem, explored in depth
+              </span>
+            </div>
+
+            {latestProducts.length > 0 ? (
+              <ul className="grid grid-cols-2 gap-px bg-fg/30 lg:grid-cols-4">
+                {latestProducts.map(({ product, niche }, index) => (
+                  <li key={product.id} className="min-w-0 bg-surface">
+                    <a
+                      href={resourceUrl(niche.slug, product.slug)}
+                      className="group flex h-full flex-col p-4 transition-colors hover:bg-surface-muted/40 sm:p-6"
+                    >
+                      <div className="flex items-center justify-between gap-2">
+                        <span className="flex min-w-0 items-center gap-2 text-[10px] font-medium text-fg-muted sm:text-xs">
+                          <span
+                            className="size-1.5 shrink-0 rounded-full"
+                            style={{
+                              backgroundColor: niche.accentColor,
+                            }}
+                          />
+                          <span className="truncate">{niche.name}</span>
+                        </span>
+                        <span className="shrink-0 text-[10px] tabular-nums text-fg-muted sm:text-xs">
+                          0{index + 1}
+                        </span>
+                      </div>
+                      <h3 className="mt-3 text-base font-semibold tracking-tight text-fg break-words transition group-hover:translate-x-0.5 sm:text-lg">
+                        {product.name}
+                      </h3>
+                      <p className="mt-2 line-clamp-3 text-xs leading-5 text-fg-muted sm:text-sm sm:leading-6">
+                        {product.summary ??
+                          product.outcome ??
+                          "A focused guide to understanding a real-life problem."}
+                      </p>
+                      <span className="mt-3 text-sm font-semibold text-fg">
+                        {formatCurrency(
+                          product.priceAmount,
+                          product.currency,
+                        )}
+                      </span>
+                    </a>
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <p className="py-8 text-sm text-fg-muted">
+                New guides will appear here as they are published.
+              </p>
+            )}
           </div>
         </section>
 
@@ -204,10 +195,10 @@ export default async function HomePage() {
           </div>
         </section>
 
-        <section id="niches">
-          <div className="w-full border-b border-dashed border-fg/30">
-            <div className="mx-auto w-full max-w-6xl border-x border-dashed border-fg/30 px-4 pb-8 pt-20 sm:px-6 sm:pb-12 sm:pt-28">
-              <div className="grid gap-6 border-b border-border pb-8 sm:pb-10 lg:grid-cols-[1fr_0.7fr] lg:items-end lg:gap-12">
+        <section id="niches" className="w-full border-b border-dashed border-fg/30">
+          <div className="mx-auto w-full max-w-6xl border-x border-dashed border-fg/30">
+            <div className="border-b border-fg/30 px-4 pb-8 pt-20 sm:px-6 sm:pb-12 sm:pt-28">
+              <div className="grid gap-6 pb-0 lg:grid-cols-[1fr_0.7fr] lg:items-end lg:gap-12">
                 <div>
                   <p className="text-xs font-semibold uppercase tracking-[0.2em] text-fg-muted">
                     Find your starting point
@@ -223,26 +214,19 @@ export default async function HomePage() {
                 </p>
               </div>
             </div>
-          </div>
 
-          <div>
             {list.length === 0 ? (
-              <div className="w-full border-b border-dashed border-fg/30">
-                <div className="mx-auto w-full max-w-6xl border-x border-dashed border-fg/30 px-4 py-12 sm:px-6">
-                  <p className="rounded-3xl border border-dashed border-fg/30 bg-surface-muted/50 p-10 text-center text-sm text-fg-muted">
-                    No problem areas are published yet.
-                  </p>
-                </div>
+              <div className="px-4 py-12 sm:px-6">
+                <p className="rounded-3xl border border-fg/30 bg-surface-muted/50 p-10 text-center text-sm text-fg-muted">
+                  No problem areas are published yet.
+                </p>
               </div>
             ) : (
-              list.map((niche, index) => (
-                <NicheSection
-                  key={niche.id}
-                  niche={niche}
-                  index={index}
-                  reversed={index % 2 === 1}
-                />
-              ))
+              <div className="grid grid-cols-2 divide-x divide-y divide-fg/30">
+                {list.map((niche, index) => (
+                  <NicheSection key={niche.id} niche={niche} index={index} />
+                ))}
+              </div>
             )}
           </div>
         </section>
