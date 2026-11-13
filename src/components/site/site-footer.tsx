@@ -7,8 +7,8 @@ import { ThemeToggle } from "@/components/theme-toggle";
 export function SiteFooter({ niches = [] }: { niches?: Niche[] }) {
   const year = new Date().getFullYear();
   return (
-    <footer className="border-t border-border bg-surface-muted">
-      <div className="mx-auto grid max-w-6xl gap-10 px-4 py-14 sm:px-6 md:grid-cols-4">
+    <footer className="w-full border-t border-dashed border-fg/30 bg-surface-muted">
+      <div className="mx-auto grid w-full max-w-6xl gap-10 border-x border-dashed border-fg/30 px-4 py-14 sm:px-6 md:grid-cols-4">
         <div>
           <div className="flex items-center gap-2">
             <Logo className="h-6 w-[98px] text-fg" />
@@ -83,8 +83,8 @@ export function SiteFooter({ niches = [] }: { niches?: Niche[] }) {
         </div>
       </div>
 
-      <div className="border-t border-border">
-        <div className="relative mx-auto flex max-w-6xl flex-col items-center gap-4 px-4 py-6 text-center text-xs text-fg-muted sm:px-6">
+      <div className="w-full border-t border-dashed border-fg/30">
+        <div className="relative mx-auto flex w-full max-w-6xl flex-col items-center gap-4 border-x border-dashed border-fg/30 px-4 py-6 text-center text-xs text-fg-muted sm:px-6">
           <span>
             © {year} {SITE_NAME}. All rights reserved.
           </span>

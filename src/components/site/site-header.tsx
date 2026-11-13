@@ -14,19 +14,21 @@ export function SiteHeader({
 }) {
   if (variant === "home") {
     return (
-      <header className="sticky top-0 z-40 border-b border-border bg-surface/70 backdrop-blur-xl">
+      <header className="sticky top-0 z-40 w-full border-b border-dashed border-fg/30 bg-surface/70 backdrop-blur-xl">
         {niches.length > 0 ? (
-          <div
-            aria-hidden
-            className="h-[3px] w-full"
-            style={{
-              backgroundImage: `linear-gradient(90deg, ${niches
-                .map((n) => n.accentColor)
-                .join(", ")})`,
-            }}
-          />
+          <div className="mx-auto w-full max-w-6xl border-x border-dashed border-fg/30">
+            <div
+              aria-hidden
+              className="h-[3px] w-full"
+              style={{
+                backgroundImage: `linear-gradient(90deg, ${niches
+                  .map((n) => n.accentColor)
+                  .join(", ")})`,
+              }}
+            />
+          </div>
         ) : null}
-        <div className="mx-auto flex h-14 max-w-6xl items-center gap-4 px-4 sm:px-6">
+        <div className="mx-auto flex h-14 w-full max-w-6xl items-center gap-4 border-x border-dashed border-fg/30 px-4 sm:px-6">
           <span
             aria-hidden
             className="h-px flex-1 bg-gradient-to-r from-transparent to-border"
@@ -44,8 +46,8 @@ export function SiteHeader({
           />
         </div>
 
-        <div className="border-t border-border bg-surface-muted/60">
-          <div className="mx-auto flex max-w-6xl items-center gap-2 px-4 sm:px-6">
+        <div className="w-full border-t border-dashed border-fg/30 bg-surface-muted/60">
+          <div className="mx-auto flex w-full max-w-6xl items-center gap-2 border-x border-dashed border-fg/30 px-4 sm:px-6">
             <nav className="flex flex-1 items-center gap-1 overflow-x-auto py-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
               {niches.length === 0 ? (
                 <span className="px-2 py-1 text-sm text-fg-muted">
@@ -74,8 +76,8 @@ export function SiteHeader({
   }
 
   return (
-    <header className="sticky top-0 z-40 border-b border-border bg-surface/70 backdrop-blur-xl">
-      <div className="mx-auto flex h-14 max-w-6xl items-center gap-4 px-4 sm:px-6">
+    <header className="sticky top-0 z-40 w-full border-b border-dashed border-fg/30 bg-surface/70 backdrop-blur-xl">
+      <div className="mx-auto flex h-14 w-full max-w-6xl items-center gap-4 border-x border-dashed border-fg/30 px-4 sm:px-6">
         <span
           aria-hidden
           className="h-px flex-1 bg-gradient-to-r from-transparent to-border"

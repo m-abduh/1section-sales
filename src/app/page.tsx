@@ -32,13 +32,13 @@ export default async function HomePage() {
       <SiteHeader niches={niches} variant="home" />
 
       <main className="flex-1">
-        <section className="relative overflow-hidden border-b border-border">
+        <section className="relative w-full overflow-hidden border-b border-dashed border-fg/30">
           <div className="cinema-grid pointer-events-none absolute inset-0 opacity-50" />
           <div className="cinema-spotlight pointer-events-none absolute inset-0" />
           <div className="cinema-noise pointer-events-none absolute inset-0 opacity-[0.04] mix-blend-multiply dark:mix-blend-screen" />
           <div className="pointer-events-none absolute inset-x-0 bottom-0 h-40 bg-gradient-to-t from-surface to-transparent" />
 
-          <div className="relative mx-auto grid max-w-6xl items-center gap-12 px-4 py-20 sm:px-6 sm:py-28 lg:grid-cols-[1.05fr_0.95fr] lg:gap-16">
+          <div className="relative mx-auto grid w-full max-w-6xl items-center gap-12 border-x border-dashed border-fg/30 px-4 py-20 sm:px-6 sm:py-28 lg:grid-cols-[1.05fr_0.95fr] lg:gap-16">
             <div className="max-w-2xl">
               <span className="animate-fade-up inline-flex items-center gap-2 rounded-full border border-border bg-card/80 px-3 py-1 text-xs font-medium tracking-wide text-fg-muted backdrop-blur">
                 <span
@@ -147,8 +147,8 @@ export default async function HomePage() {
           </div>
         </section>
 
-        <section className="border-y border-border bg-surface-muted/50">
-          <div className="mx-auto max-w-6xl px-4 py-16 sm:px-6 sm:py-20">
+        <section className="w-full border-b border-dashed border-fg/30 bg-surface-muted/50">
+          <div className="mx-auto w-full max-w-6xl border-x border-dashed border-fg/30 px-4 py-16 sm:px-6 sm:py-20">
             <div className="max-w-2xl">
               <p className="text-xs font-semibold uppercase tracking-[0.2em] text-fg-muted">
                 What 1section is here to do
@@ -205,29 +205,35 @@ export default async function HomePage() {
         </section>
 
         <section id="niches">
-          <div className="mx-auto max-w-6xl px-4 pb-8 pt-20 sm:px-6 sm:pb-12 sm:pt-28">
-            <div className="grid gap-6 border-b border-border pb-8 sm:pb-10 lg:grid-cols-[1fr_0.7fr] lg:items-end lg:gap-12">
-              <div>
-                <p className="text-xs font-semibold uppercase tracking-[0.2em] text-fg-muted">
-                  Find your starting point
+          <div className="w-full border-b border-dashed border-fg/30">
+            <div className="mx-auto w-full max-w-6xl border-x border-dashed border-fg/30 px-4 pb-8 pt-20 sm:px-6 sm:pb-12 sm:pt-28">
+              <div className="grid gap-6 border-b border-border pb-8 sm:pb-10 lg:grid-cols-[1fr_0.7fr] lg:items-end lg:gap-12">
+                <div>
+                  <p className="text-xs font-semibold uppercase tracking-[0.2em] text-fg-muted">
+                    Find your starting point
+                  </p>
+                  <h2 className="mt-4 max-w-2xl text-balance text-3xl font-bold tracking-tight text-fg sm:text-5xl sm:leading-[1.08]">
+                    Start with what&rsquo;s happening in your life.
+                  </h2>
+                </div>
+                <p className="max-w-lg text-sm leading-7 text-fg-muted sm:text-base lg:justify-self-end">
+                  Not sure what to call it? Begin with the situation. Explore
+                  focused guides that look at what may be behind it—and what that
+                  could mean for you.
                 </p>
-                <h2 className="mt-4 max-w-2xl text-balance text-3xl font-bold tracking-tight text-fg sm:text-5xl sm:leading-[1.08]">
-                  Start with what&rsquo;s happening in your life.
-                </h2>
               </div>
-              <p className="max-w-lg text-sm leading-7 text-fg-muted sm:text-base lg:justify-self-end">
-                Not sure what to call it? Begin with the situation. Explore
-                focused guides that look at what may be behind it—and what that
-                could mean for you.
-              </p>
             </div>
           </div>
 
-          <div className="pb-12">
+          <div>
             {list.length === 0 ? (
-              <p className="mx-auto max-w-6xl rounded-3xl border border-dashed border-border bg-surface-muted/50 p-10 text-center text-sm text-fg-muted">
-                No problem areas are published yet.
-              </p>
+              <div className="w-full border-b border-dashed border-fg/30">
+                <div className="mx-auto w-full max-w-6xl border-x border-dashed border-fg/30 px-4 py-12 sm:px-6">
+                  <p className="rounded-3xl border border-dashed border-fg/30 bg-surface-muted/50 p-10 text-center text-sm text-fg-muted">
+                    No problem areas are published yet.
+                  </p>
+                </div>
+              </div>
             ) : (
               list.map((niche, index) => (
                 <NicheSection
