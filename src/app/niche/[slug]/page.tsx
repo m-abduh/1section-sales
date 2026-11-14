@@ -1,9 +1,9 @@
 ﻿import type { Metadata } from "next";
-import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { SiteHeader } from "@/components/site/site-header";
 import { SiteFooter } from "@/components/site/site-footer";
+import { ProductCover } from "@/components/site/product-cover";
 import { getNiche, getNiches } from "@/lib/server-api";
 import { nicheUrl } from "@/lib/site";
 import { socialLinks } from "@/lib/site";
@@ -172,15 +172,14 @@ export default async function NichePage({ params }: NichePageProps) {
                     <div key={product.id} className="relative grid grid-cols-1 gap-6 overflow-hidden rounded-3xl border border-slate-200/80 dark:border-[#34343a]/40 bg-white/70 dark:bg-[#1e1f25]/60 p-6 shadow-xl backdrop-blur-2xl md:grid-cols-[0.95fr_1.25fr] md:p-7 lg:grid-cols-[0.85fr_1.35fr_0.8fr] lg:items-stretch lg:gap-6 lg:p-6">
                       <div className="pointer-events-none absolute -right-16 -top-16 h-44 w-44 rounded-full bg-[#d0bcff]/10 blur-[50px]" />
 
-                      <div className="group relative flex aspect-square w-full items-center justify-center overflow-hidden rounded-3xl border border-slate-200/70 bg-gradient-to-b from-slate-100 via-slate-50 to-white dark:border-white/10 dark:from-[#1e2029] dark:via-[#16171f] dark:to-[#0d0e13] shadow-inner md:aspect-auto md:min-h-[320px] lg:min-h-0 lg:aspect-square">
-                        <div className="pointer-events-none absolute inset-0 opacity-40" style={{ backgroundImage: "radial-gradient(rgba(255,255,255,0.18) 1.5px, transparent 1.5px)", backgroundSize: "16px 16px" }} />
-                        <div className="pointer-events-none absolute -top-16 left-1/2 h-64 w-64 -translate-x-1/2 rounded-full bg-[#d0bcff]/10 blur-[70px]" />
-                        <div className="pointer-events-none absolute -bottom-12 -right-12 h-48 w-48 rounded-full bg-[#4edea3]/10 blur-[60px]" />
-                        {product.coverImage ? (
-                          <Image src={product.coverImage} alt={product.name} width={1200} height={1500} className="relative z-10 max-h-[82%] w-auto rounded-2xl border border-white/10 object-contain shadow-[0_20px_40px_-12px_rgba(0,0,0,0.85)] transition-transform duration-300 group-hover:scale-[1.02]" />
-                        ) : (
-                          <span className="relative z-10 p-6 text-7xl font-bold text-slate-900 dark:text-slate-900/10 dark:text-[#e3e1e9]/10">{number}</span>
-                        )}
+                      <div className="md:aspect-auto md:min-h-[320px] lg:min-h-0">
+                        <ProductCover
+                          src={product.coverImage}
+                          alt={product.name}
+                          fallback={number}
+                          sizes="(min-width: 1024px) 420px, 90vw"
+                          className="md:aspect-auto md:h-full lg:aspect-square"
+                        />
                       </div>
 
                       <div className="relative flex flex-col gap-5">

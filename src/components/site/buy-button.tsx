@@ -89,9 +89,17 @@ export function BuyButton({
               "width: 100%; min-width: 312px; background-color: transparent; border: none;",
             successUrl,
           },
-          eventCallback: (event: { name?: string }) => {
+          eventCallback: (event: { name?: string; data?: { height?: number | string } }) => {
             if (event?.name === "checkout.completed") {
               window.location.href = successUrl;
+            }
+            if (event?.name === "checkout.frameHeight" && event.data?.height) {
+              const h = typeof event.data.height === "number" ? event.data.height : parseInt(String(event.data.height), 10);
+              if (Number.isFinite(h) && h > 0) {
+                const frame = document.querySelector<HTMLElement>(".inline-checkout-container iframe");
+                const target = frame ?? document.querySelector<HTMLElement>(".inline-checkout-container");
+                if (target) target.style.height = `${h}px`;
+              }
             }
           },
         } as Record<string, unknown>);
@@ -111,7 +119,7 @@ export function BuyButton({
         <Button
           type="button"
           size={size}
-          className={`w-full ${className}`}
+          className={`w-full rounded-full bg-slate-900 text-sm font-semibold text-white shadow-lg shadow-slate-900/20 hover:bg-slate-800 hover:opacity-100 dark:bg-white dark:text-[#0d0e13] dark:shadow-[0_12px_32px_-8px_rgba(0,0,0,0.6)] dark:hover:bg-neutral-100 ${className}`}
           onClick={start}
         >
           {label}
@@ -148,10 +156,7 @@ export function BuyButton({
   // ready
   return (
     <div className="w-full space-y-3">
-      <div
-        className="inline-checkout-container w-full overflow-hidden rounded-2xl border border-border bg-card"
-        style={{ minHeight: 480 }}
-      />
+      <div className="inline-checkout-container w-full rounded-2xl border border-border bg-card" />
     </div>
   );
 }
