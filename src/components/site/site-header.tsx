@@ -25,25 +25,27 @@ export function SiteHeader({
       : null;
   return (
     <header className="fixed inset-x-0 top-0 z-50 pt-[env(safe-area-inset-top,0px)] [font-family:'Plus_Jakarta_Sans',ui-sans-serif,system-ui,sans-serif]">
-      <div className="mx-auto flex h-16 w-full max-w-6xl items-center justify-between px-5 md:px-8">
-        <Link
-          href="/"
-          aria-label={SITE_NAME}
-          className="inline-flex h-11 min-w-0 items-center gap-2.5 rounded-full border border-white/60 bg-white/60 px-4 text-slate-600 shadow-sm backdrop-blur-xl transition-all hover:bg-white/80 hover:text-slate-900 active:scale-95 dark:border-[#34343a]/40 dark:bg-[#292a2f]/60 dark:text-[#cbc3d7] dark:hover:bg-[#34343a]/60 dark:hover:text-[#e3e1e9]"
-        >
-          <div className="h-2 w-2 shrink-0 animate-pulse rounded-full" style={{ backgroundColor: accent, boxShadow: `0 0 8px ${accent}` }} aria-hidden />
-          <Logo className="h-4 w-[66px] shrink-0 sm:h-[18px] sm:w-[74px]" />
-          {label ? (
-            <>
-              <span className="shrink-0 text-[11px] font-bold text-slate-400 dark:text-[#494454] sm:text-xs" aria-hidden>/</span>
-              <span className="max-w-[8rem] truncate text-[10px] font-bold uppercase tracking-widest sm:max-w-60 sm:text-[11px]">
-                {label}
-              </span>
-            </>
-          ) : null}
-        </Link>
+      <div className="mx-auto w-full max-w-6xl px-3 sm:px-5 md:px-8">
+        <div className="flex h-16 items-center justify-between rounded-b-3xl border-x border-b border-slate-200/80 bg-white/60 px-4 shadow-sm backdrop-blur-2xl dark:border-[#34343a]/40 dark:bg-[#1e1f25]/50 sm:px-5">
+          <Link
+            href="/"
+            aria-label={label ? `${SITE_NAME} ${label}` : SITE_NAME}
+            className="inline-flex h-11 min-w-0 items-center justify-center rounded-full border border-white/60 bg-white/70 px-4 text-slate-600 shadow-sm backdrop-blur-xl transition-all hover:bg-white/90 hover:text-slate-900 active:scale-95 dark:border-[#34343a]/40 dark:bg-[#292a2f]/70 dark:text-[#cbc3d7] dark:hover:bg-[#34343a]/70 dark:hover:text-[#e3e1e9]"
+          >
+            <span className="inline-flex items-end gap-2.5">
+              <span className="mb-0.5 h-2 w-2 shrink-0 animate-pulse rounded-full" style={{ backgroundColor: accent, boxShadow: `0 0 8px ${accent}` }} aria-hidden />
+              <Logo className="h-4 w-[66px] shrink-0 sm:h-[18px] sm:w-[74px]" />
+              {label ? (
+                <span className="inline-flex min-w-0 items-center gap-1 text-[10px] font-bold uppercase tracking-widest leading-none text-slate-500 dark:text-[#958ea0] sm:text-[11px]">
+                  <span aria-hidden>/</span>
+                  <span className="max-w-[8rem] truncate sm:max-w-60">{label}</span>
+                </span>
+              ) : null}
+            </span>
+          </Link>
 
-        <ThemeToggle className="grid size-11 shrink-0 place-items-center rounded-full border border-white/60 bg-white/60 text-slate-600 shadow-sm backdrop-blur-xl transition-all hover:bg-white/80 hover:text-slate-900 active:scale-95 dark:border-[#34343a]/40 dark:bg-[#292a2f]/60 dark:text-[#cbc3d7] dark:hover:bg-[#34343a]/60 dark:hover:text-[#e3e1e9]" />
+          <ThemeToggle className="grid size-11 shrink-0 place-items-center rounded-full border border-white/60 bg-white/70 text-slate-600 shadow-sm backdrop-blur-xl transition-all hover:bg-white/90 hover:text-slate-900 active:scale-95 dark:border-[#34343a]/40 dark:bg-[#292a2f]/70 dark:text-[#cbc3d7] dark:hover:bg-[#34343a]/70 dark:hover:text-[#e3e1e9]" />
+        </div>
       </div>
     </header>
   );

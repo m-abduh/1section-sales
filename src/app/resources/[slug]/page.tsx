@@ -192,7 +192,7 @@ export default async function ResourcePage({ params }: ResourcePageProps) {
 
                   <div className="mt-5">
                     {product.active ? (
-                      <BuyButton product={product} label="Buy and get instant access" />
+                      <BuyButton product={product} />
                     ) : (
                       <p className="rounded-xl border border-slate-200/80 bg-slate-100/60 px-4 py-3 text-center text-sm text-slate-600 dark:border-[#34343a]/40 dark:bg-[#292a2f]/50 dark:text-[#cbc3d7]">Currently unavailable</p>
                     )}

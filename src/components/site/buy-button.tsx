@@ -23,12 +23,14 @@ type State =
 
 export function BuyButton({
   product,
-  label = "Buy and get instant access",
+  label,
   size = "lg",
   className = "",
 }: BuyButtonProps) {
   const [state, setState] = useState<State>({ kind: "idle" });
   const [theme, setTheme] = useState<"light" | "dark">("light");
+  const isFree = product.priceAmount === 0;
+  const buttonLabel = label ?? (isFree ? "Get free access" : "Buy & get instant access");
 
   // Detect theme for Paddle.
   useEffect(() => {
@@ -122,7 +124,16 @@ export function BuyButton({
           className={`w-full rounded-full bg-slate-900 text-sm font-semibold text-white shadow-lg shadow-slate-900/20 hover:bg-slate-800 hover:opacity-100 dark:bg-white dark:text-[#0d0e13] dark:shadow-[0_12px_32px_-8px_rgba(0,0,0,0.6)] dark:hover:bg-neutral-100 ${className}`}
           onClick={start}
         >
-          {label}
+          {isFree ? (
+            <svg viewBox="0 0 20 20" fill="none" className="size-4" aria-hidden>
+              <path d="M10 3.5v9m0 0 3.5-3.5M10 12.5 6.5 9M4 15.5h12" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
+          ) : (
+            <svg viewBox="0 0 20 20" fill="none" className="size-4" aria-hidden>
+              <path d="M4.5 10h11m0 0-4-4m4 4-4 4" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
+          )}
+          <span>{buttonLabel}</span>
         </Button>
       </div>
     );
