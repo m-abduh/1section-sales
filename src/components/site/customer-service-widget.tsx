@@ -371,39 +371,36 @@ export function CustomerServiceWidget() {
   return (
     <>
       {!open && teaser ? (
-        <div className="fixed bottom-24 right-4 z-50 w-[calc(100vw-5.5rem)] max-w-[300px] sm:right-6">
+        <div className="fixed bottom-24 right-4 z-50 w-[calc(100vw-5.5rem)] max-w-[300px] origin-bottom-right sm:right-6 [font-family:'Plus_Jakarta_Sans',ui-sans-serif,system-ui,sans-serif]">
           <div
-            className="relative rounded-2xl border border-white/40 bg-white/30 p-4 shadow-lg dark:border-white/10 dark:bg-slate-900/30"
-            style={{ backdropFilter: "blur(16px) saturate(150%)", WebkitBackdropFilter: "blur(16px) saturate(150%)" }}
+            className="relative rounded-2xl border border-slate-200/80 bg-white/50 p-4 shadow-xl dark:border-[#34343a]/40 dark:bg-[#1e1f25]/50"
+            style={{ backdropFilter: "blur(24px) saturate(150%)", WebkitBackdropFilter: "blur(24px) saturate(150%)" }}
           >
             <button
               type="button"
               onClick={() => setTeaser(false)}
               aria-label="Dismiss message"
-              className="absolute right-2.5 top-2.5 inline-flex size-6 items-center justify-center rounded-full text-fg-muted/70 transition hover:bg-surface-muted hover:text-fg"
+              className="absolute right-2.5 top-2.5 inline-flex size-6 items-center justify-center rounded-full text-slate-500 transition hover:bg-slate-100 hover:text-slate-900 dark:text-[#958ea0] dark:hover:bg-[#292a2f] dark:hover:text-[#e3e1e9]"
             >
               <CloseIcon className="size-3" />
             </button>
-            <button
-              type="button"
-              onClick={openChat}
-              className="group block w-full text-left"
-            >
-              <span className="inline-flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-[0.14em] text-fg-muted">
-                <span className="size-1.5 animate-pulse rounded-full bg-emerald-500" />
+            <button type="button" onClick={openChat} className="group block w-full text-left">
+              <span className="inline-flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-[0.14em] text-slate-500 dark:text-[#958ea0]">
+                <span className="size-1.5 animate-pulse rounded-full bg-emerald-500 dark:bg-[#4edea3]" />
                 1 new message
               </span>
-              <span className="mt-2 block pr-5 text-sm leading-5 text-fg">
+              <span className="mt-2 block pr-5 text-sm leading-6 text-slate-800 dark:text-[#e3e1e9]">
                 {GREETING}
               </span>
-              <span className="mt-3 inline-flex items-center gap-1 text-xs font-medium text-fg-muted transition group-hover:text-fg">
+              <span className="mt-3 inline-flex items-center gap-1 text-xs font-semibold text-indigo-600 transition group-hover:text-indigo-700 dark:text-[#d0bcff] dark:group-hover:text-[#e9ddff]">
                 Chat now
                 <SendIcon className="size-3 transition-transform group-hover:translate-x-0.5" />
               </span>
             </button>
             <span
               aria-hidden
-              className="absolute -bottom-1.5 right-5 size-3 rotate-45 border-b border-r border-white/40 bg-white/30 dark:border-white/10 dark:bg-slate-900/30"
+              className="absolute -bottom-1.5 right-5 size-3 rotate-45 border-b border-r border-slate-200/80 bg-white/50 dark:border-[#34343a]/40 dark:bg-[#1e1f25]/50"
+              style={{ backdropFilter: "blur(24px) saturate(150%)", WebkitBackdropFilter: "blur(24px) saturate(150%)" }}
             />
           </div>
         </div>
@@ -418,140 +415,133 @@ export function CustomerServiceWidget() {
               endSession("user_closed");
               setOpen(false);
             }}
-            className="fixed inset-0 z-40 bg-slate-950/10 backdrop-blur-md dark:bg-black/30"
+            className="fixed inset-0 z-40 bg-slate-900/20 backdrop-blur-sm dark:bg-black/35"
           />
-          <div className="fixed bottom-24 right-4 z-50 w-[calc(100vw-2rem)] max-w-[390px] origin-bottom-right animate-fade-up sm:right-6">
+          <div className="fixed bottom-24 right-4 z-50 w-[calc(100vw-2rem)] max-w-[390px] origin-bottom-right animate-fade-up sm:right-6 [font-family:'Plus_Jakarta_Sans',ui-sans-serif,system-ui,sans-serif]">
             <div
               role="dialog"
               aria-label="Customer service chat"
-              className="flex h-[min(580px,calc(100dvh-8rem))] flex-col overflow-hidden rounded-[26px] border border-white/40 bg-white/40 shadow-[0_30px_80px_-24px_rgba(0,0,0,0.25)] ring-1 ring-white/20 backdrop-blur-2xl backdrop-saturate-150 dark:border-white/10 dark:bg-slate-900/40 dark:ring-white/5"
+              className="flex h-[min(580px,calc(100dvh-8rem))] flex-col overflow-hidden rounded-3xl border border-slate-200/80 bg-white/70 shadow-2xl backdrop-blur-2xl dark:border-[#34343a]/40 dark:bg-[#1e1f25]/70"
             >
-          <div className="relative flex items-center gap-3 border-b border-white/30 bg-white/30 px-4 py-3.5 backdrop-blur-xl dark:border-white/10 dark:bg-white/5">
-            <span className="relative flex size-10 shrink-0 items-center justify-center rounded-2xl bg-accent text-accent-fg shadow-sm ring-1 ring-inset ring-accent-fg/20">
-              <ChatIcon className="size-5" />
-              <span className="absolute -bottom-0.5 -right-0.5 size-2.5 rounded-full border-2 border-card bg-emerald-500" />
-            </span>
-            <div className="min-w-0 flex-1">
-              <p className="truncate text-sm font-semibold tracking-tight text-fg">
-                Customer Service
-              </p>
-              <p className="mt-0.5 truncate text-[11px] text-fg-muted">
-                AI assistant · online
-              </p>
-            </div>
-            <button
-              type="button"
-              onClick={() => {
-                endSession("user_closed");
-                setOpen(false);
-              }}
-              aria-label="Close chat"
-              className="inline-flex size-8 items-center justify-center rounded-full border border-white/40 bg-white/40 text-fg-muted backdrop-blur-md transition hover:bg-white/60 hover:text-fg focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent dark:border-white/10 dark:bg-white/10 dark:hover:bg-white/20"
-            >
-              <CloseIcon className="size-4" />
-            </button>
-          </div>
-
-          <div
-            ref={listRef}
-            aria-live="polite"
-            className="flex-1 space-y-3.5 overflow-y-auto bg-white/10 px-4 py-5 dark:bg-white/5"
-          >
-            {messages.map((message) =>
-              message.role === "user" ? (
-                <div key={message.id} className="flex justify-end">
-                  <p className="max-w-[85%] whitespace-pre-wrap rounded-2xl rounded-br-md bg-accent px-3.5 py-2.5 text-sm leading-6 text-accent-fg shadow-sm">
-                    {message.content}
-                  </p>
-                </div>
-              ) : (
-                <div key={message.id} className="flex justify-start">
-                  <p
-                    className={`max-w-[88%] whitespace-pre-wrap rounded-2xl rounded-bl-md px-3.5 py-2.5 text-sm leading-6 ${
-                      message.error
-                        ? "border border-red-500/25 bg-red-500/5 text-fg"
-                        : "border border-white/40 bg-white/45 text-fg backdrop-blur-md dark:border-white/10 dark:bg-white/10"
-                    }`}
-                  >
-                    {message.content}
-                  </p>
-                </div>
-              ),
-            )}
-
-            {sending ? (
-              <div className="flex justify-start">
-                <span className="inline-flex items-center gap-1 rounded-2xl rounded-bl-md border border-white/40 bg-white/45 px-3.5 py-3 backdrop-blur-md dark:border-white/10 dark:bg-white/10">
-                  <span className="size-1.5 animate-bounce rounded-full bg-fg-muted [animation-delay:-0.3s]" />
-                  <span className="size-1.5 animate-bounce rounded-full bg-fg-muted [animation-delay:-0.15s]" />
-                  <span className="size-1.5 animate-bounce rounded-full bg-fg-muted" />
-                  <span className="sr-only">Assistant is typing</span>
+              <div className="relative flex items-center gap-3 border-b border-slate-200/80 bg-white/50 px-4 py-3.5 backdrop-blur-xl dark:border-[#34343a]/40 dark:bg-[#292a2f]/40">
+                <span className="relative flex size-10 shrink-0 items-center justify-center rounded-2xl bg-slate-900 text-white shadow-sm dark:bg-white dark:text-[#0d0e13]">
+                  <ChatIcon className="size-5" />
+                  <span className="absolute -bottom-0.5 -right-0.5 size-2.5 rounded-full border-2 border-white bg-emerald-500 dark:border-[#1e1f25] dark:bg-[#4edea3]" />
                 </span>
-              </div>
-            ) : null}
-
-            {showSuggestions ? (
-              <div className="pt-2">
-                <p className="mb-2.5 flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-[0.14em] text-fg-muted">
-                  <SparkIcon className="size-3" />
-                  Try asking
-                </p>
-                <div className="flex flex-wrap gap-2">
-                  {quickQuestions.map((suggestion) => (
-                    <button
-                      key={suggestion}
-                      type="button"
-                      onClick={() => void send(suggestion)}
-                      className="group inline-flex items-center gap-1.5 rounded-full border border-white/40 bg-white/35 px-3 py-1.5 text-xs font-medium text-fg-muted shadow-sm backdrop-blur-md transition hover:-translate-y-0.5 hover:bg-white/55 hover:text-fg hover:shadow-md dark:border-white/10 dark:bg-white/10 dark:hover:bg-white/15"
-                    >
-                      {suggestion}
-                      <SendIcon className="size-3 opacity-0 transition-all group-hover:translate-x-0.5 group-hover:opacity-100" />
-                    </button>
-                  ))}
+                <div className="min-w-0 flex-1">
+                  <p className="truncate text-sm font-semibold tracking-tight text-slate-900 dark:text-[#e3e1e9]">Customer Service</p>
+                  <p className="mt-0.5 truncate text-[11px] text-slate-500 dark:text-[#958ea0]">AI assistant · online</p>
                 </div>
+                <button
+                  type="button"
+                  onClick={() => {
+                    endSession("user_closed");
+                    setOpen(false);
+                  }}
+                  aria-label="Close chat"
+                  className="inline-flex size-8 items-center justify-center rounded-full border border-slate-200/80 bg-white/60 text-slate-500 backdrop-blur-md transition hover:bg-white hover:text-slate-900 dark:border-[#34343a]/40 dark:bg-[#292a2f]/60 dark:text-[#958ea0] dark:hover:bg-[#34343a] dark:hover:text-[#e3e1e9]"
+                >
+                  <CloseIcon className="size-4" />
+                </button>
               </div>
-            ) : null}
-          </div>
 
-          <form
-            onSubmit={(event) => {
-              event.preventDefault();
-              void send(input);
-            }}
-            className="border-t border-white/30 bg-white/25 p-3 backdrop-blur-xl dark:border-white/10 dark:bg-white/5"
-          >
-            <div className="flex items-end gap-2 rounded-2xl border border-white/40 bg-white/40 p-1.5 pl-3.5 shadow-sm backdrop-blur-md transition focus-within:border-white/60 focus-within:ring-2 focus-within:ring-white/20 dark:border-white/10 dark:bg-white/10 dark:focus-within:ring-white/10">
-              <input
-                ref={inputRef}
-                value={input}
-                onChange={(event) => setInput(event.target.value)}
-                placeholder="Ask a quick question..."
-                aria-label="Message"
-                autoComplete="off"
-                maxLength={500}
-                className="min-w-0 flex-1 bg-transparent py-2 text-sm text-fg outline-none placeholder:text-fg-muted"
-              />
-              <button
-                type="submit"
-                disabled={sending || !input.trim()}
-                aria-label="Send message"
-                className="inline-flex size-9 shrink-0 items-center justify-center rounded-xl bg-accent text-accent-fg shadow-sm transition hover:scale-105 hover:opacity-95 active:scale-95 disabled:cursor-not-allowed disabled:opacity-30 disabled:hover:scale-100"
+              <div
+                ref={listRef}
+                aria-live="polite"
+                className="flex-1 space-y-3.5 overflow-y-auto bg-slate-50/40 px-4 py-5 dark:bg-[#121318]/40"
               >
-                <SendIcon className="size-4" />
-              </button>
+                {messages.map((message) =>
+                  message.role === "user" ? (
+                    <div key={message.id} className="flex justify-end">
+                      <p className="max-w-[85%] whitespace-pre-wrap rounded-2xl rounded-br-md bg-slate-900 px-3.5 py-2.5 text-sm leading-6 text-white shadow-sm dark:bg-white dark:text-[#0d0e13]">
+                        {message.content}
+                      </p>
+                    </div>
+                  ) : (
+                    <div key={message.id} className="flex justify-start">
+                      <p
+                        className={`max-w-[88%] whitespace-pre-wrap rounded-2xl rounded-bl-md px-3.5 py-2.5 text-sm leading-6 ${
+                          message.error
+                            ? "border border-red-300/60 bg-red-50/80 text-slate-800 dark:border-red-500/30 dark:bg-red-500/10 dark:text-[#e3e1e9]"
+                            : "border border-slate-200/80 bg-white/70 text-slate-700 backdrop-blur-md dark:border-[#34343a]/40 dark:bg-[#292a2f]/60 dark:text-[#cbc3d7]"
+                        }`}
+                      >
+                        {message.content}
+                      </p>
+                    </div>
+                  ),
+                )}
+
+                {sending ? (
+                  <div className="flex justify-start">
+                    <span className="inline-flex items-center gap-1 rounded-2xl rounded-bl-md border border-slate-200/80 bg-white/70 px-3.5 py-3 backdrop-blur-md dark:border-[#34343a]/40 dark:bg-[#292a2f]/60">
+                      <span className="size-1.5 animate-bounce rounded-full bg-slate-400 [animation-delay:-0.3s] dark:bg-[#958ea0]" />
+                      <span className="size-1.5 animate-bounce rounded-full bg-slate-400 [animation-delay:-0.15s] dark:bg-[#958ea0]" />
+                      <span className="size-1.5 animate-bounce rounded-full bg-slate-400 dark:bg-[#958ea0]" />
+                      <span className="sr-only">Assistant is typing</span>
+                    </span>
+                  </div>
+                ) : null}
+
+                {showSuggestions ? (
+                  <div className="pt-2">
+                    <p className="mb-2.5 flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-[0.14em] text-slate-500 dark:text-[#958ea0]">
+                      <SparkIcon className="size-3" />
+                      Try asking
+                    </p>
+                    <div className="flex flex-wrap gap-2">
+                      {quickQuestions.map((suggestion) => (
+                        <button
+                          key={suggestion}
+                          type="button"
+                          onClick={() => void send(suggestion)}
+                          className="group inline-flex items-center gap-1.5 rounded-full border border-slate-200/80 bg-white/60 px-3 py-1.5 text-xs font-medium text-slate-600 shadow-sm backdrop-blur-md transition hover:-translate-y-0.5 hover:bg-white hover:text-slate-900 dark:border-[#34343a]/40 dark:bg-[#292a2f]/60 dark:text-[#cbc3d7] dark:hover:bg-[#34343a] dark:hover:text-[#e3e1e9]"
+                        >
+                          {suggestion}
+                          <SendIcon className="size-3 opacity-0 transition-all group-hover:translate-x-0.5 group-hover:opacity-100" />
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                ) : null}
+              </div>
+
+              <form
+                onSubmit={(event) => {
+                  event.preventDefault();
+                  void send(input);
+                }}
+                className="border-t border-slate-200/80 bg-white/50 p-3 backdrop-blur-xl dark:border-[#34343a]/40 dark:bg-[#292a2f]/40"
+              >
+                <div className="flex items-end gap-2 rounded-2xl border border-slate-200/80 bg-white/70 p-1.5 pl-3.5 shadow-sm backdrop-blur-md transition focus-within:border-indigo-300 focus-within:ring-2 focus-within:ring-indigo-500/20 dark:border-[#34343a]/40 dark:bg-[#1e1f25]/60 dark:focus-within:border-[#d0bcff]/40 dark:focus-within:ring-[#d0bcff]/15">
+                  <input
+                    ref={inputRef}
+                    value={input}
+                    onChange={(event) => setInput(event.target.value)}
+                    placeholder="Ask a quick question..."
+                    aria-label="Message"
+                    autoComplete="off"
+                    maxLength={500}
+                    className="min-w-0 flex-1 bg-transparent py-2 text-sm text-slate-900 outline-none placeholder:text-slate-400 dark:text-[#e3e1e9] dark:placeholder:text-[#958ea0]"
+                  />
+                  <button
+                    type="submit"
+                    disabled={sending || !input.trim()}
+                    aria-label="Send message"
+                    className="inline-flex size-9 shrink-0 items-center justify-center rounded-xl bg-slate-900 text-white shadow-sm transition hover:bg-slate-800 active:scale-95 disabled:cursor-not-allowed disabled:opacity-30 dark:bg-white dark:text-[#0d0e13] dark:hover:bg-neutral-100"
+                  >
+                    <SendIcon className="size-4" />
+                  </button>
+                </div>
+                <p className="mt-2 flex items-center justify-center gap-1 text-center text-[10px] text-slate-500 dark:text-[#958ea0]">
+                  <span>AI assistant can make mistakes ·</span>
+                  <a href="mailto:support@1section.com" className="font-medium text-slate-700 underline decoration-slate-400/50 underline-offset-2 transition hover:text-slate-900 dark:text-[#cbc3d7] dark:hover:text-[#e3e1e9]">
+                    support@1section.com
+                  </a>
+                </p>
+              </form>
             </div>
-            <p className="mt-2 flex items-center justify-center gap-1 text-center text-[10px] text-fg-muted">
-              <span>AI assistant can make mistakes Â·</span>
-              <a
-                href="mailto:support@1section.com"
-                className="font-medium text-fg underline decoration-fg/40 underline-offset-2 transition hover:decoration-fg"
-              >
-                support@1section.com
-              </a>
-            </p>
-          </form>
-        </div>
-      </div>
+          </div>
         </>
       ) : null}
 
@@ -567,16 +557,16 @@ export function CustomerServiceWidget() {
         }}
         aria-label={open ? "Close customer service chat" : "Open customer service chat"}
         aria-expanded={open}
-        className={`group fixed bottom-5 right-4 z-[60] inline-flex h-14 items-center justify-center gap-2.5 rounded-full border border-white/30 bg-accent/85 text-accent-fg backdrop-blur-xl ring-1 ring-inset ring-white/20 transition-all duration-300 hover:-translate-y-0.5 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent sm:right-6 ${
+        className={`group fixed bottom-5 right-4 z-[60] inline-flex h-14 items-center justify-center gap-2.5 rounded-full border border-slate-200/80 bg-slate-900 text-white shadow-lg backdrop-blur-xl transition-all duration-300 hover:-translate-y-0.5 hover:bg-slate-800 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-500 dark:border-[#34343a]/40 dark:bg-white dark:text-[#0d0e13] dark:hover:bg-neutral-100 sm:right-6 [font-family:'Plus_Jakarta_Sans',ui-sans-serif,system-ui,sans-serif] ${
           open ? "w-14" : "w-14 sm:w-auto sm:pl-5 sm:pr-5"
         } ${
           !open && teaser
-            ? "shadow-[0_0_0_5px_rgba(16,185,129,0.16),0_14px_44px_-10px_rgba(0,0,0,0.35)]"
-            : "shadow-[0_12px_40px_-10px_rgba(0,0,0,0.3)] hover:shadow-[0_18px_50px_-12px_rgba(0,0,0,0.35)]"
+            ? "shadow-[0_0_0_5px_rgba(16,185,129,0.18),0_14px_44px_-10px_rgba(15,23,42,0.35)] dark:shadow-[0_0_0_5px_rgba(78,222,163,0.18),0_14px_44px_-10px_rgba(0,0,0,0.5)]"
+            : "shadow-[0_12px_40px_-10px_rgba(15,23,42,0.3)] dark:shadow-[0_12px_40px_-10px_rgba(0,0,0,0.5)]"
         }`}
       >
         {!open && teaser ? (
-          <span className="absolute -right-0.5 -top-0.5 inline-flex size-5 items-center justify-center rounded-full bg-emerald-500 text-[10px] font-bold text-white ring-2 ring-surface">
+          <span className="absolute -right-0.5 -top-0.5 inline-flex size-5 items-center justify-center rounded-full bg-emerald-500 text-[10px] font-bold text-white ring-2 ring-[#f6f7fb] dark:bg-[#4edea3] dark:text-[#00311f] dark:ring-[#121318]">
             1
           </span>
         ) : null}
@@ -593,9 +583,7 @@ export function CustomerServiceWidget() {
           />
         </span>
         {!open ? (
-          <span className="hidden text-sm font-medium tracking-tight sm:inline">
-            Chat with us
-          </span>
+          <span className="hidden text-sm font-semibold tracking-tight sm:inline">Chat with us</span>
         ) : null}
       </button>
     </>
