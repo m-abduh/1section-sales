@@ -230,7 +230,7 @@ export default async function NichePage({ params }: NichePageProps) {
                 <span className="h-2 w-2 rounded-full bg-[#4edea3]" />
                 <span className="text-[11px] font-bold uppercase tracking-widest text-[#4edea3]">PROBLEMS PORTFOLIO</span>
               </div>
-              <h2 className="text-[28px] font-bold leading-[36px] tracking-[-0.02em] text-[#e3e1e9]">A deeper understanding of the problems that shape our lives</h2>
+              <h2 className="text-[28px] font-bold leading-[36px] tracking-[-0.02em] text-[#e3e1e9]">The problems that shape our lives</h2>
               <p className="text-[13px] leading-[20px] tracking-[0.005em] text-[#cbc3d7]">Understand what is happening. Consider what it means for you.</p>
             </div>
 
