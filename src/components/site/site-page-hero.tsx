@@ -10,7 +10,6 @@ export function SitePageHero({
   children,
   media,
   above,
-  framed = false,
 }: {
   eyebrow?: string;
   title: ReactNode;
@@ -23,60 +22,33 @@ export function SitePageHero({
   above?: ReactNode;
   framed?: boolean;
 }) {
-  const accent = accentColor ?? "var(--accent)";
-  const content = (
-    <div className={media ? "grid items-center gap-10 lg:grid-cols-[1.15fr_0.85fr]" : undefined}>
-      <div className="min-w-0">
-        {children}
-        {eyebrow ? (
-          <div className="inline-flex items-center gap-2.5 rounded-full border border-white/50 bg-white/50 px-3 py-1.5 text-[10px] font-semibold uppercase tracking-[0.18em] text-fg-muted shadow-sm backdrop-blur-md sm:text-xs dark:border-white/10 dark:bg-white/5">
-            {accentColor ? (
-              <span aria-hidden className="size-2 rounded-full shadow-[0_0_0_4px_rgba(255,255,255,0.4)]" style={{ backgroundColor: accentColor }} />
-            ) : null}
-            {eyebrow}
-          </div>
-        ) : null}
-        <h1
-          className={`text-balance tracking-tight text-fg ${
-            framed
-              ? "mt-4 text-3xl font-bold leading-[1.1] sm:text-4xl lg:text-5xl"
-              : "mt-6 max-w-4xl text-4xl font-bold leading-[1.06] sm:text-5xl sm:leading-[1.04] lg:text-[3.4rem]"
-          }`}
-        >
-          {title}
-        </h1>
-        {description ? (
-          <p className={`max-w-2xl text-fg-muted ${framed ? "mt-3 text-sm leading-7 sm:text-base" : "mt-5 text-base leading-7 sm:text-lg sm:leading-8"}`}>
-            {description}
-          </p>
-        ) : null}
-        {meta ? <p className="mt-5 inline-flex rounded-full bg-surface-muted/60 px-3 py-1 text-xs font-medium text-fg-muted sm:text-sm">{meta}</p> : null}
-      </div>
-      {media ? <div className="relative justify-self-center lg:justify-self-end">{media}</div> : null}
-    </div>
-  );
-
-  if (framed) {
-    return (
-      <section className={`relative mx-auto w-full ${maxWidth} px-3 pt-6 sm:px-4 sm:pt-8`}>
-        {above ? <div className="mb-4">{above}</div> : null}
-        <div className="glass relative overflow-hidden rounded-[2rem] p-6 sm:p-10">
-          <div aria-hidden className="orb -right-10 -top-10 h-48 w-48 opacity-30" style={{ backgroundColor: accent }} />
-          <div aria-hidden className="orb -bottom-12 -left-8 h-40 w-40 bg-sky-400/20" />
-          <div className="relative">{content}</div>
-        </div>
-      </section>
-    );
-  }
-
+  const accent = accentColor ?? "#6366f1";
   return (
-    <section className="relative w-full px-3 pt-6 sm:px-4 sm:pt-8">
-      <div className={`glass-strong relative mx-auto w-full ${maxWidth} overflow-hidden rounded-[2rem] px-5 py-12 sm:px-10 sm:py-16 lg:py-20`}>
-        <div aria-hidden className="orb -left-32 -top-32 h-[26rem] w-[26rem] opacity-[0.06] blur-[120px]" style={{ backgroundColor: accent }} />
-        <div aria-hidden className="orb -bottom-28 right-0 h-[24rem] w-[24rem] bg-sky-400/[0.05] blur-[120px]" />
-        <div className="relative">
-          {above ? <div className="mb-6">{above}</div> : null}
-          {content}
+    <section className={`relative mx-auto w-full ${maxWidth} px-5 pt-6 md:px-8 md:pt-8 [font-family:'Plus_Jakarta_Sans',ui-sans-serif,system-ui,sans-serif]`}>
+      {above ? <div className="mb-4">{above}</div> : null}
+      <div className="relative overflow-hidden rounded-3xl border border-slate-200/80 bg-white/60 p-6 shadow-xl backdrop-blur-2xl dark:border-[#34343a]/40 dark:bg-[#1e1f25]/50 sm:p-10 lg:p-12">
+        <div aria-hidden className="pointer-events-none absolute -top-24 left-1/2 h-72 w-72 -translate-x-1/2 rounded-full blur-[90px]" style={{ backgroundColor: `color-mix(in srgb, ${accent} 18%, transparent)` }} />
+        <div aria-hidden className="pointer-events-none absolute -bottom-16 -right-16 h-52 w-52 rounded-full bg-emerald-400/10 blur-[70px] dark:bg-[#4edea3]/10" />
+        <div className={media ? "relative z-10 grid items-center gap-10 lg:grid-cols-[1.15fr_0.85fr]" : "relative z-10"}>
+          <div className="min-w-0">
+            {children}
+            {eyebrow ? (
+              <div className="inline-flex items-center gap-2 rounded-full border border-white/60 bg-white/60 px-3 py-1.5 text-[10px] font-bold uppercase tracking-[0.18em] text-slate-600 shadow-sm backdrop-blur-xl dark:border-[#34343a]/40 dark:bg-[#292a2f]/60 dark:text-[#cbc3d7] sm:text-[11px]">
+                <span aria-hidden className="size-2 rounded-full" style={{ backgroundColor: accent, boxShadow: `0 0 8px ${accent}` }} />
+                {eyebrow}
+              </div>
+            ) : null}
+            <h1 className="mt-5 max-w-3xl text-balance text-[32px] font-bold leading-[1.08] tracking-[-0.025em] text-slate-900 dark:text-[#e3e1e9] sm:text-[40px] sm:leading-[1.06] lg:text-[44px]">
+              {title}
+            </h1>
+            {description ? (
+              <p className="mt-4 max-w-2xl text-[15px] leading-7 text-slate-600 dark:text-[#cbc3d7] sm:text-[17px] sm:leading-8">
+                {description}
+              </p>
+            ) : null}
+            {meta ? <p className="mt-5 inline-flex rounded-full bg-slate-100/70 px-3 py-1 text-xs font-medium text-slate-600 dark:bg-[#292a2f]/60 dark:text-[#958ea0]">{meta}</p> : null}
+          </div>
+          {media ? <div className="relative justify-self-center lg:justify-self-end">{media}</div> : null}
         </div>
       </div>
     </section>

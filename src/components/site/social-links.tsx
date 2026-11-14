@@ -61,7 +61,7 @@ export function SocialLinks({
 
   if (variant === "hero") {
     return (
-      <div className="flex flex-wrap items-center justify-center gap-2 sm:gap-3">
+      <div className="mx-auto flex w-full max-w-md flex-col gap-2.5">
         {items.map((social) => {
           const meta = PLATFORM[social.platform];
           return (
@@ -71,13 +71,18 @@ export function SocialLinks({
               target="_blank"
               rel="noreferrer"
               aria-label={`${social.platform} @${social.handle}`}
-              className="group inline-flex items-center gap-2.5 rounded-full border border-white/45 bg-white/40 py-1.5 pl-1.5 pr-3.5 text-sm shadow-sm backdrop-blur-md transition duration-200 hover:-translate-y-0.5 hover:bg-white/60 hover:shadow-md dark:border-white/10 dark:bg-white/5 dark:hover:bg-white/10"
+              className="group flex items-center justify-between rounded-2xl border border-white/40 bg-surface/40 px-3 py-2.5 shadow-sm backdrop-blur-md transition duration-200 hover:-translate-y-0.5 hover:bg-surface/55 dark:border-white/10 dark:bg-white/5 dark:hover:bg-white/10"
             >
-              <span className={`grid size-7 shrink-0 place-items-center rounded-full ${meta.tint}`}>
-                <SocialIcon platform={social.platform} />
-              </span>
-              <span className="min-w-0 truncate font-medium text-fg">@{social.handle}</span>
-              <span aria-hidden className="text-fg-muted/50 transition-colors group-hover:text-fg-muted">↗</span>
+              <div className="flex min-w-0 items-center gap-3">
+                <span className={`grid size-9 shrink-0 place-items-center rounded-full ${meta.tint}`}>
+                  <SocialIcon platform={social.platform} />
+                </span>
+                <span className="min-w-0 text-left">
+                  <span className="block text-[10px] font-semibold uppercase tracking-[0.14em] text-fg-muted">{social.platform}</span>
+                  <span className="mt-0.5 block truncate text-sm font-semibold text-fg">@{social.handle}</span>
+                </span>
+              </div>
+              <span aria-hidden className="shrink-0 text-sm text-fg-muted/60 transition-colors group-hover:text-fg">↗</span>
             </a>
           );
         })}

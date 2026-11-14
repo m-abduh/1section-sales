@@ -102,7 +102,7 @@ function SuccessContent() {
         <div className="mb-6">
           <Link
             href="/"
-            className="glass-soft inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm font-medium text-fg-muted transition hover:text-fg"
+            className="inline-flex items-center gap-2 rounded-full border border-slate-200/80 bg-white/60 px-4 py-2 text-sm font-medium text-slate-600 backdrop-blur-xl transition hover:bg-white/80 hover:text-slate-900 dark:border-[#34343a]/40 dark:bg-[#292a2f]/40 dark:text-[#cbc3d7] dark:hover:bg-[#292a2f]/60 dark:hover:text-[#e3e1e9]"
           >
             ← Back to home
           </Link>
@@ -110,11 +110,11 @@ function SuccessContent() {
       </SitePageHero>
 
       <main className="flex-1">
-        <section className="px-3 pb-2 pt-6 sm:px-4 sm:pt-8">
-          <div className="mx-auto w-full max-w-6xl space-y-4 sm:space-y-5">
+        <section className="mx-auto w-full max-w-6xl px-5 pb-2 pt-6 md:px-8 md:pt-8">
+          <div className="space-y-4 sm:space-y-5">
             {!orderRef ? (
-              <div className="glass rounded-[2rem] p-6 sm:p-8">
-                <p className="text-sm font-medium text-fg sm:text-base">
+              <div className="rounded-3xl border border-slate-200/80 bg-white/60 shadow-xl backdrop-blur-2xl dark:border-[#34343a]/40 dark:bg-[#1e1f25]/50 rounded-[2rem] p-6 sm:p-8">
+                <p className="text-sm font-medium text-slate-900 dark:text-[#e3e1e9] sm:text-base">
                   Enter your Paddle transaction ID or order number to retrieve a
                   purchase.
                 </p>
@@ -138,7 +138,7 @@ function SuccessContent() {
             ) : null}
 
             {orderRef && orderQuery.isLoading ? (
-              <div className="glass flex items-center gap-3 rounded-[2rem] p-6 text-sm text-fg-muted sm:p-8">
+              <div className="rounded-3xl border border-slate-200/80 bg-white/60 shadow-xl backdrop-blur-2xl dark:border-[#34343a]/40 dark:bg-[#1e1f25]/50 flex items-center gap-3 rounded-[2rem] p-6 text-sm text-slate-600 dark:text-[#cbc3d7] sm:p-8">
                 <Spinner /> Loading your purchase...
               </div>
             ) : null}
@@ -151,19 +151,19 @@ function SuccessContent() {
 
             {orderQuery.data ? (
               <div className="space-y-4 sm:space-y-5">
-                <div className="glass rounded-[2rem] p-5 sm:p-6">
+                <div className="rounded-3xl border border-slate-200/80 bg-white/60 shadow-xl backdrop-blur-2xl dark:border-[#34343a]/40 dark:bg-[#1e1f25]/50 rounded-[2rem] p-5 sm:p-6">
                   <div className="flex flex-wrap items-start justify-between gap-4">
                     <div>
-                      <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-fg-muted">
+                      <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-600 dark:text-[#cbc3d7]">
                         {orderQuery.data.orderNumber.startsWith("txn_")
                           ? "Transaction"
                           : "Order"}
                       </p>
-                      <p className="mt-1 text-xl font-bold tracking-tight text-fg break-all sm:text-2xl">
+                      <p className="mt-1 text-xl font-bold tracking-tight text-slate-900 dark:text-[#e3e1e9] break-all sm:text-2xl">
                         {orderQuery.data.orderNumber}
                       </p>
                       {orderQuery.data.total > 0 || orderQuery.data.paidAt ? (
-                        <p className="mt-1 text-sm text-fg-muted">
+                        <p className="mt-1 text-sm text-slate-600 dark:text-[#cbc3d7]">
                           {formatCurrency(
                             orderQuery.data.total,
                             orderQuery.data.currency,
@@ -177,20 +177,20 @@ function SuccessContent() {
                 </div>
 
                 {orderQuery.data.status === "PENDING" ? (
-                  <div className="glass-soft flex items-center gap-3 rounded-[2rem] p-5 text-sm text-fg sm:p-6">
+                  <div className="rounded-2xl border border-slate-200/80 bg-white/50 backdrop-blur-xl dark:border-[#34343a]/40 dark:bg-[#292a2f]/40 flex items-center gap-3 rounded-[2rem] p-5 text-sm text-slate-900 dark:text-[#e3e1e9] sm:p-6">
                     <Spinner /> Waiting for payment confirmation from Paddle...
                   </div>
                 ) : null}
 
                 {orderQuery.data.status === "PAID" && !orderQuery.data.authorized ? (
-                  <div className="glass rounded-[2rem] p-6 text-center sm:p-8">
-                    <div className="mx-auto grid size-14 place-items-center rounded-2xl bg-surface-muted/70 text-2xl shadow-inner">
+                  <div className="rounded-3xl border border-slate-200/80 bg-white/60 shadow-xl backdrop-blur-2xl dark:border-[#34343a]/40 dark:bg-[#1e1f25]/50 rounded-[2rem] p-6 text-center sm:p-8">
+                    <div className="mx-auto grid size-14 place-items-center rounded-2xl bg-slate-100/70 dark:bg-[#34343a] text-2xl shadow-inner">
                       ✉
                     </div>
-                    <h2 className="mt-4 text-lg font-semibold text-fg sm:text-xl">
+                    <h2 className="mt-4 text-lg font-semibold text-slate-900 dark:text-[#e3e1e9] sm:text-xl">
                       Access your purchase
                     </h2>
-                    <p className="mx-auto mt-2 max-w-xl text-sm leading-6 text-fg-muted">
+                    <p className="mx-auto mt-2 max-w-xl text-sm leading-6 text-slate-600 dark:text-[#cbc3d7]">
                       Your payment is confirmed.{" "}
                       {orderQuery.data.hasEmail
                         ? "Enter the email address used at checkout to retrieve your downloads."
@@ -220,7 +220,7 @@ function SuccessContent() {
                       </form>
                     ) : null}
                     {proofEmail && !orderQuery.isFetching ? (
-                      <p role="status" className="mt-3 text-sm text-fg-muted">
+                      <p role="status" className="mt-3 text-sm text-slate-600 dark:text-[#cbc3d7]">
                         This email didn&rsquo;t match the order. Check the email
                         address used at checkout and try again.
                       </p>
@@ -231,7 +231,7 @@ function SuccessContent() {
                 {orderQuery.data.status === "PAID" && orderQuery.data.authorized ? (
                   <div className="space-y-4">
                     <div className="flex items-center gap-3 px-1">
-                      <div className="grid size-10 place-items-center rounded-2xl bg-accent text-accent-fg shadow-lg shadow-indigo-500/20">
+                      <div className="grid size-10 place-items-center rounded-2xl bg-slate-900 dark:bg-white text-white dark:text-[#0d0e13] shadow-lg shadow-slate-900/20 dark:shadow-[0_12px_32px_-8px_rgba(0,0,0,0.6)]">
                         <svg
                           viewBox="0 0 24 24"
                           fill="none"
@@ -242,7 +242,7 @@ function SuccessContent() {
                           <path d="M20 6 9 17l-5-5" />
                         </svg>
                       </div>
-                      <h2 className="text-lg font-semibold text-fg sm:text-xl">
+                      <h2 className="text-lg font-semibold text-slate-900 dark:text-[#e3e1e9] sm:text-xl">
                         Your downloads
                       </h2>
                     </div>
@@ -251,7 +251,7 @@ function SuccessContent() {
                       {orderQuery.data.items.map((item) => (
                         <div
                           key={item.id}
-                          className="glass rounded-[2rem] p-5 sm:p-6"
+                          className="rounded-3xl border border-slate-200/80 bg-white/60 shadow-xl backdrop-blur-2xl dark:border-[#34343a]/40 dark:bg-[#1e1f25]/50 rounded-[2rem] p-5 sm:p-6"
                         >
                           {item.downloads.length === 0 ? (
                             <div>
@@ -260,26 +260,26 @@ function SuccessContent() {
                                   <img
                                     src={item.coverImage}
                                     alt={item.productName}
-                                    className="h-24 w-16 shrink-0 rounded-xl border border-white/50 object-cover bg-surface-muted shadow-sm sm:h-28 sm:w-20 dark:border-white/10"
+                                    className="h-24 w-16 shrink-0 rounded-xl border border-slate-200/70 dark:border-[#34343a]/40 object-cover bg-slate-100 dark:bg-[#34343a] shadow-sm sm:h-28 sm:w-20 dark:border-[#34343a]/40"
                                   />
                                 ) : (
-                                  <div className="grid h-24 w-16 shrink-0 place-items-center rounded-xl border border-white/50 bg-surface-muted text-lg sm:h-28 sm:w-20 dark:border-white/10">
+                                  <div className="grid h-24 w-16 shrink-0 place-items-center rounded-xl border border-slate-200/70 dark:border-[#34343a]/40 bg-slate-100 dark:bg-[#34343a] text-lg sm:h-28 sm:w-20 dark:border-[#34343a]/40">
                                     📄
                                   </div>
                                 )}
                                 <div className="min-w-0">
-                                  <p className="text-base font-semibold text-fg break-words sm:text-lg">
+                                  <p className="text-base font-semibold text-slate-900 dark:text-[#e3e1e9] break-words sm:text-lg">
                                     {item.productName}
                                   </p>
                                 </div>
                               </div>
                               <div className="mt-4">
                                 {item.hasFiles ? (
-                                  <div className="flex items-center gap-2 rounded-xl border border-white/40 bg-surface-muted/40 px-4 py-3 text-sm text-fg-muted dark:border-white/10">
+                                  <div className="flex items-center gap-2 rounded-xl border border-slate-200/80 dark:border-[#34343a]/40 bg-slate-100/50 dark:bg-[#292a2f]/40 px-4 py-3 text-sm text-slate-600 dark:text-[#cbc3d7] dark:border-[#34343a]/40">
                                     <Spinner /> Preparing your download link...
                                   </div>
                                 ) : (
-                                  <div className="rounded-xl border border-white/40 bg-surface-muted/40 px-4 py-3 text-sm text-fg-muted dark:border-white/10">
+                                  <div className="rounded-xl border border-slate-200/80 dark:border-[#34343a]/40 bg-slate-100/50 dark:bg-[#292a2f]/40 px-4 py-3 text-sm text-slate-600 dark:text-[#cbc3d7] dark:border-[#34343a]/40">
                                     No file is attached to this item yet. Please
                                     contact support and we will sort it out.
                                   </div>
@@ -311,8 +311,8 @@ function SuccessContent() {
                                     }
                                     className={`group w-full rounded-2xl border p-4 text-left transition sm:p-5 ${
                                       disabled
-                                        ? "cursor-not-allowed border-white/30 bg-surface-muted/40 dark:border-white/10"
-                                        : "glass-soft cursor-pointer hover:-translate-y-0.5 hover:shadow-lg"
+                                        ? "cursor-not-allowed border-slate-200/70 dark:border-[#34343a]/40 bg-slate-100/50 dark:bg-[#292a2f]/40 dark:border-[#34343a]/40"
+                                        : "rounded-2xl border border-slate-200/80 bg-white/50 backdrop-blur-xl dark:border-[#34343a]/40 dark:bg-[#292a2f]/40 cursor-pointer hover:-translate-y-0.5 hover:shadow-lg"
                                     } ${isDone ? "border-emerald-200/70 bg-emerald-50/70 dark:border-emerald-900/50 dark:bg-emerald-950/30" : ""}`}
                                   >
                                     <div className="flex items-start gap-4">
@@ -324,19 +324,19 @@ function SuccessContent() {
                                         <img
                                           src={item.coverImage}
                                           alt={item.productName}
-                                          className="h-24 w-16 shrink-0 rounded-xl border border-white/50 object-cover bg-surface-muted shadow-sm sm:h-28 sm:w-20 dark:border-white/10"
+                                          className="h-24 w-16 shrink-0 rounded-xl border border-slate-200/70 dark:border-[#34343a]/40 object-cover bg-slate-100 dark:bg-[#34343a] shadow-sm sm:h-28 sm:w-20 dark:border-[#34343a]/40"
                                         />
                                       ) : (
-                                        <div className="grid h-24 w-16 shrink-0 place-items-center rounded-xl border border-white/50 bg-surface-muted text-lg sm:h-28 sm:w-20 dark:border-white/10">
+                                        <div className="grid h-24 w-16 shrink-0 place-items-center rounded-xl border border-slate-200/70 dark:border-[#34343a]/40 bg-slate-100 dark:bg-[#34343a] text-lg sm:h-28 sm:w-20 dark:border-[#34343a]/40">
                                           📄
                                         </div>
                                       )}
                                       <div className="min-w-0 flex-1">
-                                        <p className="text-base font-semibold text-fg break-words sm:text-lg">
+                                        <p className="text-base font-semibold text-slate-900 dark:text-[#e3e1e9] break-words sm:text-lg">
                                           {isDone ? "Enjoy your reading!" : item.productName}
                                         </p>
                                         {isDone ? (
-                                          <p className="mt-1 text-sm text-fg-muted break-words">
+                                          <p className="mt-1 text-sm text-slate-600 dark:text-[#cbc3d7] break-words">
                                             {item.productName}
                                           </p>
                                         ) : null}
@@ -345,8 +345,8 @@ function SuccessContent() {
                                             isDone
                                               ? "bg-emerald-500 text-white"
                                               : isLoading
-                                                ? "bg-fg/10 text-fg"
-                                                : "bg-accent text-accent-fg"
+                                                ? "bg-fg/10 text-slate-900 dark:text-[#e3e1e9]"
+                                                : "bg-slate-900 dark:bg-white text-white dark:text-[#0d0e13]"
                                           }`}
                                         >
                                           {isLoading ? (
