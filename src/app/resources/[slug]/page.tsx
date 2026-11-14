@@ -45,7 +45,7 @@ export default async function ResourcePage({ params }: ResourcePageProps) {
     : 0;
 
   return (
-    <div className="relative flex min-h-screen flex-col overflow-x-hidden bg-[#f6f7fb] text-[#0f172a] selection:bg-indigo-500/20 selection:text-indigo-700 [font-family:'Plus_Jakarta_Sans',ui-sans-serif,system-ui,sans-serif] dark:bg-[#121318] dark:text-[#e3e1e9] dark:selection:bg-[#d0bcff]/20 dark:selection:text-[#d0bcff]">
+    <div className="relative flex min-h-screen flex-col overflow-x-clip bg-[#f6f7fb] text-[#0f172a] selection:bg-indigo-500/20 selection:text-indigo-700 [font-family:'Plus_Jakarta_Sans',ui-sans-serif,system-ui,sans-serif] dark:bg-[#121318] dark:text-[#e3e1e9] dark:selection:bg-[#d0bcff]/20 dark:selection:text-[#d0bcff]">
       <link rel="preconnect" href="https://fonts.googleapis.com" />
       <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="" />
       <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet" />
@@ -160,7 +160,7 @@ export default async function ResourcePage({ params }: ResourcePageProps) {
               </div>
             </div>
 
-            <aside className="lg:sticky lg:top-24 lg:self-start">
+            <aside className="lg:sticky lg:top-24 lg:h-fit lg:self-start">
               <div className="relative overflow-hidden rounded-3xl border border-slate-200/80 bg-white/60 p-5 shadow-xl backdrop-blur-2xl dark:border-[#34343a]/40 dark:bg-[#1e1f25]/50 sm:p-6">
                 <div aria-hidden className="pointer-events-none absolute -top-20 -right-16 h-48 w-48 rounded-full blur-[80px]" style={{ backgroundColor: `color-mix(in srgb, ${accent} 16%, transparent)` }} />
                 <div className="relative">

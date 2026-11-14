@@ -25,7 +25,7 @@ export function SiteHeader({
       : null;
   return (
     <header className="fixed inset-x-0 top-0 z-50 pt-[env(safe-area-inset-top,0px)] [font-family:'Plus_Jakarta_Sans',ui-sans-serif,system-ui,sans-serif]">
-      <div className="mx-auto w-full max-w-6xl px-3 sm:px-5 md:px-8">
+      <div className="mx-auto w-full max-w-6xl px-5 md:px-8">
         <div className="flex h-16 items-center justify-between rounded-b-3xl border-x border-b border-slate-200/80 bg-white/60 px-4 shadow-sm backdrop-blur-2xl dark:border-[#34343a]/40 dark:bg-[#1e1f25]/50 sm:px-5">
           <Link
             href="/"
