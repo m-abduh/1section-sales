@@ -110,8 +110,8 @@ function SuccessContent() {
       </SitePageHero>
 
       <main className="flex-1">
-        <section className="px-3 pb-2 pt-6 sm:px-4 sm:pt-8">
-          <div className="mx-auto w-full max-w-6xl space-y-4 sm:space-y-5">
+        <section className="mx-auto w-full max-w-6xl px-5 pb-2 pt-6 md:px-8 md:pt-8">
+          <div className="space-y-4 sm:space-y-5">
             {!orderRef ? (
               <div className="rounded-3xl border border-slate-200/80 bg-white/60 shadow-xl backdrop-blur-2xl dark:border-[#34343a]/40 dark:bg-[#1e1f25]/50 rounded-[2rem] p-6 sm:p-8">
                 <p className="text-sm font-medium text-slate-900 dark:text-[#e3e1e9] sm:text-base">
