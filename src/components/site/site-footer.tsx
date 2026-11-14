@@ -25,7 +25,7 @@ export function SiteFooter({ niches = [] }: { niches?: Niche[] }) {
               {niches.map((item) => (
                 <li key={item.id}>
                   <Link href={nicheUrl(item.slug)} className="inline-flex items-center gap-2 text-[13px] leading-[20px] text-slate-600 transition hover:text-slate-900 dark:text-[#cbc3d7] dark:hover:text-[#e3e1e9]">
-                    <span className="size-1.5 rounded-full" style={{ backgroundColor: item.accentColor ?? "#6366f1" }} />
+                    <span className="size-1.5 rounded-full" style={{ backgroundColor: item.accentColor ?? "#d0bcff" }} />
                     {item.name}
                   </Link>
                 </li>
