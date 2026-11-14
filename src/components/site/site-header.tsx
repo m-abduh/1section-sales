@@ -24,7 +24,7 @@ export function SiteHeader({
       ? currentNicheName.toUpperCase()
       : null;
   return (
-    <header className="fixed inset-x-0 top-0 z-50 border-t border-white/60 bg-white/70 pt-[env(safe-area-inset-top,0px)] shadow-[0_1px_8px_rgba(15,23,42,0.06)] backdrop-blur-2xl dark:border-[#34343a]/40 dark:bg-[#121318]/80 dark:shadow-[0_1px_8px_rgba(0,0,0,0.25)] [font-family:'Plus_Jakarta_Sans',ui-sans-serif,system-ui,sans-serif]">
+    <header className="fixed inset-x-0 top-0 z-50 pt-[env(safe-area-inset-top,0px)] [font-family:'Plus_Jakarta_Sans',ui-sans-serif,system-ui,sans-serif]">
       <div className="mx-auto flex h-16 w-full max-w-6xl items-center justify-between px-5 md:px-8">
         <Link
           href="/"
