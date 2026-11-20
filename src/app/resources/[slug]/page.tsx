@@ -73,6 +73,15 @@ export default async function ResourcePage({ params }: ResourcePageProps) {
                   <span className="size-1.5 rounded-full" style={{ backgroundColor: accent }} />
                   {product.niche?.name ? `${product.niche.name} · ` : ""}{LEARNING_LEVEL_LABEL[product.level]}
                 </span>
+                {product.coverImage ? (
+                  <div className="mt-5 max-w-sm lg:hidden">
+                    <ProductCover
+                      src={product.coverImage}
+                      alt={product.name}
+                      sizes="90vw"
+                    />
+                  </div>
+                ) : null}
                 <h1 className="mt-5 max-w-3xl text-balance text-[34px] font-bold leading-[1.08] tracking-[-0.025em] text-slate-900 dark:text-[#e3e1e9] sm:text-5xl sm:leading-[1.05]">{product.name}</h1>
                 {product.summary ? <p className="mt-5 max-w-2xl text-base leading-7 text-slate-600 dark:text-[#cbc3d7] sm:text-lg sm:leading-8">{product.summary}</p> : null}
               </div>
@@ -80,7 +89,7 @@ export default async function ResourcePage({ params }: ResourcePageProps) {
               <div className="mt-10 flex flex-col gap-5 sm:gap-6">
                 {product.outcome ? (
                   <Card>
-                    <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-indigo-600 dark:text-[#d0bcff]">What you walk away with</p>
+                    <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-indigo-600 dark:text-[#d0bcff]">By the end</p>
                     <p className="mt-3 max-w-2xl text-[15px] font-medium leading-7 text-slate-800 dark:text-[#e3e1e9] sm:text-base">{product.outcome}</p>
                   </Card>
                 ) : null}
@@ -165,16 +174,16 @@ export default async function ResourcePage({ params }: ResourcePageProps) {
                 <div aria-hidden className="pointer-events-none absolute -top-20 -right-16 h-48 w-48 rounded-full blur-[80px]" style={{ backgroundColor: `color-mix(in srgb, ${accent} 16%, transparent)` }} />
                 <div className="relative">
                   {product.coverImage ? (
-                    <div className="mt-4">
+                    <div className="hidden lg:block">
                       <ProductCover
                         src={product.coverImage}
                         alt={product.name}
-                        sizes="(min-width: 1024px) 340px, 90vw"
+                        sizes="340px"
                       />
                     </div>
                   ) : null}
 
-                  <div className="mt-5 flex flex-col gap-1">
+                  <div className="mt-0 flex flex-col gap-1 lg:mt-5">
                     <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
                       <span className="text-3xl font-bold tracking-tight text-slate-900 dark:text-[#e3e1e9] sm:text-4xl">{isFree ? "Free" : formatCurrency(product.priceAmount, product.currency)}</span>
                       {hasDiscount && discountPercent > 0 ? (
