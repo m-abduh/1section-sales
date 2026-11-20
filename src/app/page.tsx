@@ -3,7 +3,7 @@ import { SiteFooter } from "@/components/site/site-footer";
 import { NicheSection } from "@/components/site/niche-section";
 import { getNiches, getProducts } from "@/lib/server-api";
 import { formatCurrency } from "@/lib/format";
-import { resourceUrl } from "@/lib/site";
+import { bookUrl } from "@/lib/site";
 
 export const revalidate = 60;
 
@@ -89,7 +89,7 @@ export default async function HomePage() {
                     : 0;
                   return (
                     <li key={product.id} className="min-w-0">
-                      <a href={resourceUrl(niche.slug, product.slug)} className="group flex h-full flex-col overflow-hidden rounded-2xl border border-slate-200/80 bg-white/50 p-4 shadow-sm backdrop-blur-xl transition duration-300 hover:-translate-y-1 hover:shadow-lg dark:border-[#34343a]/40 dark:bg-[#292a2f]/40 sm:p-5">
+                      <a href={bookUrl(niche.slug, product.slug)} className="group flex h-full flex-col overflow-hidden rounded-2xl border border-slate-200/80 bg-white/50 p-4 shadow-sm backdrop-blur-xl transition duration-300 hover:-translate-y-1 hover:shadow-lg dark:border-[#34343a]/40 dark:bg-[#292a2f]/40 sm:p-5">
                         <div aria-hidden className="pointer-events-none -mx-4 -mt-4 mb-3 h-1 sm:-mx-5 sm:-mt-5" style={{ background: `linear-gradient(90deg, ${niche.accentColor ?? heroAccent}, transparent)` }} />
                         <div className="flex items-center justify-end gap-2">
                           <span className="shrink-0 rounded-full bg-slate-100/70 px-2 py-0.5 text-[10px] tabular-nums text-slate-500 dark:bg-[#34343a] dark:text-[#958ea0]">0{index + 1}</span>

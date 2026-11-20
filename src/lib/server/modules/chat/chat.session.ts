@@ -49,7 +49,7 @@ function getPageSlugs(
 ): { productSlug: string | null; nicheSlug: string | null } {
   const path = pathname.split("?")[0].split("#")[0] || "/";
 
-  const resourceMatch = path.match(/^\/resources\/([^/]+)\/?$/);
+  const resourceMatch = path.match(/^\/(?:book|resources)\/([^/]+)\/?$/);
   if (resourceMatch) {
     return { productSlug: resourceMatch[1], nicheSlug: null };
   }

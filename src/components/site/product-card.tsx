@@ -3,7 +3,7 @@ import Image from "next/image";
 import type { Product } from "@/lib/types";
 import { LEARNING_LEVEL_LABEL } from "@/lib/types";
 import { formatCurrency } from "@/lib/format";
-import { resourceUrl } from "@/lib/site";
+import { bookUrl } from "@/lib/site";
 
 export function ProductCard({
   product,
@@ -33,7 +33,7 @@ export function ProductCard({
 
   return (
     <Link
-      href={resourceUrl(nicheSlug, product.slug)}
+      href={bookUrl(nicheSlug, product.slug)}
       className="group relative block overflow-hidden rounded-3xl border border-slate-200/80 bg-white/70 shadow-xl backdrop-blur-2xl transition duration-300 hover:-translate-y-1 hover:shadow-2xl dark:border-[#34343a]/40 dark:bg-[#1e1f25]/60 [font-family:'Plus_Jakarta_Sans',ui-sans-serif,system-ui,sans-serif]"
     >
       <div className="grid md:grid-cols-[0.95fr_1.25fr] lg:grid-cols-[0.85fr_1.35fr_0.8fr] lg:items-stretch">
@@ -107,7 +107,7 @@ export function ProductCard({
 
           <div className="flex flex-col gap-3">
             <span className="inline-flex w-full items-center justify-center gap-2 rounded-full border border-white/10 bg-slate-900 px-6 py-3.5 text-[14px] font-semibold text-white shadow-lg transition group-hover:bg-slate-800 dark:border-white/10 dark:bg-[#292a2f]/80 dark:text-[#e3e1e9] dark:shadow-[0_12px_32px_-8px_rgba(0,0,0,0.6),inset_0_1px_0_0_rgba(255,255,255,0.15)] dark:hover:bg-[#292a2f]">
-              View guide
+              See what’s inside
               <span aria-hidden className="transition-transform group-hover:translate-x-0.5">→</span>
             </span>
             {fileCount > 0 ? (

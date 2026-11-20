@@ -184,7 +184,15 @@ export default async function ResourcePage({ params }: ResourcePageProps) {
                   ) : null}
 
                   <div className="mt-0 flex flex-col gap-1 lg:mt-5">
-                    <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
+                    {product.niche?.name ? (
+                      <span className="inline-flex w-fit items-center gap-2 rounded-full border border-slate-200/80 bg-white/60 px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.16em] text-slate-600 backdrop-blur-xl dark:border-[#34343a]/40 dark:bg-[#292a2f]/60 dark:text-[#cbc3d7]">
+                        <span className="size-1.5 rounded-full" style={{ backgroundColor: accent }} />
+                        {product.niche.name}
+                      </span>
+                    ) : null}
+                    <h2 className="mt-1 text-lg font-bold leading-snug tracking-tight text-slate-900 dark:text-[#e3e1e9] sm:text-xl">{product.name}</h2>
+                    <div className="mt-3 border-t border-slate-200/80 dark:border-[#34343a]/40" />
+                    <div className="mt-3 flex flex-wrap items-baseline gap-x-3 gap-y-1">
                       <span className="text-3xl font-bold tracking-tight text-slate-900 dark:text-[#e3e1e9] sm:text-4xl">{isFree ? "Free" : formatCurrency(product.priceAmount, product.currency)}</span>
                       {hasDiscount && discountPercent > 0 ? (
                         <span className="inline-flex items-center rounded-full bg-emerald-500 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wide text-white dark:bg-[#00a572] dark:text-[#00311f]">Save {discountPercent}%</span>
@@ -206,20 +214,6 @@ export default async function ResourcePage({ params }: ResourcePageProps) {
                       <p className="rounded-xl border border-slate-200/80 bg-slate-100/60 px-4 py-3 text-center text-sm text-slate-600 dark:border-[#34343a]/40 dark:bg-[#292a2f]/50 dark:text-[#cbc3d7]">Currently unavailable</p>
                     )}
                   </div>
-
-                  {product.files.length > 0 ? (
-                    <div className="mt-5 border-t border-slate-200/80 pt-5 dark:border-[#34343a]/40">
-                      <h3 className="text-[11px] font-bold uppercase tracking-[0.16em] text-slate-500 dark:text-[#958ea0]">Included files</h3>
-                      <ul className="mt-3 space-y-2.5 text-sm text-slate-600 dark:text-[#cbc3d7]">
-                        {product.files.map((file) => (
-                          <li key={file.id} className="flex items-start gap-2.5">
-                            <span className="mt-0.5 text-xs">📄</span>
-                            <span className="break-words leading-6">{file.name}</span>
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
-                  ) : null}
 
                   {product.license ? (
                     <div className="mt-5 border-t border-slate-200/80 pt-5 dark:border-[#34343a]/40">

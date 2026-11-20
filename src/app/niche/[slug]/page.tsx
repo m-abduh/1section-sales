@@ -10,7 +10,7 @@ import { nicheUrl } from "@/lib/site";
 import { socialLinks } from "@/lib/site";
 import { formatCurrency } from "@/lib/format";
 import { LEARNING_LEVEL_LABEL } from "@/lib/types";
-import { resourceUrl } from "@/lib/site";
+import { bookUrl } from "@/lib/site";
 
 export const revalidate = 30;
 
@@ -238,8 +238,8 @@ export default async function NichePage({ params }: NichePageProps) {
                         </div>
 
                         <div className="flex flex-col gap-3">
-                          <Link href={resourceUrl(niche.slug, product.slug)} className="group flex w-full items-center justify-center gap-2 rounded-full border border-white/10 bg-white/70 px-6 py-4 text-center text-[14px] font-semibold leading-[20px] text-slate-900 shadow-lg shadow-[0_12px_32px_-8px_rgba(0,0,0,0.6),inset_0_1px_0_0_rgba(255,255,255,0.15)] backdrop-blur-xl transition-all hover:bg-[#292a2f] hover:text-white active:scale-[0.98] dark:bg-[#292a2f]/80 dark:text-[#e3e1e9] dark:hover:bg-[#34343a] dark:hover:text-[#e3e1e9]">
-                            <span>View guide</span>
+                          <Link href={bookUrl(niche.slug, product.slug)} className="group flex w-full items-center justify-center gap-2 rounded-full border border-white/10 bg-white/70 px-6 py-4 text-center text-[14px] font-semibold leading-[20px] text-slate-900 shadow-lg shadow-[0_12px_32px_-8px_rgba(0,0,0,0.6),inset_0_1px_0_0_rgba(255,255,255,0.15)] backdrop-blur-xl transition-all hover:bg-[#292a2f] hover:text-white active:scale-[0.98] dark:bg-[#292a2f]/80 dark:text-[#e3e1e9] dark:hover:bg-[#34343a] dark:hover:text-[#e3e1e9]">
+                            <span>See what’s inside</span>
                             <span className="material-symbols-outlined text-[18px] text-current transition-transform group-hover:translate-x-0.5">arrow_forward</span>
                           </Link>
                           <div className="flex items-center justify-center gap-1 text-[12px] font-medium leading-[16px] tracking-[0.01em] text-slate-500 dark:text-[#958ea0]">

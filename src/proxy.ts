@@ -62,12 +62,18 @@ export async function proxy(request: NextRequest) {
   }
 
   // Niche subdomain: this IS the "deep dive" area. Root path renders the niche
-  // landing page; every other path (resources, about, ...) is served as-is.
+  // landing page; keep /book as-is and redirect legacy /resources paths.
   if (subdomain && subdomain !== "www") {
     if (pathname === "/") {
       const url = request.nextUrl.clone();
       url.pathname = `/niche/${subdomain}`;
       return NextResponse.rewrite(url);
+    }
+    const legacyBook = pathname.match(/^\/resources\/([^/]+)$/);
+    if (legacyBook) {
+      const url = request.nextUrl.clone();
+      url.pathname = `/book/${legacyBook[1]}`;
+      return NextResponse.redirect(url, 308);
     }
     return NextResponse.next();
   }
@@ -80,19 +86,31 @@ export async function proxy(request: NextRequest) {
   }
 
   // Root domain is reserved for the landing page. Anything under a niche or
-  // resource path is bounced onto the matching subdomain.
+  // book path is bounced onto the matching subdomain.
   const nicheMatch = pathname.match(/^\/niche\/([^/]+)/);
   if (nicheMatch) {
     return NextResponse.redirect(subdomainUrl(request, nicheMatch[1]), 308);
   }
 
-  const resourceMatch = pathname.match(/^\/resources\/([^/]+)/);
-  if (resourceMatch) {
-    const slug = resourceMatch[1];
+  const bookMatch = pathname.match(/^\/book\/([^/]+)/);
+  if (bookMatch) {
+    const slug = bookMatch[1];
     const nicheSlug = await lookupNicheSlug(request, slug);
     if (nicheSlug) {
       return NextResponse.redirect(
-        subdomainUrl(request, nicheSlug, `/resources/${slug}`),
+        subdomainUrl(request, nicheSlug, `/book/${slug}`),
+        308,
+      );
+    }
+  }
+
+  const legacyResourceMatch = pathname.match(/^\/resources\/([^/]+)/);
+  if (legacyResourceMatch) {
+    const slug = legacyResourceMatch[1];
+    const nicheSlug = await lookupNicheSlug(request, slug);
+    if (nicheSlug) {
+      return NextResponse.redirect(
+        subdomainUrl(request, nicheSlug, `/book/${slug}`),
         308,
       );
     }

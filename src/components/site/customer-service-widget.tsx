@@ -62,7 +62,7 @@ function getQuickQuestions(pathname: string, hostname: string): string[] {
     ];
   }
 
-  if (path.startsWith("/resources/")) {
+  if (path.startsWith("/book/") || path.startsWith("/resources/")) {
     return [
       "What will I learn?",
       "Who is it for?",

@@ -255,9 +255,9 @@ export async function buildPageContext(
   const staticContext = STATIC_PAGE_CONTEXT[path];
   if (staticContext) return staticContext;
 
-  const resourceMatch = path.match(/^\/resources\/([^/]+)$/);
-  if (resourceMatch) {
-    const resource = await describeResource(resourceMatch[1]);
+  const bookMatch = path.match(/^\/book\/([^/]+)$/) ?? path.match(/^\/resources\/([^/]+)$/);
+  if (bookMatch) {
+    const resource = await describeResource(bookMatch[1]);
     if (resource) return resource;
   }
 

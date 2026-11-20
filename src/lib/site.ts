@@ -45,14 +45,17 @@ export function nicheUrl(slug: string): string {
   return `/niche/${slug}`;
 }
 
-export function resourceUrl(nicheSlug: string, productSlug: string): string {
+export function bookUrl(nicheSlug: string, productSlug: string): string {
   if (useSubdomains()) {
     const root = getRootDomain();
     const protocol = root.includes("localhost") || root.includes("lvh.me") ? "http" : "https";
-    return `${protocol}://${nicheSlug}.${root}/resources/${productSlug}`;
+    return `${protocol}://${nicheSlug}.${root}/book/${productSlug}`;
   }
-  return `/resources/${productSlug}`;
+  return `/book/${productSlug}`;
 }
+
+// Backward-compatible alias.
+export const resourceUrl = bookUrl;
 
 export function rootUrl(): string {
   if (useSubdomains()) {
