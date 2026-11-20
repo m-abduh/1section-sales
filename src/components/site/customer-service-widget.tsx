@@ -369,7 +369,7 @@ export function CustomerServiceWidget() {
   );
 
   return (
-    <>
+    <div data-no-loading className="contents">
       {!open && teaser ? (
         <div className="fixed bottom-24 right-4 z-50 w-[calc(100vw-5.5rem)] max-w-[300px] origin-bottom-right sm:right-6 [font-family:'Plus_Jakarta_Sans',ui-sans-serif,system-ui,sans-serif]">
           <div
@@ -586,6 +586,6 @@ export function CustomerServiceWidget() {
           <span className="hidden text-sm font-semibold tracking-tight sm:inline">Chat with us</span>
         ) : null}
       </button>
-    </>
+    </div>
   );
 }

@@ -58,14 +58,14 @@ export default async function ResourcePage({ params }: ResourcePageProps) {
         <section className="mx-auto w-full max-w-6xl px-5 pt-8 md:px-8 md:pt-12">
           <div className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_340px] lg:items-start lg:gap-x-10">
             <div className="min-w-0">
-              <nav className="flex flex-wrap items-center gap-x-2 gap-y-1 text-sm text-slate-600 dark:text-[#cbc3d7]">
+              <nav className="flex min-w-0 items-center gap-x-2 text-sm text-slate-600 dark:text-[#cbc3d7]">
                 {product.niche ? (
                   <>
-                    <Link href={nicheUrl(product.niche.slug)} className="transition hover:text-slate-900 dark:hover:text-[#e3e1e9]">{product.niche.name}</Link>
-                    <span className="text-slate-400 dark:text-[#958ea0]">/</span>
+                    <Link href={nicheUrl(product.niche.slug)} className="shrink-0 transition hover:text-slate-900 dark:hover:text-[#e3e1e9]">{product.niche.name}</Link>
+                    <span className="shrink-0 text-slate-400 dark:text-[#958ea0]">/</span>
                   </>
                 ) : null}
-                <span className="text-slate-900 dark:text-[#e3e1e9]">{product.name}</span>
+                <span className="min-w-0 truncate text-slate-900 dark:text-[#e3e1e9]">{product.name}</span>
               </nav>
 
               <div className="mt-6">
