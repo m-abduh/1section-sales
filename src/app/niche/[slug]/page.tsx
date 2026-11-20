@@ -93,7 +93,6 @@ export default async function NichePage({ params }: NichePageProps) {
       <link rel="preconnect" href="https://fonts.googleapis.com" />
       <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="" />
       <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet" />
-      <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet" />
 
       <div className="pointer-events-none fixed -top-24 left-1/2 z-0 h-80 w-80 -translate-x-1/2 rounded-full bg-indigo-400/20 blur-[100px] dark:bg-[#d0bcff]/10" />
       <div className="pointer-events-none fixed -right-20 bottom-20 z-0 h-72 w-72 rounded-full bg-emerald-400/20 blur-[90px] dark:bg-[#4edea3]/10" />
@@ -117,8 +116,10 @@ export default async function NichePage({ params }: NichePageProps) {
                 {niche.description ?? `Practical guides for the real-life situations people face in ${niche.name.toLowerCase()}.`}
               </p>
               <a className="group inline-flex items-center justify-center gap-2 rounded-full bg-slate-900 px-8 py-3.5 text-[14px] font-bold leading-[20px] text-white shadow-lg shadow-slate-900/20 transition-all hover:bg-slate-800 dark:bg-white dark:text-[#0d0e13] dark:shadow-[0_12px_32px_-8px_rgba(0,0,0,0.6)] dark:hover:bg-neutral-100 active:scale-95" href="#guides">
-                <span>Explore the guides</span>
-                <span className="material-symbols-outlined text-[14px] leading-none text-current transition-transform group-hover:translate-y-0.5">arrow_downward</span>
+                <span>Explore the collection</span>
+                <svg viewBox="0 0 24 24" className="h-3.5 w-3.5 shrink-0 text-current transition-transform group-hover:translate-y-0.5" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+                  <path d="M12 5v14M19 12l-7 7-7-7" />
+                </svg>
               </a>
 
               <div className="mt-8 flex w-full flex-col items-center gap-4">
@@ -215,7 +216,9 @@ export default async function NichePage({ params }: NichePageProps) {
                             {learnings.map((item) => (
                               <div key={item} className="flex items-start gap-3">
                                 <div className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-emerald-500/15 dark:bg-[#00a572]/30 text-emerald-600 dark:text-[#4edea3]">
-                                  <span className="material-symbols-outlined text-[14px]">check</span>
+                                  <svg viewBox="0 0 24 24" className="h-3.5 w-3.5" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+                                    <path d="M5 12.5 10 17.5 19 7.5" />
+                                  </svg>
                                 </div>
                                 <span className="text-[13px] leading-[20px] tracking-[0.005em] text-slate-900 dark:text-[#e3e1e9]">{item}</span>
                               </div>
@@ -240,10 +243,15 @@ export default async function NichePage({ params }: NichePageProps) {
                         <div className="flex flex-col gap-3">
                           <Link href={bookUrl(niche.slug, product.slug)} className="group flex w-full items-center justify-center gap-2 rounded-full border border-white/10 bg-white/70 px-6 py-4 text-center text-[14px] font-semibold leading-[20px] text-slate-900 shadow-lg shadow-[0_12px_32px_-8px_rgba(0,0,0,0.6),inset_0_1px_0_0_rgba(255,255,255,0.15)] backdrop-blur-xl transition-all hover:bg-[#292a2f] hover:text-white active:scale-[0.98] dark:bg-[#292a2f]/80 dark:text-[#e3e1e9] dark:hover:bg-[#34343a] dark:hover:text-[#e3e1e9]">
                             <span>See what’s inside</span>
-                            <span className="material-symbols-outlined text-[18px] text-current transition-transform group-hover:translate-x-0.5">arrow_forward</span>
+                            <svg viewBox="0 0 24 24" className="h-[18px] w-[18px] shrink-0 text-current transition-transform group-hover:translate-x-0.5" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+                              <path d="M5 12h14M13 6l6 6-6 6" />
+                            </svg>
                           </Link>
                           <div className="flex items-center justify-center gap-1 text-[12px] font-medium leading-[16px] tracking-[0.01em] text-slate-500 dark:text-[#958ea0]">
-                            <span className="material-symbols-outlined text-[14px]">lock</span>
+                            <svg viewBox="0 0 24 24" className="h-3.5 w-3.5 shrink-0" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+                              <rect x="5" y="11" width="14" height="10" rx="2" />
+                              <path d="M8 11V8a4 4 0 1 1 8 0v3" />
+                            </svg>
                             <span>{fileCount > 0 ? `${fileCount} file${fileCount === 1 ? "" : "s"} included` : "Immediate direct download"}</span>
                           </div>
                         </div>
