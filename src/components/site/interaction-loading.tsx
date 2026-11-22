@@ -64,15 +64,24 @@ function createSpinner(): HTMLSpanElement {
   return wrap;
 }
 
+function isSubmitControl(el: HTMLElement): boolean {
+  if (el instanceof HTMLInputElement) return el.type === "submit";
+  if (el instanceof HTMLButtonElement) return el.type !== "button" && el.type !== "reset";
+  return false;
+}
+
 function applyLoading(el: HTMLElement, revertAfter?: number) {
   if (el.dataset.loadingActive === "1") return;
+  const submit = isSubmitControl(el);
   el.dataset.loadingActive = "1";
   el.setAttribute("aria-busy", "true");
-  el.setAttribute("aria-disabled", "true");
-  el.classList.add("pointer-events-none", "opacity-70");
-  if ((el instanceof HTMLButtonElement || el instanceof HTMLInputElement) && !el.disabled) {
-    el.dataset.autoDisabled = "1";
-    el.disabled = true;
+  if (!submit) {
+    el.setAttribute("aria-disabled", "true");
+    el.classList.add("pointer-events-none", "opacity-70");
+    if ((el instanceof HTMLButtonElement || el instanceof HTMLInputElement) && !el.disabled) {
+      el.dataset.autoDisabled = "1";
+      el.disabled = true;
+    }
   }
   if (!(el instanceof HTMLInputElement) && !el.querySelector('[data-auto-spinner="1"]')) {
     const spinner = createSpinner();
