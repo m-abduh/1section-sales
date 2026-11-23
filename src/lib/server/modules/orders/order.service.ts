@@ -182,6 +182,7 @@ export async function listAdminOrders(params: {
     where.OR = [
       { orderNumber: { contains: params.search, mode: "insensitive" } },
       { email: { contains: params.search, mode: "insensitive" } },
+      { countryCode: { contains: params.search, mode: "insensitive" } },
     ];
   }
 

@@ -198,6 +198,7 @@ model Order {
   orderNumber         String       @unique
   email               String?
   customerName        String?
+  countryCode         String?
   status              OrderStatus  @default(PENDING)
   currency            String       @default("USD")
   subtotal            Int          @default(0)

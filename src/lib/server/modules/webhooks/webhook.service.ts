@@ -28,6 +28,17 @@ type OrderWithItems = Order & {
   }[];
 };
 
+function readCountryCode(data: Record<string, unknown>): string | null {
+  const address = readRecord(data, "address");
+  const fromAddress = readString(address, "countryCode") ?? readString(address, "country_code");
+  if (fromAddress) return fromAddress.toUpperCase();
+  const billing = readRecord(data, "billingDetails");
+  const billingAddress = readRecord(billing, "address");
+  const fromBilling = readString(billingAddress, "countryCode") ?? readString(billingAddress, "country_code");
+  if (fromBilling) return fromBilling.toUpperCase();
+  return null;
+}
+
 async function resolveOrder(
   transactionId: string | undefined,
   customData: Record<string, unknown>,
@@ -104,6 +115,7 @@ async function createOrderFromTransaction(
   const unitAmount = quantity > 0 ? Math.round(amountPaid / quantity) : amountPaid;
   const customerId = readString(data, "customerId");
   const email = (await resolveCustomerEmail(customerId)) ?? null;
+  const countryCode = readCountryCode(data);
   const paddlePriceId = priceId ?? product.paddlePriceId ?? null;
 
   for (let attempt = 0; attempt < 3; attempt++) {
@@ -112,6 +124,7 @@ async function createOrderFromTransaction(
         data: {
           orderNumber: generateOrderNumber(),
           email,
+          countryCode,
           status: "PAID",
           currency,
           subtotal: amountPaid,
@@ -188,6 +201,7 @@ async function markOrderPaid(event: PaddleEvent): Promise<void> {
 
   const customerId = readString(data, "customerId");
   const email = order.email ?? (await resolveCustomerEmail(customerId)) ?? null;
+  const countryCode = readCountryCode(data);
   const totals = readRecord(readRecord(data, "details"), "totals");
   const amountPaid = readNumber(totals, "total") ?? order.total;
 
@@ -200,6 +214,7 @@ async function markOrderPaid(event: PaddleEvent): Promise<void> {
         paddleTransactionId: transactionId ?? order.paddleTransactionId,
         paddleCustomerId: customerId ?? order.paddleCustomerId,
         email,
+        ...(countryCode && !order.countryCode ? { countryCode } : {}),
       },
     });
 

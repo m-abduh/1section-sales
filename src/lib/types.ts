@@ -133,6 +133,7 @@ export interface AdminOrder {
   orderNumber: string;
   email: string | null;
   customerName: string | null;
+  countryCode: string | null;
   status: OrderStatus;
   currency: string;
   total: number;

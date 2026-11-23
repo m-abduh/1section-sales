@@ -127,19 +127,20 @@ export default function AdminOrdersPage() {
         <>
           <div className="overflow-hidden rounded-2xl border border-border bg-card">
             <div className="overflow-x-auto">
-            <table className="w-full min-w-[720px] text-left text-sm">
-              <thead className="bg-surface-muted/60 text-[11px] uppercase tracking-[0.12em] text-fg-muted">
-                <tr>
-                  <th className="px-5 py-3 font-semibold">Order</th>
-                  <th className="px-5 py-3 font-semibold">Customer</th>
-                  <th className="px-5 py-3 font-semibold">Niche</th>
-                  <th className="px-5 py-3 font-semibold">Total</th>
-                  <th className="px-5 py-3 font-semibold">Status</th>
-                  <th className="px-5 py-3 font-semibold">Download</th>
-                  <th className="px-5 py-3 font-semibold">Date</th>
-                  <th className="px-5 py-3 text-right font-semibold">Actions</th>
-                </tr>
-              </thead>
+              <table className="w-full min-w-[720px] text-left text-sm">
+                <thead className="bg-surface-muted/60 text-[11px] uppercase tracking-[0.12em] text-fg-muted">
+                  <tr>
+                    <th className="px-5 py-3 font-semibold">Order</th>
+                    <th className="px-5 py-3 font-semibold">Customer</th>
+                    <th className="px-5 py-3 font-semibold">Country</th>
+                    <th className="px-5 py-3 font-semibold">Niche</th>
+                    <th className="px-5 py-3 font-semibold">Total</th>
+                    <th className="px-5 py-3 font-semibold">Status</th>
+                    <th className="px-5 py-3 font-semibold">Download</th>
+                    <th className="px-5 py-3 font-semibold">Date</th>
+                    <th className="px-5 py-3 text-right font-semibold">Actions</th>
+                  </tr>
+                </thead>
               <tbody className="divide-y divide-border">
                 {orders.data.items.map((order) => (
                   <tr key={order.id} className="transition hover:bg-surface-muted/50">
@@ -151,6 +152,9 @@ export default function AdminOrdersPage() {
                     </td>
                     <td className="px-5 py-4 text-fg-muted">
                       {order.email ?? "-"}
+                    </td>
+                    <td className="px-5 py-4 text-fg-muted">
+                      {order.countryCode ?? "-"}
                     </td>
                     <td className="px-5 py-4 text-fg-muted">
                       {[...new Set(order.items.map((i) => i.nicheName).filter(Boolean))].join(", ") || "-"}
@@ -229,6 +233,10 @@ export default function AdminOrdersPage() {
                 <p className="mt-1 font-medium text-fg">
                   {formatCurrency(selected.total, selected.currency)}
                 </p>
+              </div>
+              <div className="rounded-xl bg-surface-muted p-3">
+                <p className="text-xs uppercase tracking-wide text-fg-muted">Country</p>
+                <p className="mt-1 text-fg">{selected.countryCode ?? "-"}</p>
               </div>
               <div className="rounded-xl bg-surface-muted p-3">
                 <p className="text-xs uppercase tracking-wide text-fg-muted">Email</p>
