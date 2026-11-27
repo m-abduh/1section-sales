@@ -228,7 +228,7 @@ export default async function NichePage({ params }: NichePageProps) {
                         ) : null}
                       </div>
 
-                      <div className="relative flex flex-col justify-between gap-4 rounded-2xl border border-slate-200/80 dark:border-[#34343a]/40 bg-slate-100/70 dark:bg-[#1a1b21]/60 p-4 md:col-span-2 lg:col-span-1 lg:border-0 lg:border-l lg:border-slate-200/80 dark:border-[#34343a]/40 lg:bg-transparent lg:p-0 lg:pl-6 lg:rounded-none">
+                      <div className="relative flex flex-col justify-between gap-4 rounded-2xl border border-slate-200/80 dark:border-[#34343a]/40 bg-transparent p-4 md:col-span-2 lg:col-span-1 lg:border-0 lg:border-l lg:border-slate-200/80 dark:border-[#34343a]/40 lg:p-0 lg:pl-6 lg:rounded-none">
                         <div className="flex flex-col gap-1">
                           <div className="flex items-center justify-between gap-2">
                             <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500 dark:text-[#958ea0]">{isFree ? "FREE GUIDE" : "ONE-TIME PURCHASE"}</span>
