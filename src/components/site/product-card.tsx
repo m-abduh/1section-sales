@@ -110,13 +110,15 @@ export function ProductCard({
               See what’s inside
               <span aria-hidden className="transition-transform group-hover:translate-x-0.5">→</span>
             </span>
-            <p className="text-center text-[12px] font-medium text-slate-500 dark:text-[#958ea0]">
-              {product.pageCount && product.pageCount > 0
-                ? `${product.pageCount} page${product.pageCount === 1 ? "" : "s"}`
-                : fileCount > 0
-                  ? `${fileCount} file${fileCount === 1 ? "" : "s"} included`
-                  : "Immediate direct download"}
-            </p>
+            {product.pageCount && product.pageCount > 0 ? (
+              <p className="flex items-center justify-center gap-1.5 text-center text-[12px] font-medium text-slate-500 dark:text-[#958ea0]">
+                <svg viewBox="0 0 24 24" className="h-3.5 w-3.5 shrink-0" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+                  <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                  <path d="M14 2v6h6M16 13H8M16 17H8M10 9H8" />
+                </svg>
+                <span>{product.pageCount} page{product.pageCount === 1 ? "" : "s"} inside</span>
+              </p>
+            ) : null}
           </div>
         </div>
       </div>

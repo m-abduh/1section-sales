@@ -44,6 +44,7 @@ export async function getNicheBySlug(slug: string, onlyActive = true) {
           sampleUrl: true,
           level: true,
           coverImage: true,
+          pageCount: true,
           priceAmount: true,
           compareAtAmount: true,
           currency: true,
