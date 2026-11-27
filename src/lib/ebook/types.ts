@@ -23,7 +23,8 @@ export type EbookRichTextValue =
   | number
   | boolean
   | null
-  | EbookRichTextValue[];
+  | EbookRichTextValue[]
+  | { [key: string]: EbookRichTextValue };
 
 export type EbookRichTextAttrs = Record<string, EbookRichTextValue>;
 

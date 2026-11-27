@@ -483,7 +483,24 @@ async function richDocxBlocks(
       continue;
     }
 
-    if (node.type === "blockquote") {
+        if (node.type === "visualBlock") {
+      const alt = typeof node.attrs?.alt === "string" ? node.attrs.alt : undefined;
+      const spec = node.attrs?.spec as { title?: string; subtitle?: string; items?: Array<{ label?: string; value?: string; detail?: string }> } | undefined;
+      const title = spec?.title || alt || "Visual";
+      blocks.push(new Paragraph({ spacing: { before: 160, after: 60 }, children: [new TextRun({ text: title, bold: true, font: "Montserrat", size: 24 })] }));
+      if (spec?.subtitle) {
+        blocks.push(new Paragraph({ spacing: { after: 80 }, children: [new TextRun({ text: spec.subtitle, color: "64748B", font: "Montserrat", size: 20 })] }));
+      }
+      for (const item of spec?.items ?? []) {
+        const text = [item.label, item.value, item.detail].filter(Boolean).join(" — ");
+        if (text) blocks.push(new Paragraph({ bullet: { level: 0 }, children: [new TextRun({ text, font: "Montserrat" })] }));
+      }
+      if (!spec?.items?.length && !spec?.subtitle) {
+        blocks.push(new Paragraph({ spacing: { after: 120 }, children: [new TextRun({ text: "AI-generated visual (see editor/PDF preview).", color: "64748B", font: "Montserrat", size: 18 })] }));
+      }
+      continue;
+    }
+if (node.type === "blockquote") {
       for (const child of node.content ?? []) {
         if (child.type === "paragraph") {
           const runs = docxRunsColored(

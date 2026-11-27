@@ -110,9 +110,13 @@ export function ProductCard({
               See what’s inside
               <span aria-hidden className="transition-transform group-hover:translate-x-0.5">→</span>
             </span>
-            {fileCount > 0 ? (
-              <p className="text-center text-[12px] font-medium text-slate-500 dark:text-[#958ea0]">{fileCount} file{fileCount === 1 ? "" : "s"} included</p>
-            ) : null}
+            <p className="text-center text-[12px] font-medium text-slate-500 dark:text-[#958ea0]">
+              {product.pageCount && product.pageCount > 0
+                ? `${product.pageCount} page${product.pageCount === 1 ? "" : "s"}`
+                : fileCount > 0
+                  ? `${fileCount} file${fileCount === 1 ? "" : "s"} included`
+                  : "Immediate direct download"}
+            </p>
           </div>
         </div>
       </div>

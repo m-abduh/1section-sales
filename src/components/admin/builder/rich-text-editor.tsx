@@ -1,7 +1,8 @@
 "use client";
 
-import { useEffect, useRef, useState, type ReactNode } from "react";
+import { useCallback, useEffect, useRef, useState, type ReactNode } from "react";
 import { EditorContent, useEditor, useEditorState } from "@tiptap/react";
+import { BubbleMenu } from "@tiptap/react/menus";
 import StarterKit from "@tiptap/starter-kit";
 import Image from "@tiptap/extension-image";
 import Placeholder from "@tiptap/extension-placeholder";
@@ -29,8 +30,13 @@ import {
   Undo2,
 } from "lucide-react";
 import type { EbookRichTextNode } from "@/lib/ebook/types";
-import { useUploadBuilderImage } from "@/hooks/use-builder";
+import { useUploadBuilderImage, generateEbookVisual } from "@/hooks/use-builder";
 import { getApiErrorMessage } from "@/lib/api";
+import { VisualBlock } from "./visual-block-node";
+import { VisualBlockSvg } from "./visual-block";
+import { sanitizeEbookSvg } from "@/lib/ebook/visual";
+import { Modal } from "@/components/admin/modal";
+import { Button } from "@/components/ui/button";
 
 const MAX_IMAGE_BYTES = 4 * 1024 * 1024;
 
@@ -40,16 +46,24 @@ export function RichTextEditor({
   placeholder = "Tulis isi bab…",
   allowImages = true,
   allowTables = true,
+  visualContext,
 }: {
   value: EbookRichTextNode[];
   onChange: (nodes: EbookRichTextNode[]) => void;
   placeholder?: string;
   allowImages?: boolean;
   allowTables?: boolean;
+  visualContext?: { brand: string; niche: string; bookTitle: string; chapterTitle?: string };
 }) {
   const uploadImage = useUploadBuilderImage();
   const fileInput = useRef<HTMLInputElement | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [visualOpen, setVisualOpen] = useState(false);
+  const [visualBusy, setVisualBusy] = useState(false);
+  const [visualError, setVisualError] = useState<string | null>(null);
+  const [visualSvg, setVisualSvg] = useState<string | null>(null);
+  const [visualAlt, setVisualAlt] = useState<string>("");
+  const [visualSelection, setVisualSelection] = useState<{ text: string; from: number } | null>(null);
   const onChangeRef = useRef(onChange);
   /** Blocks last emitted by the editor itself, used to detect external updates. */
   const lastEmittedRef = useRef<EbookRichTextNode[] | null>(null);
@@ -67,6 +81,7 @@ export function RichTextEditor({
         horizontalRule: false,
       }),
       Image.configure({ inline: false, allowBase64: false }),
+      VisualBlock,
       ...(allowTables
         ? [
             Table.configure({ resizable: false }),
@@ -160,6 +175,72 @@ export function RichTextEditor({
     }
   }
 
+
+  const openVisualize = async () => {
+    if (!editor || !visualContext) return;
+    const { from, to, empty } = editor.state.selection;
+    if (empty) return;
+    const text = editor.state.doc.textBetween(from, to, "\n").trim();
+    if (text.length < 10) {
+      setVisualError("Select a bit more text to turn into a visual.");
+      setVisualSvg(null);
+      setVisualAlt("");
+      setVisualSelection({ text, from });
+      setVisualOpen(true);
+      return;
+    }
+    const selected = { text: text.slice(0, 4000), from };
+    setVisualSelection(selected);
+    setVisualOpen(true);
+    setVisualSvg(null);
+    setVisualAlt("");
+    setVisualError(null);
+    setVisualBusy(true);
+    try {
+      const res = await generateEbookVisual({
+        ...selectedContext(visualContext),
+        text: selected.text,
+      });
+      const svg = sanitizeEbookSvg(res.svg);
+      if (!svg) throw new Error("AI returned an invalid SVG. Please try again.");
+      setVisualSvg(svg);
+      setVisualAlt((res.alt || "Visual").slice(0, 200));
+    } catch (caught) {
+      setVisualError(getApiErrorMessage(caught));
+    } finally {
+      setVisualBusy(false);
+    }
+  };
+
+  const regenerateVisual = async () => {
+    if (!visualSelection || !visualContext) return;
+    setVisualBusy(true);
+    setVisualError(null);
+    try {
+      const res = await generateEbookVisual({
+        ...selectedContext(visualContext),
+        text: visualSelection.text,
+        instruction: "Create a different visual design/layout/style than before, but keep it faithful to the same content.",
+      });
+      const svg = sanitizeEbookSvg(res.svg);
+      if (!svg) throw new Error("AI returned an invalid SVG. Please try again.");
+      setVisualSvg(svg);
+      setVisualAlt((res.alt || "Visual").slice(0, 200));
+    } catch (caught) {
+      setVisualError(getApiErrorMessage(caught));
+    } finally {
+      setVisualBusy(false);
+    }
+  };
+
+  const insertVisual = () => {
+    if (!editor || !visualSvg || !visualSelection) return;
+    const pos = visualSelection.from;
+    const resolved = editor.state.doc.resolve(Math.max(0, Math.min(pos, editor.state.doc.content.size)));
+    const insertPos = Math.max(0, resolved.before(1));
+    editor.chain().focus().insertContentAt(insertPos, { type: "visualBlock", attrs: { svg: visualSvg, alt: visualAlt || "Visual" } }).run();
+    setVisualOpen(false);
+  };
   return (
     <div className="overflow-hidden rounded-xl border border-border bg-card focus-within:border-fg-muted">
       <div className="flex flex-wrap items-center gap-0.5 border-b border-border bg-surface-muted/50 px-1.5 py-1.5">
@@ -306,7 +387,42 @@ export function RichTextEditor({
         </div>
       ) : null}
 
+      {editor && visualContext ? (
+        <BubbleMenu editor={editor} options={{ placement: "top", offset: 8, flip: true }} shouldShow={({ editor: e, state }) => !e.isActive("image") && !e.isActive("visualBlock") && !state.selection.empty}>
+          <button
+            type="button"
+            onMouseDown={(e) => { e.preventDefault(); void openVisualize(); }}
+            className="rounded-md border border-border bg-card px-3 py-1.5 text-[11px] font-semibold text-fg shadow-sm hover:bg-surface-muted"
+          >
+            Turn into visual
+          </button>
+        </BubbleMenu>
+      ) : null}
+
       <EditorContent editor={editor} className="ebook-rte" />
+
+      <Modal open={visualOpen} title="Turn into visual" onClose={() => { if (!visualBusy) setVisualOpen(false); }}>
+        <div className="space-y-4">
+          <p className="text-xs text-fg-muted">AI will design a wide horizontal SVG visualization based on the selected text and its context. You can ask for another design before inserting.</p>
+          {visualBusy ? <div className="flex items-center gap-2 text-xs text-fg-muted"><Loader2 className="size-4 animate-spin" />Generating visual…</div> : null}
+          {visualError ? <p className="rounded-lg bg-red-500/10 px-3 py-2 text-[11px] font-medium text-red-600 dark:text-red-400">{visualError}</p> : null}
+          {visualSvg ? (
+            <div className="overflow-hidden rounded-xl border border-border bg-white">
+              <div
+                role="img"
+                aria-label={visualAlt || "Visual"}
+                className="[&_svg]:h-auto [&_svg]:w-full [&_svg]:max-w-full [&_svg]:block"
+                dangerouslySetInnerHTML={{ __html: visualSvg }}
+              />
+            </div>
+          ) : null}
+          <div className="flex flex-wrap justify-end gap-2">
+            <Button variant="secondary" size="sm" onClick={() => setVisualOpen(false)} disabled={visualBusy}>Cancel</Button>
+            <Button variant="secondary" size="sm" onClick={() => void regenerateVisual()} disabled={visualBusy || !visualSelection}>Use another visual</Button>
+            <Button size="sm" onClick={insertVisual} disabled={visualBusy || !visualSvg}>Insert</Button>
+          </div>
+        </div>
+      </Modal>
 
       {allowImages ? (
         <input
@@ -383,6 +499,15 @@ function TableAction({
       {children}
     </button>
   );
+}
+
+function selectedContext(ctx: { brand: string; niche: string; bookTitle: string; chapterTitle?: string }) {
+  return {
+    brand: ctx.brand || "1section",
+    niche: ctx.niche,
+    bookTitle: ctx.bookTitle,
+    chapterTitle: ctx.chapterTitle,
+  };
 }
 
 function Divider() {

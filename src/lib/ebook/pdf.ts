@@ -134,17 +134,17 @@ class PdfBook {
     });
   }
 
-  async render(pageMap: PageMap): Promise<{ buffer: Buffer; pageMap: PageMap }> {
+  async render(pageMap: PageMap): Promise<{ buffer: Buffer; pageMap: PageMap; pageCount: number }> {
     await this.drawCover();
     this.drawContents(pageMap);
-      await this.drawIntroduction();
-      await this.drawChapters();
-      await this.drawConclusion();
-      this.drawReferences();
-      await this.drawAbout();
+    await this.drawIntroduction();
+    await this.drawChapters();
+    await this.drawConclusion();
+    this.drawReferences();
+    await this.drawAbout();
     this.doc.end();
     const buffer = await this.ended;
-    return { buffer, pageMap: this.pageMap };
+    return { buffer, pageMap: this.pageMap, pageCount: this.page };
   }
 
   private addPage(section: string) {
@@ -400,6 +400,10 @@ class PdfBook {
     for (const node of nodes) {
       if (node.type === "paragraph") {
         this.richParagraph(node.content ?? []);
+        continue;
+      }
+      if (node.type === "visualBlock") {
+        await this.drawVisualBlock(node.attrs || {});
         continue;
       }
       if (node.type === "blockquote") {
@@ -789,6 +793,193 @@ class PdfBook {
     this.y = d.y;
   }
 
+
+  private async drawVisualBlock(raw: unknown) {
+    const attrs = raw && typeof raw === "object" ? raw as Record<string, unknown> : {};
+    const specRaw = (attrs.spec && typeof attrs.spec === "object") ? attrs.spec as { type?: string; title?: string; subtitle?: string; items?: Array<{ label?: string; value?: string; detail?: string }> } : (attrs as { type?: string; title?: string; subtitle?: string; items?: Array<{ label?: string; value?: string; detail?: string }> });
+    const hasSpec = !!(specRaw && (specRaw.type || specRaw.title || Array.isArray(specRaw.items)));
+    const alt = typeof attrs.alt === "string" ? attrs.alt : "";
+    const svg = typeof attrs.svg === "string" ? attrs.svg : "";
+    const hasSvg = typeof attrs.svg === "string" && attrs.svg.includes("<svg");
+        if (!hasSpec) {
+      if (svg.includes("<svg")) {
+        const rendered = await this.renderVisualSvg(svg);
+        if (rendered) {
+          const maxH = 230;
+          const scale = Math.min(CONTENT_WIDTH / rendered.width, maxH / rendered.height, 1);
+          const drawW = Math.max(1, Math.round(rendered.width * scale));
+          const drawH = Math.max(1, Math.round(rendered.height * scale));
+          this.ensureSpace(drawH + IMAGE_BEFORE + IMAGE_AFTER);
+          this.y += IMAGE_BEFORE;
+          const x = MARGIN + (CONTENT_WIDTH - drawW) / 2;
+          try {
+            this.doc.image(rendered.buffer, x, this.y, { width: drawW, height: drawH });
+            this.y += drawH + IMAGE_AFTER;
+            return;
+          } catch {
+            // fall through to placeholder
+          }
+        }
+      }
+      this.ensureSpace(86);
+      const x = MARGIN; const y = this.y; const w = CONTENT_WIDTH; const h = 72;
+      const d = this.doc;
+      d.save();
+      d.roundedRect(x, y, w, h, 10).fillAndStroke("#F8FAFC", "#E2E8F0");
+      d.fillColor("#0F172A").font("Bold").fontSize(11).text(alt || "AI Visual", x + 14, y + 16, { width: w - 28, lineBreak: false, ellipsis: true });
+      d.fillColor("#64748B").font("Body").fontSize(9).text(svg.includes("<svg") ? "Visual could not be rendered in PDF." : "Visual block", x + 14, y + 38, { width: w - 28, height: 24, ellipsis: true });
+      d.restore();
+      this.y = y + h + 14;
+      return;
+    }
+    const spec = specRaw;
+    const type = String(spec.type || "stat-row");
+    const title = String(spec.title || alt || "Visual").slice(0, 120);
+    const subtitle = spec.subtitle ? String(spec.subtitle).slice(0, 160) : "";
+    const items = (Array.isArray(spec.items) ? spec.items : []).slice(0, 6).map((it) => ({
+      label: String(it?.label || "").slice(0, 80),
+      value: it?.value ? String(it.value).slice(0, 40) : "",
+      detail: it?.detail ? String(it.detail).slice(0, 120) : "",
+    }));
+    const boxH = type === "process" ? 170 : 160;
+    this.ensureSpace(boxH + 18);
+    const x = MARGIN;
+    const y = this.y;
+    const w = CONTENT_WIDTH;
+    const pad = 14;
+    const d = this.doc;
+    d.save();
+    d.roundedRect(x, y, w, boxH, 10).fillAndStroke("#F8FAFC", "#E2E8F0");
+    d.fillColor("#0F172A").font("Bold").fontSize(13).text(title, x + pad, y + 12, { width: w - pad * 2, lineBreak: false, ellipsis: true });
+    if (subtitle) d.fillColor("#64748B").font("Body").fontSize(9).text(subtitle, x + pad, y + 30, { width: w - pad * 2, lineBreak: false, ellipsis: true });
+    const contentTop = y + (subtitle ? 48 : 36);
+    if (type === "key-points") this.drawVisualKeyPoints(items, x + pad, contentTop, w - pad * 2);
+    else if (type === "stat-row") this.drawVisualStat(items, x + pad, contentTop, w - pad * 2);
+    else if (type === "process") this.drawVisualProcess(items, x + pad, contentTop, w - pad * 2);
+    else if (type === "comparison") this.drawVisualComparison(items, x + pad, contentTop, w - pad * 2);
+    else this.drawVisualBars(items, x + pad, contentTop, w - pad * 2);
+    d.restore();
+    this.y = y + boxH + 14;
+  }
+
+
+  private drawVisualKeyPoints(items: Array<{ label: string; value: string; detail: string }>, x: number, y: number, w: number) {
+    const cols = Math.max(1, Math.min(items.length || 1, 3));
+    const gap = 10;
+    const cardW = (w - gap * (cols - 1)) / cols;
+    const d = this.doc;
+    for (let i = 0; i < cols; i++) {
+      const it = items[i] || { label: `Point ${i + 1}`, value: "", detail: "" };
+      const cx = x + i * (cardW + gap);
+      d.roundedRect(cx, y, cardW, 90, 8).fillAndStroke("#FFFFFF", "#E2E8F0");
+      d.circle(cx + 18, y + 20, 10).fill("#DBEAFE");
+      d.fillColor("#3B82F6").font("Bold").fontSize(8).text(String(i + 1), cx + 14, y + 16, { width: 8, align: "center", lineBreak: false });
+      d.fillColor("#0F172A").font("Bold").fontSize(9).text(it.label, cx + 34, y + 14, { width: cardW - 44, height: 20, ellipsis: true });
+      d.fillColor("#64748B").font("Body").fontSize(8).text([it.value, it.detail].filter(Boolean).join(" - "), cx + 10, y + 40, { width: cardW - 20, height: 40, ellipsis: true });
+    }
+  }
+
+    private async renderVisualSvg(svg: string): Promise<{ buffer: Buffer; width: number; height: number } | null> {
+    try {
+      const clean = String(svg || "").trim();
+      if (!clean.includes("<svg")) return null;
+      let normalized = clean;
+      const viewBoxMatch = clean.match(/viewBox\s*=\s*\"([\d.\s-]+)\"/i);
+      const vb = viewBoxMatch ? viewBoxMatch[1].trim().split(/\s+/).map(Number) : [];
+      const vbW = vb.length === 4 && Number.isFinite(vb[2]) && vb[2] > 0 ? vb[2] : 1200;
+      const vbH = vb.length === 4 && Number.isFinite(vb[3]) && vb[3] > 0 ? vb[3] : 360;
+      const hasWidth = /\bwidth\s*=/.test(clean);
+      const hasHeight = /\bheight\s*=/.test(clean);
+      if (!hasWidth || !hasHeight) {
+        normalized = normalized.replace(/<svg\b/i, `<svg width="${Math.round(vbW)}" height="${Math.round(vbH)}"`);
+      }
+      normalized = normalized.replace(/<svg([^>]*)>/i, `<svg$1>`);
+      const sharp = (await import("sharp")).default;
+      const src = Buffer.from(normalized);
+      const meta = await sharp(src, { density: 180 }).metadata();
+      const width = Math.max(1, Math.round(meta.width || vbW));
+      const targetW = Math.min(width, 1600);
+      const png = await sharp(src, { density: 180 })
+        .resize({ width: targetW, withoutEnlargement: true })
+        .png()
+        .toBuffer();
+      const outMeta = await sharp(png).metadata();
+      return {
+        buffer: png,
+        width: Math.max(1, Math.round(outMeta.width || targetW)),
+        height: Math.max(1, Math.round(outMeta.height || Math.round((vbH / vbW) * targetW))),
+      };
+    } catch {
+      return null;
+    }
+  }
+private drawVisualStat(items: Array<{ label: string; value: string; detail: string }>, x: number, y: number, w: number) {
+    const cols = Math.max(1, Math.min(items.length || 1, 4));
+    const gap = 10;
+    const cardW = (w - gap * (cols - 1)) / cols;
+    const d = this.doc;
+    for (let i = 0; i < cols; i++) {
+      const it = items[i] || { label: `Point ${i + 1}`, value: "", detail: "" };
+      const cx = x + i * (cardW + gap);
+      d.roundedRect(cx, y, cardW, 90, 8).fillAndStroke("#FFFFFF", "#E2E8F0");
+      d.fillColor("#3B82F6").font("Bold").fontSize(18).text(it.value || String(i + 1), cx + 10, y + 10, { width: cardW - 20, lineBreak: false, ellipsis: true });
+      d.fillColor("#0F172A").font("Bold").fontSize(9).text(it.label || "-", cx + 10, y + 38, { width: cardW - 20, height: 22, ellipsis: true });
+      d.fillColor("#64748B").font("Body").fontSize(8).text(it.detail || "", cx + 10, y + 60, { width: cardW - 20, height: 22, ellipsis: true });
+    }
+  }
+
+  private drawVisualProcess(items: Array<{ label: string; value: string; detail: string }>, x: number, y: number, w: number) {
+    const count = Math.max(1, Math.min(items.length || 3, 5));
+    const step = w / count;
+    const lineY = y + 36;
+    const d = this.doc;
+    d.moveTo(x + 12, lineY).lineTo(x + w - 12, lineY).lineWidth(2).strokeColor("#CBD5E1").stroke();
+    for (let i = 0; i < count; i++) {
+      const it = items[i] || { label: `Step ${i + 1}`, value: "", detail: "" };
+      const cx = x + step * i + step / 2;
+      d.circle(cx, lineY, 14).fill("#3B82F6");
+      d.fillColor("#FFFFFF").font("Bold").fontSize(9).text(String(i + 1), cx - 6, lineY - 5, { width: 12, align: "center", lineBreak: false });
+      d.fillColor("#0F172A").font("Bold").fontSize(8).text(it.label, cx - step / 2 + 4, lineY + 24, { width: step - 8, align: "center", height: 20, ellipsis: true });
+      d.fillColor("#64748B").font("Body").fontSize(7).text(it.value || it.detail || "", cx - step / 2 + 4, lineY + 46, { width: step - 8, align: "center", height: 18, ellipsis: true });
+    }
+  }
+
+  private drawVisualComparison(items: Array<{ label: string; value: string; detail: string }>, x: number, y: number, w: number) {
+    const cols = Math.max(2, Math.min(items.length || 2, 3));
+    const gap = 10;
+    const cardW = (w - gap * (cols - 1)) / cols;
+    const d = this.doc;
+    for (let i = 0; i < cols; i++) {
+      const it = items[i] || { label: `Option ${i + 1}`, value: "", detail: "" };
+      const cx = x + i * (cardW + gap);
+      d.roundedRect(cx, y, cardW, 90, 8).fillAndStroke(i === 0 ? "#EFF6FF" : "#FFFFFF", i === 0 ? "#3B82F6" : "#E2E8F0");
+      d.fillColor(i === 0 ? "#3B82F6" : "#64748B").font("Bold").fontSize(8).text(it.value || `Option ${i + 1}`, cx + 10, y + 10, { width: cardW - 20, lineBreak: false, ellipsis: true });
+      d.fillColor("#0F172A").font("Bold").fontSize(10).text(it.label, cx + 10, y + 28, { width: cardW - 20, height: 24, ellipsis: true });
+      d.fillColor("#64748B").font("Body").fontSize(8).text(it.detail || "", cx + 10, y + 54, { width: cardW - 20, height: 28, ellipsis: true });
+    }
+  }
+
+  private drawVisualBars(items: Array<{ label: string; value: string; detail: string }>, x: number, y: number, w: number) {
+    const vals = (items.length ? items : [{ label: "A", value: "10", detail: "" }]).slice(0, 5).map((it, i) => {
+      const m = (it.value || "").replace(/,/g, "").match(/-?\d+(\.\d+)?/);
+      return { ...it, n: m ? Number(m[0]) : (5 - i) * 10 };
+    });
+    const max = Math.max(1, ...vals.map((v) => v.n));
+    const gap = 10;
+    const barW = (w - gap * (vals.length - 1)) / vals.length;
+    const chartH = 72;
+    const baseY = y + chartH + 16;
+    const d = this.doc;
+    d.moveTo(x, baseY).lineTo(x + w, baseY).strokeColor("#CBD5E1").lineWidth(1).stroke();
+    vals.forEach((it, i) => {
+      const bh = Math.max(4, (it.n / max) * chartH);
+      const bx = x + i * (barW + gap);
+      const by = baseY - bh;
+      d.roundedRect(bx, by, barW, bh, 4).fill(i % 2 === 0 ? "#3B82F6" : "#93C5FD");
+      d.fillColor("#0F172A").font("Bold").fontSize(7).text(it.value || String(it.n), bx, by - 10, { width: barW, align: "center", lineBreak: false, ellipsis: true });
+      d.fillColor("#64748B").font("Body").fontSize(7).text(it.label, bx, baseY + 4, { width: barW, align: "center", lineBreak: false, ellipsis: true });
+    });
+  }
   private async richImage(node: EbookRichTextNode) {
     const src = richTextImageSrc(node);
     if (!src) return;
@@ -1129,9 +1320,19 @@ async function renderOnce(
   return new PdfBook(ebook, images).render(pageMap);
 }
 
+export type EbookPdfRenderResult = { buffer: Buffer; pageCount: number };
+
 export async function generateEbookPdf(ebook: EbookContent): Promise<Buffer> {
+  const result = await generateEbookPdfWithMeta(ebook);
+  return result.buffer;
+}
+
+export async function generateEbookPdfWithMeta(
+  ebook: EbookContent,
+): Promise<EbookPdfRenderResult> {
   let pageMap: PageMap = {};
   let buffer: Buffer | undefined;
+  let pageCount = 0;
   // The layout is rendered up to five times to settle TOC page numbers, so
   // remote images are fetched once and reused across passes.
   const images: ImageCache = new Map();
@@ -1139,6 +1340,7 @@ export async function generateEbookPdf(ebook: EbookContent): Promise<Buffer> {
   for (let pass = 0; pass < 5; pass += 1) {
     const result = await renderOnce(ebook, pageMap, images);
     buffer = result.buffer;
+    pageCount = result.pageCount;
     if (JSON.stringify(result.pageMap) === JSON.stringify(pageMap)) {
       break;
     }
@@ -1149,5 +1351,5 @@ export async function generateEbookPdf(ebook: EbookContent): Promise<Buffer> {
     throw new Error("Gagal membuat PDF.");
   }
 
-  return buffer;
+  return { buffer, pageCount };
 }

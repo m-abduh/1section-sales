@@ -36,6 +36,7 @@ export const createProductSchema = z.object({
   sampleUrl: z.string().max(500).optional().nullable(),
   level: learningLevelSchema.optional(),
   coverImage: z.string().max(500).optional().nullable(),
+  pageCount: z.number().int().min(1).max(10000).optional().nullable(),
   priceAmount: z.number().int().min(0),
   compareAtAmount: z.number().int().min(0).optional().nullable(),
   currency: z.string().length(3).optional(),

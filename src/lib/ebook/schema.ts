@@ -12,6 +12,7 @@ const richTextValue: z.ZodType<EbookRichTextValue> = z.lazy(() =>
     z.boolean(),
     z.null(),
     z.array(richTextValue),
+    z.record(richTextValue),
   ]),
 );
 

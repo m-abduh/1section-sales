@@ -56,6 +56,7 @@ export interface Product {
   sampleUrl: string | null;
   level: LearningLevel;
   coverImage: string | null;
+  pageCount: number | null;
   priceAmount: number;
   compareAtAmount: number | null;
   currency: string;

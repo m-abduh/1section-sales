@@ -2,7 +2,7 @@ import { prisma } from "../../lib/prisma";
 import { ApiError } from "../../utils/api-error";
 import { slugify } from "../../utils/slug";
 import { normalizeEbookCover } from "../../../ebook/cover";
-import { generateEbookPdf } from "../../../ebook/pdf";
+import { generateEbookPdfWithMeta } from "../../../ebook/pdf";
 import { ebookSchema } from "../../../ebook/schema";
 import type { EbookContent } from "../../../ebook/types";
 import { hasCloudinary } from "../../config/env";
@@ -117,7 +117,7 @@ export async function publishEbookProject(
     );
   }
 
-  const buffer = await generateEbookPdf(content);
+  const { buffer, pageCount } = await generateEbookPdfWithMeta(content);
   const name = input.name?.trim() || content.title;
   const uploaded = await uploadPdfBuffer(buffer, `${slugify(name) || "ebook"}.pdf`);
   const asset = await upsertAssetFile({
@@ -159,6 +159,7 @@ export async function publishEbookProject(
     sampleUrl: input.sampleUrl ?? null,
     level: input.level ?? "FOUNDATIONS",
     coverImage: content.cover?.renderedUrl ?? null,
+    pageCount,
     priceAmount: input.priceAmount,
     compareAtAmount: input.compareAtAmount ?? null,
     currency: "USD",

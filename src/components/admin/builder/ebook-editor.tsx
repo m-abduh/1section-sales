@@ -674,6 +674,7 @@ export function EbookEditor({
                         })
                       }
                       placeholder="Tulis pendahuluan…"
+                      visualContext={{ brand: content.brand, niche: content.niche, bookTitle: content.title, chapterTitle: "Introduction" }}
                     />
                   </div>
                 </div>
@@ -687,6 +688,9 @@ export function EbookEditor({
                       sections: [],
                     }
                   }
+                  bookBrand={content.brand}
+                  bookNiche={content.niche}
+                  bookTitle={content.title}
                   canDelete={content.chapters.length > 1}
                   onRequestDelete={() =>
                     setPendingDelete(Number(page.key.split("-")[1]))
@@ -751,6 +755,7 @@ export function EbookEditor({
                         })
                       }
                       placeholder="Tulis kesimpulan…"
+                      visualContext={{ brand: content.brand, niche: content.niche, bookTitle: content.title, chapterTitle: "Conclusion" }}
                     />
                   </div>
                 </div>
@@ -813,6 +818,7 @@ export function EbookEditor({
                         })
                       }
                       placeholder="Tulis about…"
+                      visualContext={{ brand: content.brand, niche: content.niche, bookTitle: content.title, chapterTitle: "About" }}
                     />
                   </div>
                 </div>
@@ -1233,6 +1239,9 @@ function PartBrief({
 
 function ChapterEditor({
   chapter,
+  bookBrand,
+  bookNiche,
+  bookTitle,
   canDelete,
   onRequestDelete,
   onChange,
@@ -1241,6 +1250,9 @@ function ChapterEditor({
   briefError,
 }: {
   chapter: EbookChapter;
+  bookBrand: string;
+  bookNiche: string;
+  bookTitle: string;
   canDelete: boolean;
   onRequestDelete: () => void;
   onChange: (chapter: EbookChapter) => void;
@@ -1296,6 +1308,7 @@ function ChapterEditor({
             value={richTextFromChapter(chapter)}
             onChange={(body) => onChange({ ...chapter, body })}
             placeholder="Tulis isi bab…"
+            visualContext={{ brand: bookBrand, niche: bookNiche, bookTitle, chapterTitle: chapter.title }}
           />
         </div>
       </div>

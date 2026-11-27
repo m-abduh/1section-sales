@@ -484,6 +484,15 @@ function PublishModal({
             ? "PDF akan dibuat ulang dari konten terbaru dan diunggah, lalu product yang sama di katalog akan diperbarui (tanpa membuat duplikat). Metadata yang kamu isi di form ini akan disimpan ke product tersebut."
             : "PDF akan dibuat ulang dari konten terbaru, diunggah ke penyimpanan privat, lalu ditautkan ke product baru. Product juga otomatis disinkronkan ke Paddle."}
         </p>
+        {existingProduct?.pageCount ? (
+          <p className="text-xs text-fg-muted">
+            Total halaman PDF (terakhir tersimpan): <span className="font-semibold text-fg">{existingProduct.pageCount} halaman</span>. Saat kamu klik <span className="font-medium text-fg">Update product</span>, PDF dibuat ulang dan jumlah halaman diperbarui otomatis.
+          </p>
+        ) : (
+          <p className="text-xs text-fg-muted">
+            Jumlah halaman PDF akan dihitung otomatis saat kamu klik <span className="font-medium text-fg">Update product</span> / Publish.
+          </p>
+        )}
         {error ? (
           <p className="rounded-lg bg-red-500/10 px-3 py-2 text-xs text-red-700 dark:text-red-400">
             {error}

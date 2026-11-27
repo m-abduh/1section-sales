@@ -28,6 +28,7 @@ const publicProductSelect = {
   sampleUrl: true,
   level: true,
   coverImage: true,
+  pageCount: true,
   priceAmount: true,
   compareAtAmount: true,
   currency: true,
@@ -148,6 +149,7 @@ export async function createProduct(input: CreateProductInput) {
     sampleUrl: input.sampleUrl ?? null,
     level: input.level ?? "FOUNDATIONS",
     coverImage: input.coverImage ?? null,
+    pageCount: input.pageCount ?? null,
     priceAmount: input.priceAmount,
     compareAtAmount: input.compareAtAmount ?? null,
     currency: input.currency ?? "USD",
@@ -191,6 +193,7 @@ export async function updateProduct(id: string, input: UpdateProductInput) {
   if (input.sampleUrl !== undefined) data.sampleUrl = input.sampleUrl;
   if (input.level !== undefined) data.level = input.level;
   if (input.coverImage !== undefined) data.coverImage = input.coverImage;
+  if (input.pageCount !== undefined) data.pageCount = input.pageCount;
   if (input.priceAmount !== undefined) data.priceAmount = input.priceAmount;
   if (input.compareAtAmount !== undefined) data.compareAtAmount = input.compareAtAmount;
   if (input.currency !== undefined) data.currency = input.currency;

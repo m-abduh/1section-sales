@@ -441,6 +441,57 @@ function cleanParagraphs(values: string[]): string[] {
   return result;
 }
 
+
+const visualSpecSchema = z.object({
+  svg: z.string().trim().min(20).max(200000),
+  alt: z.string().trim().max(200).optional(),
+});
+
+const VISUAL_PROMPT = `You are a professional infographic designer for ebooks.
+
+Task: convert the selected text into a single, self-contained, wide horizontal SVG visualization that fits the content/context.
+Rules:
+- Return ONLY valid JSON: {"svg":"<svg ...>...</svg>","alt":"short description"}
+- The "svg" value must be a complete SVG string only. No markdown, no explanation.
+- Design style is up to you. Make it clean, modern, readable, and appropriate for the content. Do not use a fixed template look.
+- Horizontal wide layout: use viewBox="0 0 1200 360" (or similar wide ratio). Make it responsive-friendly (no fixed tiny width requirement beyond viewBox).
+- Include all text as SVG text/tspan. Keep text short and legible.
+- Use colors, shapes, icons, charts, cards, timelines, diagrams, or any visual form that best represents the selected text.
+- Be faithful to the text. Do NOT invent facts, numbers, names, or claims not supported by the text.
+- If text has steps/process, show a process/timeline. If it compares things, show a comparison. If it has explicit numbers, you may chart them. If it has key ideas, show key points/cards. Pick what best fits.
+- No external assets: no images, no external fonts, no external URLs, no scripts, no foreignObject, no animation/event handlers.
+- Use safe inline SVG only: rect/circle/line/path/text/tspan/g/defs/linearGradient/clipPath etc.
+- Ensure good contrast and spacing. Keep the SVG background transparent (do not draw a full background rectangle); the ebook theme handles the background.`;
+
+export type GenerateVisualInput = {
+  text: string;
+  brand: string;
+  niche?: string;
+  bookTitle?: string;
+  chapterTitle?: string;
+  instruction?: string;
+};
+
+export async function generateEbookVisual(input: GenerateVisualInput) {
+  const apiKey = requireApiKey();
+  const user = [
+    `Brand: ${input.brand}`,
+    input.niche ? `Niche: ${input.niche}` : null,
+    input.bookTitle ? `Book: ${input.bookTitle}` : null,
+    input.chapterTitle ? `Chapter: ${input.chapterTitle}` : null,
+    input.instruction ? `Design instruction: ${input.instruction}` : null,
+    `Selected text:\n${input.text}`,
+  ].filter(Boolean).join("\n");
+
+  const result = await runGroqJson(apiKey, {
+    system: VISUAL_PROMPT,
+    user,
+    maxTokens: 4000,
+    temperature: 0.7,
+    schema: visualSpecSchema,
+  });
+  return result;
+}
 type PartBase = {
   brand: string;
   niche: string;

@@ -113,6 +113,7 @@ model Product {
   sampleUrl       String?
   level           LearningLevel @default(FOUNDATIONS)
   coverImage      String?
+  pageCount       Int?
   priceAmount     Int
   compareAtAmount Int?
   currency        String        @default("USD")

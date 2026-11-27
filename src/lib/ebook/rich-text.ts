@@ -39,6 +39,16 @@ export function richTextToParagraphs(nodes: EbookRichTextNode[]): string[] {
   const paragraphs: string[] = [];
   for (const node of nodes) {
     if (node.type === "image") continue;
+    if (node.type === "visualBlock") {
+      const alt = typeof node.attrs?.alt === "string" ? node.attrs.alt.trim() : "";
+      const spec = node.attrs?.spec as { title?: string; subtitle?: string; items?: Array<{ label?: string; value?: string; detail?: string }> } | undefined;
+      if (alt || spec?.title) paragraphs.push(alt || spec?.title || "Visual");
+      for (const item of spec?.items ?? []) {
+        const line = [item.label, item.value, item.detail].filter(Boolean).join(" - ");
+        if (line) paragraphs.push(line);
+      }
+      continue;
+    }
     if (node.type === "bulletList" || node.type === "orderedList") {
       for (const item of node.content ?? []) {
         const text = richTextPlainText(item.content ?? []).trim();
@@ -85,6 +95,18 @@ export function richTextToPrompt(nodes: EbookRichTextNode[]): string {
     if (node.type === "image") {
       const alt = richTextImageAlt(node).trim();
       if (alt) lines.push(`[Gambar: ${alt}]`, "");
+      continue;
+    }
+    if (node.type === "visualBlock") {
+      const alt = typeof node.attrs?.alt === "string" ? node.attrs.alt.trim() : "";
+      const spec = node.attrs?.spec as { title?: string; subtitle?: string; items?: Array<{ label?: string; value?: string; detail?: string }> } | undefined;
+      if (alt || spec?.title) lines.push(`[Visual: ${alt || spec?.title}]`);
+      if (spec?.subtitle) lines.push(spec.subtitle);
+      for (const item of spec?.items ?? []) {
+        const line = [item.label, item.value, item.detail].filter(Boolean).join(" - ");
+        if (line) lines.push(`- ${line}`);
+      }
+      if (alt || spec?.title || spec?.items?.length) lines.push("");
       continue;
     }
     if (node.content?.length) {

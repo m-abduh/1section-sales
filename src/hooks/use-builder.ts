@@ -153,6 +153,20 @@ export async function generateEbookMetadataPart(input: {
   return response.data.data;
 }
 
+export async function generateEbookVisual(input: {
+  text: string;
+  brand: string;
+  niche?: string;
+  bookTitle?: string;
+  chapterTitle?: string;
+  instruction?: string;
+}) {
+  const response = await api.post<{ data: { svg: string; alt?: string } }>(
+    "/admin/builder/visualize",
+    input,
+  );
+  return response.data.data;
+}
 export function useCreateEbookContent() {
   const queryClient = useQueryClient();
   return useMutation({

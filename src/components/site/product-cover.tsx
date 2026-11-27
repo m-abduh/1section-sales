@@ -7,6 +7,7 @@ export function ProductCover({
   className = "",
   imageClassName = "",
   sizes = "(min-width: 1024px) 360px, 90vw",
+  priority = false,
 }: {
   src?: string | null;
   alt: string;
@@ -14,6 +15,7 @@ export function ProductCover({
   className?: string;
   imageClassName?: string;
   sizes?: string;
+  priority?: boolean;
 }) {
   return (
     <div
@@ -36,6 +38,7 @@ export function ProductCover({
           width={1200}
           height={1500}
           sizes={sizes}
+          priority={priority}
           className={`relative z-10 max-h-[82%] w-auto rounded-2xl border border-white/10 object-contain shadow-[0_20px_40px_-12px_rgba(0,0,0,0.85)] transition-transform duration-300 group-hover:scale-[1.02] ${imageClassName}`}
         />
       ) : (
