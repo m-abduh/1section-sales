@@ -19,7 +19,7 @@ export function ProductCover({
 }) {
   return (
     <div
-      className={`group relative flex aspect-square w-full items-center justify-center overflow-hidden rounded-3xl border border-slate-200/70 bg-gradient-to-b from-slate-100 via-slate-50 to-white shadow-inner dark:border-white/10 dark:from-[#1e2029] dark:via-[#16171f] dark:to-[#0d0e13] ${className}`}
+      className={`group relative flex aspect-square w-full max-h-[420px] items-center justify-center overflow-hidden rounded-3xl border border-slate-200/70 bg-gradient-to-b from-slate-100 via-slate-50 to-white shadow-inner dark:border-white/10 dark:from-[#1e2029] dark:via-[#16171f] dark:to-[#0d0e13] ${className}`}
     >
       <div
         className="pointer-events-none absolute inset-0 opacity-40"

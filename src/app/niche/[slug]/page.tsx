@@ -183,13 +183,13 @@ export default async function NichePage({ params }: NichePageProps) {
                     <div key={product.id} className="relative grid grid-cols-1 gap-6 overflow-hidden rounded-3xl border border-slate-200/80 dark:border-[#34343a]/40 bg-white/70 dark:bg-[#1e1f25]/60 p-6 shadow-xl backdrop-blur-2xl md:grid-cols-[0.95fr_1.25fr] md:p-7 lg:grid-cols-[0.85fr_1.35fr_0.8fr] lg:items-stretch lg:gap-6 lg:p-6">
                       <div className="pointer-events-none absolute -right-16 -top-16 h-44 w-44 rounded-full bg-[#d0bcff]/10 blur-[50px]" />
 
-                      <div className="md:aspect-auto md:min-h-[320px] lg:min-h-0">
+                      <div className="md:min-h-[320px] lg:min-h-0 lg:max-w-[420px] lg:justify-self-start">
                         <ProductCover
                           src={product.coverImage}
                           alt={product.name}
                           fallback={number}
                           sizes="(min-width: 1024px) 420px, 90vw"
-                          className="md:aspect-auto md:h-full lg:aspect-square"
+                          className="md:h-full lg:h-auto"
                           priority={index === 0}
                         />
                       </div>
