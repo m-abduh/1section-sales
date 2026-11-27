@@ -122,14 +122,10 @@ export default function AdminBuilderPage() {
                   </span>
                   <span className="size-1 rounded-full bg-border" />
                   <span>{references} referensi</span>
-                  {project.productId ? (
-                    <>
-                      <span className="size-1 rounded-full bg-border" />
-                      <span className="font-medium text-emerald-600 dark:text-emerald-400">
-                        Published
-                      </span>
-                    </>
-                  ) : null}
+                  <span className="size-1 rounded-full bg-border" />
+                  <span className={project.productId ? "font-medium text-emerald-600 dark:text-emerald-400" : "text-fg-muted"}>
+                    {project.productId ? "Published" : "Belum dipublish"}
+                  </span>
                 </div>
 
                 <div className="mt-4 flex items-center justify-between border-t border-border pt-4">
